@@ -1,0 +1,142 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+  deploy:
+    name: Update GitOps
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout GitOps
+        uses: actions/checkout@v5
+        with:
+          repository: wikramawardana/wikra-gitops
+          token: ${{ secrets.GITOPS_TOKEN || secrets.GH_PAT }}
+          path: wikra-gitops
+
+      - name: Update frontend image tag
+        working-directory: wikra-gitops
+        run: |
+          set -euo pipefail
+          IMAGE_TAG="${GITHUB_SHA::7}"
+          FILE="manifests/tuwaga-fe/overlays/prod/kustomization.yaml"
+
+          sed -i -E "s/(newTag: ).*/\1${IMAGE_TAG}/" "$FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+
+          if git diff --cached --quiet; then
+            echo "GitOps already points at ${IMAGE_TAG}"
+            exit 0
+          fi
+
+          git commit -m "deploy tuwaga-fe ${IMAGE_TAG}"
+          git push
+
+  health-check:
+    name: Health Check
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Wait for startup
+        run: sleep 60
+
+      - name: Check app health
+        env:
+          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+        run: |
+          if [ -z "${HEALTHCHECK_URL}" ]; then
+            echo "HEALTHCHECK_URL is not set; skipping public health check."
+            exit 0
+          fi
+
+          curl -fsSIL "${HEALTHCHECK_URL}"
