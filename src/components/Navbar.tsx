@@ -10,7 +10,7 @@ type NavbarAction = {
 };
 
 type NavbarProps = {
-  active?: "home" | "register" | "live" | "bracket";
+  active?: "home" | "register" | "live" | "bracket" | "admin";
   actions?: NavbarAction[];
   sticky?: boolean;
 };
@@ -45,6 +45,16 @@ export default function Navbar({
             }`}
           >
             Home
+          </Link>
+          <Link
+            href="/admin"
+            className={`hidden h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors sm:inline-flex ${
+              active === "admin"
+                ? "bg-primary/8 text-primary"
+                : "text-on-surface hover:bg-surface-container-low"
+            }`}
+          >
+            Admin
           </Link>
           {actions.map((action) => {
             const className =
