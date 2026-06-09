@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 
@@ -111,6 +112,12 @@ export default function LiveScoresPage() {
       <div className="flex min-h-screen pt-16">
         <main className="flex-1 p-6 md:px-[40px] md:py-12 max-w-[1440px] mx-auto">
           {/* Header Section */}
+          <PageBreadcrumb
+            parentLabel="Home"
+            parentHref="/"
+            current="Live Scores"
+          />
+
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-primary text-[14px] font-medium tracking-[0.01em] font-bold tracking-widest uppercase">

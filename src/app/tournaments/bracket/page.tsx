@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 
 type Team = {
   seed: number;
@@ -412,6 +413,12 @@ export default function BracketPage() {
       <main className="min-h-screen bg-background px-6 pb-16 pt-28 md:px-10">
         <div className="mx-auto max-w-[1440px]">
           <section className="mb-10">
+            <PageBreadcrumb
+              parentLabel="Home"
+              parentHref="/"
+              current="Bracket"
+            />
+
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-secondary-container px-3 py-1 text-xs font-bold uppercase tracking-wider text-on-secondary-container">
                 Group stage first

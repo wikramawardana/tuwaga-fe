@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import RegistrationProgress from "@/components/RegistrationProgress";
 
 type RegistrationShellProps = {
@@ -28,6 +29,12 @@ export default function RegistrationShell({
 
       <main className="flex-1 px-6 pb-12 pt-28 md:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
+          <PageBreadcrumb
+            parentLabel="Home"
+            parentHref="/"
+            current="Register"
+          />
+
           {showProgress ? (
             <RegistrationProgress current={current ?? 0} />
           ) : null}

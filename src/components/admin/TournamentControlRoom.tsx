@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
 import type { AdminTournament } from "@/lib/adminTournaments";
 import { getAdminTournament } from "@/lib/adminTournaments";
 
@@ -592,19 +592,11 @@ export default function TournamentControlRoom({
         <section className="border-b border-outline-variant/20 bg-white">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-6 py-8 md:px-10 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <nav
-                aria-label="Breadcrumb"
-                className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
-              >
-                <Link
-                  href="/admin"
-                  className="text-on-surface-variant transition-colors hover:text-primary"
-                >
-                  Admin
-                </Link>
-                <span className="text-outline">/</span>
-                <span className="text-primary">{tournament.name}</span>
-              </nav>
+              <PageBreadcrumb
+                parentLabel="Admin"
+                parentHref="/admin"
+                current={tournament.name}
+              />
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
                 Tournament control room
               </h1>
