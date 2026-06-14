@@ -1,8 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import RegistrationShell from "@/components/RegistrationShell";
+import {
+  createRegistration,
+  getCurrentTournament,
+  getRegistrationSummary,
+  type RegistrationSummary,
+  type Tournament,
+} from "@/lib/tuwagaApi";
 
 const SKILL_LEVELS = [
   {
@@ -92,10 +99,22 @@ function FormSection({
 function TournamentSummary({
   selectedSkill,
   agreed,
+  summary,
+  submitting,
 }: {
   selectedSkill: (typeof SKILL_LEVELS)[number];
   agreed: boolean;
+  summary: RegistrationSummary | null;
+  submitting: boolean;
 }) {
+  const currency = summary?.tournament.currency ?? "IDR";
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+
   return (
     <aside className="lg:col-span-4 lg:h-full">
       <div className="custom-scrollbar register-summary-panel overflow-hidden rounded-xl border border-surface-container bg-surface-container-lowest shadow-[0px_4px_20px_rgba(0,0,0,0.04)] lg:sticky lg:top-0 lg:max-h-full lg:overflow-y-auto">
@@ -110,10 +129,10 @@ function TournamentSummary({
           <div className="absolute inset-0 bg-gradient-to-t from-on-surface/80 to-transparent" />
           <div className="absolute bottom-4 left-5">
             <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-on-secondary">
-              MVP Event
+              {summary?.tournament.badge ?? "Backend event"}
             </span>
             <h2 className="mt-2 max-w-[260px] text-[24px] font-semibold leading-[1.25] text-white">
-              Jakarta Arena Championship
+              {summary?.tournament.name ?? "Loading tournament"}
             </h2>
           </div>
         </div>
@@ -124,17 +143,19 @@ function TournamentSummary({
               {
                 icon: "calendar_today",
                 label: "Date",
-                value: "Aug 16 - Aug 18, 2026",
+                value: summary?.tournament.dateLabel ?? "Loading",
               },
               {
                 icon: "location_on",
                 label: "Location",
-                value: "Jakarta, Indonesia",
+                value: summary?.tournament.location ?? "Loading",
               },
               {
                 icon: "payments",
                 label: "Entry",
-                value: "Rp250.000 / player",
+                value: summary
+                  ? `${formatMoney(summary.tournament.entryFeePerPlayer)} / player`
+                  : "Loading",
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-3">
@@ -170,31 +191,39 @@ function TournamentSummary({
           <div className="space-y-2 border-t border-surface-container pt-5">
             <div className="flex justify-between text-[14px] text-on-surface-variant">
               <span>Registration Fee (2 players)</span>
-              <span className="text-on-surface">Rp500.000</span>
+              <span className="text-on-surface">
+                {summary ? formatMoney(summary.fees.registrationFee) : "-"}
+              </span>
             </div>
             <div className="flex justify-between text-[14px] text-on-surface-variant">
               <span>Service Fee</span>
-              <span className="text-on-surface">Rp30.000</span>
+              <span className="text-on-surface">
+                {summary ? formatMoney(summary.fees.serviceFee) : "-"}
+              </span>
             </div>
             <div className="flex justify-between text-[14px] text-on-surface-variant">
               <span>Payment Admin</span>
-              <span className="text-on-surface">Rp7.500</span>
+              <span className="text-on-surface">
+                {summary ? formatMoney(summary.fees.paymentAdminFee) : "-"}
+              </span>
             </div>
             <div className="flex justify-between border-t border-surface-container pt-3 text-[20px] font-semibold">
               <span>Total</span>
-              <span className="text-primary">Rp537.500</span>
+              <span className="text-primary">
+                {summary ? formatMoney(summary.fees.total) : "-"}
+              </span>
             </div>
           </div>
 
           <div className="rounded-lg border border-primary/10 bg-primary/5 p-4 text-[12px] font-semibold leading-relaxed text-primary">
-            WhatsApp support: +62 812-3456-7890. Registration stays on one page
-            for this MVP.
+            WhatsApp support: {summary?.support.whatsapp ?? "Loading"}.
+            Registration is saved to the backend.
           </div>
 
           <button
             type="submit"
             form="registration-form"
-            disabled={!agreed}
+            disabled={!agreed || submitting}
             className={`flex h-12 w-full items-center justify-center gap-2 rounded-lg px-7 text-[14px] font-semibold tracking-[0.01em] shadow-lg transition-all active:scale-95 ${
               agreed
                 ? "bg-primary text-on-primary shadow-primary/20 hover:bg-on-primary-fixed-variant"
@@ -202,7 +231,7 @@ function TournamentSummary({
             }`}
           >
             <span className="material-symbols-outlined text-[20px]">lock</span>
-            Submit Registration
+            {submitting ? "Submitting..." : "Submit Registration"}
           </button>
         </div>
       </div>
@@ -214,6 +243,10 @@ export default function RegisterPage() {
   const [selectedSkill, setSelectedSkill] =
     useState<SkillValue>("intermediate");
   const [agreed, setAgreed] = useState(false);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [summary, setSummary] = useState<RegistrationSummary | null>(null);
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedSkillData = useMemo(
     () =>
@@ -221,6 +254,87 @@ export default function RegisterPage() {
       SKILL_LEVELS[1],
     [selectedSkill],
   );
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSummary() {
+      try {
+        const current = await getCurrentTournament();
+        if (!active) return;
+        setTournament(current);
+        if (!current) {
+          setMessage("No tournament found in the backend.");
+          return;
+        }
+
+        const nextSummary = await getRegistrationSummary(current.id);
+        if (!active) return;
+        setSummary(nextSummary);
+      } catch (err) {
+        if (!active) return;
+        setMessage(
+          err instanceof Error
+            ? err.message
+            : "Failed to load registration summary.",
+        );
+      }
+    }
+
+    loadSummary();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const submitRegistration = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    if (!tournament) {
+      setMessage("No tournament is available for registration.");
+      return;
+    }
+
+    const form = event.currentTarget;
+    const field = (id: string) =>
+      (
+        (form.elements.namedItem(id) as HTMLInputElement | HTMLSelectElement)
+          ?.value ?? ""
+      ).trim();
+
+    setSubmitting(true);
+    try {
+      const response = await createRegistration(tournament.id, {
+        acceptedTerms: agreed,
+        player: {
+          fullName: field("full-name"),
+          email: field("email"),
+          phone: field("phone"),
+          nationality: field("nationality"),
+          skillLevel: selectedSkill,
+          city: null,
+          membershipId: null,
+        },
+        partner: {
+          fullName: field("partner-name"),
+          email: field("partner-email"),
+          skillLevel: field("partner-level") || selectedSkill,
+          membershipId: field("partner-id") || null,
+        },
+      });
+      setMessage(`Registration saved: ${response.registration.id}`);
+      form.reset();
+      setAgreed(false);
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to submit registration.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <RegistrationShell
@@ -232,8 +346,13 @@ export default function RegisterPage() {
         <form
           id="registration-form"
           className="custom-scrollbar space-y-6 lg:col-span-8 lg:h-full lg:overflow-y-auto lg:pb-2 lg:pr-2"
-          onSubmit={(event) => event.preventDefault()}
+          onSubmit={submitRegistration}
         >
+          {message && (
+            <div className="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm font-semibold text-primary">
+              {message}
+            </div>
+          )}
           <FormSection
             icon="person"
             title="Player Information"
@@ -384,7 +503,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <select
                     id="partner-level"
-                    defaultValue=""
+                    defaultValue="intermediate"
                     className="w-full cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
                   >
                     <option value="" disabled>
@@ -472,7 +591,12 @@ export default function RegisterPage() {
           </FormSection>
         </form>
 
-        <TournamentSummary selectedSkill={selectedSkillData} agreed={agreed} />
+        <TournamentSummary
+          selectedSkill={selectedSkillData}
+          agreed={agreed}
+          summary={summary}
+          submitting={submitting}
+        />
       </div>
     </RegistrationShell>
   );

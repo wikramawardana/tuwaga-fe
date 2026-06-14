@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AdminTournament } from "@/lib/adminTournaments";
-import { adminTournaments } from "@/lib/adminTournaments";
-
-const storageKey = "tuwaga-admin-tournaments";
+import { listTournaments, type Tournament } from "@/lib/tuwagaApi";
 
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
@@ -22,6 +20,7 @@ const statusMeta = {
   setup: { label: "Setup", icon: "tune", tone: "blue" },
   registration: { label: "Registration", icon: "how_to_reg", tone: "green" },
   live: { label: "Live", icon: "sensors", tone: "red" },
+  completed: { label: "Completed", icon: "check_circle", tone: "neutral" },
 } satisfies Record<
   AdminTournament["status"],
   { label: string; icon: string; tone: BadgeTone }
@@ -46,24 +45,26 @@ function StatusBadge({
   );
 }
 
-function readStoredTournaments(): AdminTournament[] {
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    if (!stored) return [];
-
-    return JSON.parse(stored) as AdminTournament[];
-  } catch {
-    return [];
-  }
+function toAdminTournament(tournament: Tournament): AdminTournament {
+  return {
+    id: tournament.id,
+    name: tournament.name,
+    venue: tournament.venue,
+    date: tournament.dateLabel,
+    status: tournament.status,
+    description: tournament.description,
+    settings: {
+      maxPlayers: tournament.settings.maxPlayers,
+      waitlistLimit: tournament.settings.waitlistLimit,
+      courts: tournament.settings.courts,
+      matchDuration: tournament.settings.matchDuration,
+      teamSize: tournament.settings.teamSize,
+      format: tournament.settings.format,
+    },
+  };
 }
 
-function TournamentCard({
-  tournament,
-  isDraft = false,
-}: {
-  tournament: AdminTournament;
-  isDraft?: boolean;
-}) {
+function TournamentCard({ tournament }: { tournament: AdminTournament }) {
   return (
     <Link
       href={`/admin/tournaments/${tournament.id}`}
@@ -75,13 +76,6 @@ function TournamentCard({
             <p className="text-xl font-extrabold text-on-surface">
               {tournament.name}
             </p>
-            {isDraft && (
-              <StatusBadge
-                icon="edit_note"
-                label="Local draft"
-                tone="magenta"
-              />
-            )}
           </div>
           <p className="mt-1 text-sm font-semibold text-on-surface-variant">
             {tournament.venue} - {tournament.date}
@@ -127,27 +121,33 @@ function TournamentCard({
 }
 
 export default function AdminTournamentList() {
-  const [storedTournaments, setStoredTournaments] = useState<AdminTournament[]>(
-    [],
-  );
+  const [tournaments, setTournaments] = useState<AdminTournament[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setStoredTournaments(readStoredTournaments());
-  }, []);
+    let active = true;
 
-  const tournaments = useMemo(
-    () => [
-      ...adminTournaments.map((tournament) => ({
-        tournament,
-        isDraft: false,
-      })),
-      ...storedTournaments.map((tournament) => ({
-        tournament,
-        isDraft: true,
-      })),
-    ],
-    [storedTournaments],
-  );
+    listTournaments()
+      .then((items) => {
+        if (!active) return;
+        setTournaments(items.map(toAdminTournament));
+        setError("");
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(
+          err instanceof Error ? err.message : "Failed to load tournaments.",
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-8 md:px-10">
@@ -170,13 +170,31 @@ export default function AdminTournamentList() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {tournaments.map(({ tournament, isDraft }) => (
-          <TournamentCard
-            key={tournament.id}
-            tournament={tournament}
-            isDraft={isDraft}
-          />
-        ))}
+        {loading &&
+          ["loading-a", "loading-b", "loading-c"].map((key) => (
+            <div
+              key={key}
+              className="h-64 animate-pulse rounded-lg border border-outline-variant/30 bg-white"
+            />
+          ))}
+
+        {!loading && error && (
+          <div className="rounded-lg border border-error/20 bg-error-container p-5 text-sm font-semibold text-on-error-container lg:col-span-3">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && tournaments.length === 0 && (
+          <div className="rounded-lg border border-outline-variant/30 bg-white p-5 text-sm font-semibold text-on-surface-variant lg:col-span-3">
+            No tournaments found. Create the first control room.
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          tournaments.map((tournament) => (
+            <TournamentCard key={tournament.id} tournament={tournament} />
+          ))}
       </div>
     </section>
   );

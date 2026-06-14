@@ -1,9 +1,4 @@
 import TournamentControlRoom from "@/components/admin/TournamentControlRoom";
-import { adminTournaments } from "@/lib/adminTournaments";
-
-export function generateStaticParams() {
-  return adminTournaments.map((tournament) => ({ id: tournament.id }));
-}
 
 export default async function AdminTournamentPage({
   params,

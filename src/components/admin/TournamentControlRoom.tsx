@@ -5,11 +5,23 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import type { AdminTournament } from "@/lib/adminTournaments";
-import { getAdminTournament } from "@/lib/adminTournaments";
+import {
+  type Match as ApiMatch,
+  type TeamStatus as ApiTeamStatus,
+  generateDraw as generateDrawRequest,
+  getTournament,
+  listMatches,
+  listRegistrations,
+  type MatchStatus,
+  type Phase,
+  type RegistrationTeam,
+  type Tournament,
+  updateMatch as updateMatchRequest,
+  updateRegistration,
+  updateSettings,
+} from "@/lib/tuwagaApi";
 
-type TeamStatus = "approved" | "pending" | "waitlist";
-type MatchStatus = "live" | "scheduled" | "completed";
-type Phase = "group" | "knockout";
+type TeamStatus = Exclude<ApiTeamStatus, "rejected">;
 type AdminTab =
   | "registrations"
   | "draw"
@@ -34,7 +46,7 @@ type Team = {
 type Match = {
   id: string;
   phase: Phase;
-  group?: string;
+  group: string | null;
   round: string;
   courtId: number | null;
   time: string;
@@ -46,144 +58,26 @@ type Match = {
   winnerTeamId: string | null;
 };
 
-type TournamentRuntime = {
-  teams: Team[];
-  matches: Match[];
-  message: string;
-  settings: AdminTournament["settings"];
+const defaultSettings: AdminTournament["settings"] = {
+  maxPlayers: 64,
+  waitlistLimit: 12,
+  courts: 4,
+  matchDuration: 30,
+  teamSize: "Doubles",
+  format: "Group stage + knockout",
 };
 
-const tournamentStorageKey = "tuwaga-admin-tournaments";
-
-function runtimeStorageKey(tournamentId: string) {
-  return `tuwaga-admin-runtime:${tournamentId}`;
+function loadingTournament(tournamentId: string): AdminTournament {
+  return {
+    id: tournamentId,
+    name: "Loading tournament",
+    venue: "",
+    date: "",
+    status: "setup",
+    description: "Loading tournament data from the backend.",
+    settings: defaultSettings,
+  };
 }
-
-const initialTeams: Team[] = [
-  {
-    id: "T-1042",
-    player: "Raka Pratama",
-    partner: "Dimas Arya",
-    level: "Intermediate",
-    city: "Jakarta Selatan",
-    paid: true,
-    registeredAt: "09 Jun, 08:12",
-    status: "approved",
-    group: "A",
-  },
-  {
-    id: "T-1043",
-    player: "Maya Lestari",
-    partner: "Nadia Putri",
-    level: "Advanced",
-    city: "Bandung",
-    paid: true,
-    registeredAt: "09 Jun, 08:24",
-    status: "pending",
-    group: "B",
-  },
-  {
-    id: "T-1044",
-    player: "Bima Hartono",
-    partner: "Kevin Wijaya",
-    level: "Beginner",
-    city: "Tangerang",
-    paid: false,
-    registeredAt: "09 Jun, 08:35",
-    status: "pending",
-    group: "A",
-  },
-  {
-    id: "T-1045",
-    player: "Sinta Maheswari",
-    partner: "Ayu Larasati",
-    level: "Intermediate",
-    city: "Depok",
-    paid: true,
-    registeredAt: "09 Jun, 08:49",
-    status: "waitlist",
-    group: "B",
-  },
-  {
-    id: "T-1046",
-    player: "Andre Salim",
-    partner: "Yusuf Malik",
-    level: "Advanced",
-    city: "Bekasi",
-    paid: true,
-    registeredAt: "09 Jun, 09:03",
-    status: "approved",
-    group: "A",
-  },
-  {
-    id: "T-1047",
-    player: "Clara Santoso",
-    partner: "Mika Wijaya",
-    level: "Intermediate",
-    city: "Jakarta Barat",
-    paid: true,
-    registeredAt: "09 Jun, 09:18",
-    status: "approved",
-    group: "B",
-  },
-];
-
-const initialMatches: Match[] = [
-  {
-    id: "M-021",
-    phase: "group",
-    group: "A",
-    round: "Group A",
-    courtId: 1,
-    time: "10:30",
-    teamAId: "T-1042",
-    teamBId: "T-1046",
-    score: "6-4, 2-1",
-    referee: "Tania",
-    status: "live",
-    winnerTeamId: null,
-  },
-  {
-    id: "M-022",
-    phase: "group",
-    group: "B",
-    round: "Group B",
-    courtId: 2,
-    time: "11:00",
-    teamAId: "T-1043",
-    teamBId: "T-1047",
-    score: "Not started",
-    referee: "Reno",
-    status: "scheduled",
-    winnerTeamId: null,
-  },
-  {
-    id: "M-023",
-    phase: "knockout",
-    round: "Semi Final",
-    courtId: null,
-    time: "13:00",
-    teamAId: "T-1042",
-    teamBId: "T-1047",
-    score: "Waiting",
-    referee: "Unassigned",
-    status: "scheduled",
-    winnerTeamId: null,
-  },
-  {
-    id: "M-024",
-    phase: "knockout",
-    round: "Final",
-    courtId: null,
-    time: "15:00",
-    teamAId: null,
-    teamBId: null,
-    score: "Waiting finalists",
-    referee: "Unassigned",
-    status: "scheduled",
-    winnerTeamId: null,
-  },
-];
 
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
@@ -214,18 +108,23 @@ const badgeToneStyles: Record<BadgeTone, string> = {
     "border-outline-variant/50 bg-surface-container-low text-on-surface-variant",
 };
 
-function getStoredTournament(tournamentId: string): AdminTournament | null {
-  try {
-    const stored = window.localStorage.getItem(tournamentStorageKey);
-    if (!stored) return null;
-
-    const tournaments = JSON.parse(stored) as AdminTournament[];
-    return (
-      tournaments.find((tournament) => tournament.id === tournamentId) ?? null
-    );
-  } catch {
-    return null;
-  }
+function toAdminTournament(tournament: Tournament): AdminTournament {
+  return {
+    id: tournament.id,
+    name: tournament.name,
+    venue: tournament.venue,
+    date: tournament.dateLabel,
+    status: tournament.status,
+    description: tournament.description,
+    settings: {
+      maxPlayers: tournament.settings.maxPlayers,
+      waitlistLimit: tournament.settings.waitlistLimit,
+      courts: tournament.settings.courts,
+      matchDuration: tournament.settings.matchDuration,
+      teamSize: tournament.settings.teamSize,
+      format: tournament.settings.format,
+    },
+  };
 }
 
 function getTeamName(teams: Team[], teamId: string | null) {
@@ -237,38 +136,40 @@ function getTeamName(teams: Team[], teamId: string | null) {
   return `${team.player} / ${team.partner}`;
 }
 
-function createInitialRuntime(
-  settings: AdminTournament["settings"],
-): TournamentRuntime {
+function toTeam(team: RegistrationTeam): Team {
   return {
-    teams: initialTeams,
-    matches: initialMatches,
-    message:
-      "Registration gate is open. Payment review is the next bottleneck.",
-    settings,
+    id: team.id,
+    player: team.player,
+    partner: team.partner,
+    level: team.level,
+    city: team.city,
+    paid: team.paid,
+    registeredAt: new Date(team.registeredAt).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    status: team.status === "rejected" ? "pending" : team.status,
+    group: team.group ?? "A",
   };
 }
 
-function readRuntime(
-  tournamentId: string,
-  settings: AdminTournament["settings"],
-): TournamentRuntime {
-  try {
-    const stored = window.localStorage.getItem(runtimeStorageKey(tournamentId));
-    if (!stored) return createInitialRuntime(settings);
-
-    const parsed = JSON.parse(stored) as TournamentRuntime;
-    return {
-      teams: parsed.teams ?? initialTeams,
-      matches: parsed.matches ?? initialMatches,
-      message:
-        parsed.message ??
-        "Registration gate is open. Payment review is the next bottleneck.",
-      settings: parsed.settings ?? settings,
-    };
-  } catch {
-    return createInitialRuntime(settings);
-  }
+function toMatch(match: ApiMatch): Match {
+  return {
+    id: match.id,
+    phase: match.phase,
+    group: match.group,
+    round: match.round,
+    courtId: match.courtId,
+    time: match.time,
+    teamAId: match.teamAId,
+    teamBId: match.teamBId,
+    score: match.score,
+    referee: match.referee,
+    status: match.status,
+    winnerTeamId: match.winnerTeamId,
+  };
 }
 
 function MetricCard({
@@ -330,50 +231,59 @@ export default function TournamentControlRoom({
 }: {
   tournamentId: string;
 }) {
-  const fallbackTournament = getAdminTournament(tournamentId);
-  const [tournament, setTournament] =
-    useState<AdminTournament>(fallbackTournament);
-  const [teams, setTeams] = useState<Team[]>(initialTeams);
-  const [matches, setMatches] = useState<Match[]>(initialMatches);
-  const [settings, setSettings] = useState(fallbackTournament.settings);
-  const [message, setMessage] = useState(
-    "Registration gate is open. Payment review is the next bottleneck.",
+  const [tournament, setTournament] = useState<AdminTournament>(() =>
+    loadingTournament(tournamentId),
   );
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [settings, setSettings] = useState(defaultSettings);
+  const [message, setMessage] = useState("Loading tournament data.");
   const [activeTab, setActiveTab] = useState<AdminTab>("registrations");
   const [teamFilter, setTeamFilter] = useState<TeamFilter>("all");
-  const [selectedMatchId, setSelectedMatchId] = useState(initialMatches[0].id);
+  const [selectedMatchId, setSelectedMatchId] = useState("");
   const [confirmDraw, setConfirmDraw] = useState(false);
-  const [runtimeLoaded, setRuntimeLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedTournament = getStoredTournament(tournamentId);
-    const activeTournament =
-      storedTournament ?? getAdminTournament(tournamentId);
-    const runtime = readRuntime(tournamentId, activeTournament.settings);
+    let active = true;
 
-    setTournament(activeTournament);
-    setTeams(runtime.teams);
-    setMatches(runtime.matches);
-    setSettings(runtime.settings);
-    setMessage(runtime.message);
-    setSelectedMatchId(runtime.matches[0]?.id ?? "");
-    setRuntimeLoaded(true);
-  }, [tournamentId]);
+    async function loadTournamentRuntime() {
+      setLoading(true);
+      try {
+        const [remoteTournament, remoteTeams, remoteMatches] =
+          await Promise.all([
+            getTournament(tournamentId),
+            listRegistrations(tournamentId),
+            listMatches(tournamentId),
+          ]);
 
-  useEffect(() => {
-    if (!runtimeLoaded) return;
+        if (!active) return;
+        const adminTournament = toAdminTournament(remoteTournament);
+        setTournament(adminTournament);
+        setTeams(remoteTeams.map(toTeam));
+        const nextMatches = remoteMatches.map(toMatch);
+        setMatches(nextMatches);
+        setSettings(adminTournament.settings);
+        setSelectedMatchId(nextMatches[0]?.id ?? "");
+        setMessage("Tournament data loaded from the backend.");
+      } catch (err) {
+        if (!active) return;
+        setMessage(
+          err instanceof Error
+            ? err.message
+            : "Failed to load tournament data from the backend.",
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
 
-    const runtime: TournamentRuntime = {
-      teams,
-      matches,
-      message,
-      settings,
+    loadTournamentRuntime();
+
+    return () => {
+      active = false;
     };
-    window.localStorage.setItem(
-      runtimeStorageKey(tournamentId),
-      JSON.stringify(runtime),
-    );
-  }, [matches, message, runtimeLoaded, settings, teams, tournamentId]);
+  }, [tournamentId]);
 
   const selectedMatch =
     matches.find((match) => match.id === selectedMatchId) ?? matches[0] ?? null;
@@ -452,7 +362,7 @@ export default function TournamentControlRoom({
     );
   }, [matches, teams]);
 
-  const updateTeam = (teamId: string, patch: Partial<Team>) => {
+  const setTeamPatch = (teamId: string, patch: Partial<Team>) => {
     setTeams((current) =>
       current.map((team) =>
         team.id === teamId ? { ...team, ...patch } : team,
@@ -460,33 +370,48 @@ export default function TournamentControlRoom({
     );
   };
 
-  const updateTeamStatus = (teamId: string, status: TeamStatus) => {
-    updateTeam(teamId, { status });
-    setMessage(`Team ${teamId} moved to ${status}.`);
+  const updateTeam = async (teamId: string, patch: Partial<Team>) => {
+    const previous = teams;
+    setTeamPatch(teamId, patch);
+    try {
+      const updated = await updateRegistration(tournamentId, teamId, {
+        paid: patch.paid,
+        status: patch.status,
+        group: patch.group,
+      });
+      setTeamPatch(teamId, toTeam(updated));
+      setMessage(`Team ${teamId} saved.`);
+    } catch (err) {
+      setTeams(previous);
+      setMessage(err instanceof Error ? err.message : "Failed to update team.");
+    }
   };
 
-  const markPaid = (teamId: string) => {
-    updateTeam(teamId, { paid: true });
-    setMessage(`Payment marked paid for team ${teamId}.`);
+  const updateTeamStatus = async (teamId: string, status: TeamStatus) => {
+    await updateTeam(teamId, { status });
   };
 
-  const runTeamAction = (teamId: string, action: string) => {
+  const markPaid = async (teamId: string) => {
+    await updateTeam(teamId, { paid: true });
+  };
+
+  const runTeamAction = async (teamId: string, action: string) => {
     if (action === "mark-paid") {
-      markPaid(teamId);
+      await markPaid(teamId);
       return;
     }
 
     if (action === "approve") {
-      updateTeamStatus(teamId, "approved");
+      await updateTeamStatus(teamId, "approved");
       return;
     }
 
     if (action === "waitlist") {
-      updateTeamStatus(teamId, "waitlist");
+      await updateTeamStatus(teamId, "waitlist");
     }
   };
 
-  const updateMatch = (matchId: string, patch: Partial<Match>) => {
+  const setMatchPatch = (matchId: string, patch: Partial<Match>) => {
     setMatches((current) =>
       current.map((match) =>
         match.id === matchId ? { ...match, ...patch } : match,
@@ -494,85 +419,56 @@ export default function TournamentControlRoom({
     );
   };
 
-  const saveSettings = () => {
-    setMessage(
-      `${tournament.name} settings saved: ${settings.maxPlayers} max players, ${settings.courts} courts, ${settings.format}.`,
-    );
+  const updateMatch = async (matchId: string, patch: Partial<Match>) => {
+    const previous = matches;
+    setMatchPatch(matchId, patch);
+    try {
+      const updated = await updateMatchRequest(tournamentId, matchId, patch);
+      setMatchPatch(matchId, toMatch(updated));
+      setMessage(`Match ${matchId} saved.`);
+    } catch (err) {
+      setMatches(previous);
+      setMessage(
+        err instanceof Error ? err.message : "Failed to update match.",
+      );
+    }
   };
 
-  const generateDraw = () => {
-    const eligibleTeams = teams.filter(
-      (team) => team.status === "approved" && team.paid,
-    );
-
-    if (eligibleTeams.length < 2) {
-      setConfirmDraw(false);
+  const saveSettings = async () => {
+    try {
+      const saved = await updateSettings(tournamentId, settings);
+      setSettings({
+        maxPlayers: saved.maxPlayers,
+        waitlistLimit: saved.waitlistLimit,
+        courts: saved.courts,
+        matchDuration: saved.matchDuration,
+        teamSize: saved.teamSize,
+        format: saved.format,
+      });
       setMessage(
-        "Need at least two approved paid teams before generating draw.",
+        `${tournament.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}.`,
       );
-      return;
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to save settings.",
+      );
     }
+  };
 
-    const groupMatches: Match[] = eligibleTeams
-      .slice(0, 8)
-      .reduce<Match[]>((current, team, index, pool) => {
-        if (index % 2 !== 0) return current;
-        const opponent = pool[index + 1];
-        if (!opponent) return current;
-        const group = index < 4 ? "A" : "B";
-        current.push({
-          id: `M-G${current.length + 1}`,
-          phase: "group",
-          group,
-          round: `Group ${group}`,
-          courtId: (current.length % Math.max(settings.courts, 1)) + 1,
-          time: `${10 + current.length}:00`,
-          teamAId: team.id,
-          teamBId: opponent.id,
-          score: "Not started",
-          referee: "Unassigned",
-          status: "scheduled",
-          winnerTeamId: null,
-        });
-        return current;
-      }, []);
-
-    const knockoutMatches: Match[] = [
-      {
-        id: "M-K1",
-        phase: "knockout",
-        round: "Semi Final",
-        courtId: null,
-        time: "14:00",
-        teamAId: eligibleTeams[0]?.id ?? null,
-        teamBId: eligibleTeams[1]?.id ?? null,
-        score: "Waiting",
-        referee: "Unassigned",
-        status: "scheduled",
-        winnerTeamId: null,
-      },
-      {
-        id: "M-K2",
-        phase: "knockout",
-        round: "Final",
-        courtId: null,
-        time: "16:00",
-        teamAId: null,
-        teamBId: null,
-        score: "Waiting finalists",
-        referee: "Unassigned",
-        status: "scheduled",
-        winnerTeamId: null,
-      },
-    ];
-
-    setMatches([...groupMatches, ...knockoutMatches]);
-    setSelectedMatchId(groupMatches[0]?.id ?? knockoutMatches[0].id);
+  const generateDraw = async () => {
     setConfirmDraw(false);
-    setActiveTab("draw");
-    setMessage(
-      `${tournament.name} draw generated from ${eligibleTeams.length} approved paid teams.`,
-    );
+    try {
+      const draw = await generateDrawRequest(tournamentId);
+      const nextMatches = draw.matches.map(toMatch);
+      setMatches(nextMatches);
+      setSelectedMatchId(nextMatches[0]?.id ?? "");
+      setActiveTab("draw");
+      setMessage(draw.message);
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to generate draw.",
+      );
+    }
   };
 
   const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
@@ -660,7 +556,7 @@ export default function TournamentControlRoom({
           <div className="mt-6 rounded-lg border border-outline-variant/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
             <div className="flex items-start gap-3">
               <span className="material-symbols-outlined text-lg">info</span>
-              <p>{message}</p>
+              <p>{loading ? "Loading tournament data..." : message}</p>
             </div>
           </div>
 

@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { getCurrentTournament, type Tournament } from "@/lib/tuwagaApi";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -32,22 +33,12 @@ const steps = [
   },
 ];
 
-const tournament = {
-  image: "/arena.png",
-  alt: "Indoor sports court prepared for a live tournament",
-  badge: "MVP Tournament",
-  date: "Ready for first live event",
-  title: "Arena Championship",
-  location: "Main Arena",
-  teams: "32 Teams",
-  status: "Live operations ready",
-};
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const sectionsRef = useRef<HTMLElement[]>([]);
   const parallaxRef = useRef<HTMLElement[]>([]);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
 
   useEffect(() => {
     const sections = sectionsRef.current.filter(Boolean);
@@ -70,6 +61,22 @@ export default function HomePage() {
       observer.observe(s);
     });
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    getCurrentTournament()
+      .then((current) => {
+        if (active) setTournament(current);
+      })
+      .catch(() => {
+        if (active) setTournament(null);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -219,15 +226,15 @@ export default function HomePage() {
               <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
                 <div className="relative min-h-64 overflow-hidden">
                   <Image
-                    src={tournament.image}
-                    alt={tournament.alt}
+                    src={tournament?.heroImageUrl ?? "/arena.png"}
+                    alt={tournament?.name ?? "Tournament venue"}
                     fill
                     className="object-cover"
                     unoptimized
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                   <span className="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">
-                    {tournament.badge}
+                    {tournament?.status ?? "No backend tournament"}
                   </span>
                 </div>
 
@@ -236,16 +243,16 @@ export default function HomePage() {
                     <span className="material-symbols-outlined text-sm">
                       calendar_today
                     </span>
-                    {tournament.date}
+                    {tournament?.dateLabel ?? "Create a tournament in admin"}
                   </div>
                   <h4 className="text-2xl md:text-3xl font-extrabold text-on-surface mb-2 leading-tight">
-                    {tournament.title}
+                    {tournament?.name ?? "No tournament loaded"}
                   </h4>
                   <p className="text-sm text-on-surface-variant flex items-center gap-1 mb-5">
                     <span className="material-symbols-outlined text-sm">
                       location_on
                     </span>
-                    {tournament.location}
+                    {tournament?.venue ?? "Backend data unavailable"}
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -257,7 +264,9 @@ export default function HomePage() {
                         Capacity
                       </p>
                       <p className="text-lg font-bold text-on-surface">
-                        {tournament.teams}
+                        {tournament
+                          ? `${tournament.settings.maxPlayers} players`
+                          : "No data"}
                       </p>
                     </div>
                     <div className="rounded-lg bg-surface-container-low p-4">
@@ -268,7 +277,7 @@ export default function HomePage() {
                         Status
                       </p>
                       <p className="text-lg font-bold text-on-surface">
-                        {tournament.status}
+                        {tournament?.status ?? "Waiting for backend"}
                       </p>
                     </div>
                   </div>
