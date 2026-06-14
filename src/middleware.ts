@@ -37,29 +37,6 @@ export async function middleware(request: NextRequest) {
     return redirectToLogin(request);
   }
 
-  try {
-    const sessionResponse = await fetch(
-      `${request.nextUrl.origin}/api/auth/get-session`,
-      {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
-      },
-    );
-
-    if (!sessionResponse.ok) {
-      return redirectToLogin(request);
-    }
-
-    const session = await sessionResponse.json();
-
-    if (session?.user?.role !== "admin") {
-      return redirectToLogin(request, "admin_required");
-    }
-  } catch {
-    return redirectToLogin(request);
-  }
-
   return NextResponse.next();
 }
 
