@@ -28,6 +28,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+    APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3004}" \
     BETTER_AUTH_SECRET="dummy" \
     AUTH_URL="https://auth.wikra.my.id" \
     AUTH_CLIENT_ID="dummy" \

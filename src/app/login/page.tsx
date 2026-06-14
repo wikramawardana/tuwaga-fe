@@ -63,13 +63,26 @@ function LoginContent() {
 
   const handleSignIn = async () => {
     setIsLoading(true);
+    setAccessError("");
     try {
-      await authClient.signIn.oauth2({
+      const result = await authClient.signIn.oauth2({
         providerId: "auth",
         callbackURL: callbackUrl,
       });
+
+      if (result?.error) {
+        setAccessError(
+          result.error.message || "Sign in was rejected. Please try again.",
+        );
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error("Sign in error:", error);
+      setAccessError(
+        error instanceof Error
+          ? error.message
+          : "Sign in was rejected. Please try again.",
+      );
       setIsLoading(false);
     }
   };
