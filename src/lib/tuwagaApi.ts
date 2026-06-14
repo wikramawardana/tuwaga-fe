@@ -185,9 +185,23 @@ type ApiEnvelope<T> = {
   data?: T;
 };
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  "http://127.0.0.1:8004/api/v1";
+function getApiBaseUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname === "tuwaga.wikra.my.id"
+  ) {
+    return "https://api-tuwaga.wikra.my.id/api/v1";
+  }
+
+  return "http://127.0.0.1:8004/api/v1";
+}
+
+const apiBaseUrl = getApiBaseUrl();
 
 let tokenPromise: Promise<string | null> | null = null;
 let tokenExpiry = 0;
