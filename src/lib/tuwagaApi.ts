@@ -187,7 +187,7 @@ type ApiEnvelope<T> = {
 
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  "http://127.0.0.1:8002/api/v1";
+  "http://127.0.0.1:8004/api/v1";
 
 let tokenPromise: Promise<string | null> | null = null;
 let tokenExpiry = 0;
