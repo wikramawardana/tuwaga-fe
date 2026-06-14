@@ -22,10 +22,17 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm build
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+    BETTER_AUTH_SECRET="dummy" \
+    AUTH_URL="https://auth.wikra.my.id" \
+    AUTH_CLIENT_ID="dummy" \
+    AUTH_CLIENT_SECRET="dummy" \
+    pnpm build
 
 # ================================
 # Stage 3: Runner (Production)
