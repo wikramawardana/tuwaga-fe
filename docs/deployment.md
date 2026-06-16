@@ -8,7 +8,7 @@ Production is not served by Vercel or Docker Compose.
 | Item | Value |
 | --- | --- |
 | Repository | `wikramawardana/tuwaga-fe` |
-| Image | `ghcr.io/wikramawardana/tuwaga-fe:<short-sha>` |
+| Image | `ghcr.io/wikramawardana/tuwaga-fe:v<package-version>-build.<run-number>` |
 | Kubernetes namespace | `wikra-apps` |
 | Kubernetes app/deployment | `tuwaga-fe` |
 | Container port | `3000` |
@@ -70,12 +70,16 @@ Do not use a local/dev client id in production.
    ```
 
 3. Commit and push to `main`.
-4. GitHub Actions builds and pushes `ghcr.io/wikramawardana/tuwaga-fe:<short-sha>`.
+4. GitHub Actions reads `package.json` `version`, then builds and pushes an
+   immutable image tag such as
+   `ghcr.io/wikramawardana/tuwaga-fe:v0.1.0-build.123`.
 5. The workflow updates:
 
    ```text
    wikra-gitops/manifests/tuwaga-fe/overlays/prod/kustomization.yaml
    ```
+
+   The `newTag` value must be a version-build tag, not a git commit SHA.
 
 6. Argo CD syncs the GitOps change into Kubernetes.
 7. Verify production.
@@ -144,4 +148,3 @@ Usually one of these is wrong:
 
 Production env comes from Vault. Patch Vault, not only the generated
 Kubernetes Secret.
-

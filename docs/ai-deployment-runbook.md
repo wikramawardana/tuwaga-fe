@@ -26,7 +26,11 @@ GitOps repo:     /Users/wikra/MyProjects/wikra-gitops
    manifests/tuwaga-fe/overlays/prod/kustomization.yaml
    ```
 
-   has `newTag: <short-sha>`.
+   has `newTag: v<package-version>-build.<run-number>`, for example
+   `newTag: v0.1.0-build.123`.
+
+   Do not replace this with a commit SHA. The image tag is based on
+   `package.json` `version` plus the GitHub Actions run number.
 
 5. If Argo lags, refresh the app from the VPS:
 
@@ -50,4 +54,3 @@ GitOps repo:     /Users/wikra/MyProjects/wikra-gitops
 - ExternalSecret syncs from Vault hourly and can overwrite manual K8s secret
   patches quickly.
 - Remove any temporary files created under `/tmp` on the VPS or inside pods.
-
