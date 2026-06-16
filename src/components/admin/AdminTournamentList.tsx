@@ -71,11 +71,11 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
 function TournamentCard({
   tournament,
   deleting,
-  onDelete,
+  onRequestDelete,
 }: {
   tournament: AdminTournament;
   deleting: boolean;
-  onDelete: (tournament: AdminTournament) => void;
+  onRequestDelete: (tournament: AdminTournament) => void;
 }) {
   return (
     <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0px_18px_50px_rgba(17,24,39,0.1)]">
@@ -121,7 +121,7 @@ function TournamentCard({
           </p>
         </div>
       </div>
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex items-center justify-between gap-3">
         <Link
           href={`/admin/tournaments/${tournament.id}`}
           className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
@@ -133,12 +133,16 @@ function TournamentCard({
         </Link>
         <button
           type="button"
-          onClick={() => onDelete(tournament)}
+          onClick={() => onRequestDelete(tournament)}
           disabled={deleting}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-error/30 px-4 text-sm font-bold text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={`Delete ${tournament.name}`}
+          title="Delete"
+          className="group relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-error/30 text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span className="material-symbols-outlined text-lg">delete</span>
-          {deleting ? "Deleting..." : "Delete"}
+          <span className="pointer-events-none absolute -top-9 right-0 rounded-md bg-on-surface px-2 py-1 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            {deleting ? "Deleting..." : "Delete"}
+          </span>
         </button>
       </div>
       <Link href={`/admin/tournaments/${tournament.id}`} className="sr-only">
@@ -153,6 +157,9 @@ export default function AdminTournamentList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminTournament | null>(
+    null,
+  );
 
   useEffect(() => {
     let active = true;
@@ -178,21 +185,18 @@ export default function AdminTournamentList() {
     };
   }, []);
 
-  const handleDelete = async (tournament: AdminTournament) => {
-    const confirmed = window.confirm(
-      `Delete "${tournament.name}" and all registrations/matches for this tournament?`,
-    );
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
 
-    if (!confirmed) return;
-
-    setDeletingId(tournament.id);
+    setDeletingId(deleteTarget.id);
     setError("");
 
     try {
-      await deleteTournament(tournament.id);
+      await deleteTournament(deleteTarget.id);
       setTournaments((items) =>
-        items.filter((item) => item.id !== tournament.id),
+        items.filter((item) => item.id !== deleteTarget.id),
       );
+      setDeleteTarget(null);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to delete tournament.",
@@ -250,10 +254,58 @@ export default function AdminTournamentList() {
               key={tournament.id}
               tournament={tournament}
               deleting={deletingId === tournament.id}
-              onDelete={handleDelete}
+              onRequestDelete={setDeleteTarget}
             />
           ))}
       </div>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/35 px-6 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-tournament-title"
+            className="w-full max-w-md rounded-lg border border-outline-variant/30 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-error/10 text-error">
+                <span className="material-symbols-outlined">delete</span>
+              </div>
+              <div>
+                <h3
+                  id="delete-tournament-title"
+                  className="text-lg font-extrabold text-on-surface"
+                >
+                  Delete tournament?
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+                  This will remove {deleteTarget.name}, including its
+                  registrations and matches.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deletingId === deleteTarget.id}
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-outline-variant px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deletingId === deleteTarget.id}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-error px-4 text-sm font-bold text-on-error transition-colors hover:bg-error/90 disabled:cursor-wait disabled:opacity-70"
+              >
+                {deletingId === deleteTarget.id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
