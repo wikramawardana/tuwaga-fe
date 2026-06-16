@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { getCurrentTournament, type Tournament } from "@/lib/tuwagaApi";
+import { listTournaments, type Tournament } from "@/lib/tuwagaApi";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ const steps = [
 export default function HomePage() {
   const sectionsRef = useRef<HTMLElement[]>([]);
   const parallaxRef = useRef<HTMLElement[]>([]);
-  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
 
   useEffect(() => {
     const sections = sectionsRef.current.filter(Boolean);
@@ -66,12 +66,12 @@ export default function HomePage() {
   useEffect(() => {
     let active = true;
 
-    getCurrentTournament()
-      .then((current) => {
-        if (active) setTournament(current);
+    listTournaments()
+      .then((items) => {
+        if (active) setTournaments(items);
       })
       .catch(() => {
-        if (active) setTournament(null);
+        if (active) setTournaments([]);
       });
 
     return () => {
@@ -204,116 +204,121 @@ export default function HomePage() {
             <div className="mb-10">
               <div>
                 <p className="text-primary text-xs font-bold tracking-widest uppercase mb-2">
-                  Current tournament
+                  Tournaments
                 </p>
                 <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-on-surface">
-                  One tournament for the MVP
+                  Available tournament rooms
                 </h2>
                 <p className="text-base leading-relaxed text-on-surface-variant mt-3 max-w-2xl">
-                  The tournament list is intentionally paused for now. This
-                  single event gives the frontend a stable place for live
-                  scoring, brackets, and registration while the CRUD backend is
-                  built.
+                  Browse every tournament currently available from the backend
+                  and jump into registration, live scoring, or bracket view.
                 </p>
               </div>
             </div>
 
-            <div
-              ref={(el) => addParallaxRef(el, 2)}
-              data-speed="-0.035"
-              className="parallax-layer bg-white rounded-xl border border-outline-variant/30 overflow-hidden shadow-[0px_4px_20px_rgba(0,0,0,0.04)] motion-card"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
-                <div className="relative min-h-64 overflow-hidden">
-                  <Image
-                    src={tournament?.heroImageUrl ?? "/arena.png"}
-                    alt={tournament?.name ?? "Tournament venue"}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  <span className="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">
-                    {tournament?.status ?? "No backend tournament"}
-                  </span>
-                </div>
-
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium mb-3">
-                    <span className="material-symbols-outlined text-sm">
-                      calendar_today
-                    </span>
-                    {tournament?.dateLabel ?? "Create a tournament in admin"}
-                  </div>
-                  <h4 className="text-2xl md:text-3xl font-extrabold text-on-surface mb-2 leading-tight">
-                    {tournament?.name ?? "No tournament loaded"}
-                  </h4>
-                  <p className="text-sm text-on-surface-variant flex items-center gap-1 mb-5">
-                    <span className="material-symbols-outlined text-sm">
-                      location_on
-                    </span>
-                    {tournament?.venue ?? "Backend data unavailable"}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                    <div className="rounded-lg bg-surface-container-low p-4">
-                      <span className="material-symbols-outlined text-primary mb-2">
-                        group
-                      </span>
-                      <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Capacity
-                      </p>
-                      <p className="text-lg font-bold text-on-surface">
-                        {tournament
-                          ? `${tournament.settings.maxPlayers} players`
-                          : "No data"}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-surface-container-low p-4">
-                      <span className="material-symbols-outlined text-secondary mb-2">
-                        verified
-                      </span>
-                      <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Status
-                      </p>
-                      <p className="text-lg font-bold text-on-surface">
-                        {tournament?.status ?? "Waiting for backend"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Link
-                      href="/tournaments/live"
-                      className="bg-primary text-on-primary h-11 px-5 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        scoreboard
-                      </span>
-                      Live Scoring
-                    </Link>
-                    <Link
-                      href="/tournaments/bracket"
-                      className="border border-outline-variant text-on-surface h-11 px-5 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        account_tree
-                      </span>
-                      Bracket
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="border border-outline-variant text-on-surface h-11 px-5 rounded-lg text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        how_to_reg
-                      </span>
-                      Register
-                    </Link>
-                  </div>
-                </div>
+            {tournaments.length === 0 ? (
+              <div className="rounded-xl border border-outline-variant/30 bg-white p-8 text-sm font-semibold text-on-surface-variant shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+                No tournament loaded from the backend yet.
               </div>
-            </div>
+            ) : (
+              <div className="grid gap-5 lg:grid-cols-2">
+                {tournaments.map((tournament, index) => (
+                  <div
+                    key={tournament.id}
+                    ref={(el) => addParallaxRef(el, 2 + index)}
+                    data-speed="-0.035"
+                    className="parallax-layer overflow-hidden rounded-xl border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)] motion-card"
+                  >
+                    <div className="relative min-h-56 overflow-hidden">
+                      <Image
+                        src={tournament.heroImageUrl ?? "/arena.png"}
+                        alt={tournament.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                      <span className="absolute left-4 top-4 rounded-md bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-on-primary">
+                        {tournament.status}
+                      </span>
+                    </div>
+
+                    <div className="p-6 md:p-7">
+                      <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+                        <span className="material-symbols-outlined text-sm">
+                          calendar_today
+                        </span>
+                        {tournament.dateLabel}
+                      </div>
+                      <h4 className="mb-2 text-2xl font-extrabold leading-tight text-on-surface">
+                        {tournament.name}
+                      </h4>
+                      <p className="mb-5 flex items-center gap-1 text-sm text-on-surface-variant">
+                        <span className="material-symbols-outlined text-sm">
+                          location_on
+                        </span>
+                        {tournament.venue}
+                      </p>
+
+                      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="rounded-lg bg-surface-container-low p-4">
+                          <span className="material-symbols-outlined mb-2 text-primary">
+                            group
+                          </span>
+                          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                            Capacity
+                          </p>
+                          <p className="text-lg font-bold text-on-surface">
+                            {tournament.settings.maxPlayers} players
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-surface-container-low p-4">
+                          <span className="material-symbols-outlined mb-2 text-secondary">
+                            verified
+                          </span>
+                          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                            Format
+                          </p>
+                          <p className="text-lg font-bold text-on-surface">
+                            {tournament.settings.format}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <Link
+                          href="/tournaments/live"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            scoreboard
+                          </span>
+                          Live Scoring
+                        </Link>
+                        <Link
+                          href="/tournaments/bracket"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            account_tree
+                          </span>
+                          Bracket
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            how_to_reg
+                          </span>
+                          Register
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

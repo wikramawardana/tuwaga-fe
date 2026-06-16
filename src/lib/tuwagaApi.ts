@@ -337,6 +337,12 @@ export async function createTournament(input: {
   return data.tournament;
 }
 
+export async function deleteTournament(id: string) {
+  return apiRequest<{ id: string }>(`/admin/tournaments/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export async function listRegistrations(tournamentId: string) {
   const data = await apiRequest<{ teams: RegistrationTeam[] }>(
     `/admin/tournaments/${tournamentId}/registrations?status=all`,

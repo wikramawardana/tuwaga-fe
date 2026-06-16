@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { AdminTournament } from "@/lib/adminTournaments";
-import { listTournaments, type Tournament } from "@/lib/tuwagaApi";
+import {
+  deleteTournament,
+  listTournaments,
+  type Tournament,
+} from "@/lib/tuwagaApi";
 
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
@@ -64,12 +68,17 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
   };
 }
 
-function TournamentCard({ tournament }: { tournament: AdminTournament }) {
+function TournamentCard({
+  tournament,
+  deleting,
+  onDelete,
+}: {
+  tournament: AdminTournament;
+  deleting: boolean;
+  onDelete: (tournament: AdminTournament) => void;
+}) {
   return (
-    <Link
-      href={`/admin/tournaments/${tournament.id}`}
-      className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0px_18px_50px_rgba(17,24,39,0.1)]"
-    >
+    <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0px_18px_50px_rgba(17,24,39,0.1)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -112,11 +121,30 @@ function TournamentCard({ tournament }: { tournament: AdminTournament }) {
           </p>
         </div>
       </div>
-      <div className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-primary">
-        Open control room
-        <span className="material-symbols-outlined text-lg">arrow_forward</span>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Link
+          href={`/admin/tournaments/${tournament.id}`}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+        >
+          Open control room
+          <span className="material-symbols-outlined text-lg">
+            arrow_forward
+          </span>
+        </Link>
+        <button
+          type="button"
+          onClick={() => onDelete(tournament)}
+          disabled={deleting}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-error/30 px-4 text-sm font-bold text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="material-symbols-outlined text-lg">delete</span>
+          {deleting ? "Deleting..." : "Delete"}
+        </button>
       </div>
-    </Link>
+      <Link href={`/admin/tournaments/${tournament.id}`} className="sr-only">
+        Open control room
+      </Link>
+    </div>
   );
 }
 
@@ -124,6 +152,7 @@ export default function AdminTournamentList() {
   const [tournaments, setTournaments] = useState<AdminTournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -148,6 +177,30 @@ export default function AdminTournamentList() {
       active = false;
     };
   }, []);
+
+  const handleDelete = async (tournament: AdminTournament) => {
+    const confirmed = window.confirm(
+      `Delete "${tournament.name}" and all registrations/matches for this tournament?`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(tournament.id);
+    setError("");
+
+    try {
+      await deleteTournament(tournament.id);
+      setTournaments((items) =>
+        items.filter((item) => item.id !== tournament.id),
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete tournament.",
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-8 md:px-10">
@@ -193,7 +246,12 @@ export default function AdminTournamentList() {
         {!loading &&
           !error &&
           tournaments.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} />
+            <TournamentCard
+              key={tournament.id}
+              tournament={tournament}
+              deleting={deletingId === tournament.id}
+              onDelete={handleDelete}
+            />
           ))}
       </div>
     </section>
