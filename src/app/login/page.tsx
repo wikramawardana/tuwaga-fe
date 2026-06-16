@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { authClient, signOut, useSession } from "@/lib/auth-client";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -41,6 +41,17 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/admin";
   const reason = searchParams.get("reason");
 
+  const safeCallbackPath = useMemo(() => {
+    if (!callbackUrl.startsWith("/")) return "/admin";
+    if (callbackUrl.startsWith("//")) return "/admin";
+    return callbackUrl;
+  }, [callbackUrl]);
+
+  const getAbsoluteCallbackUrl = () => {
+    if (typeof window === "undefined") return safeCallbackPath;
+    return new URL(safeCallbackPath, window.location.origin).toString();
+  };
+
   useEffect(() => {
     if (reason === "admin_required") {
       setAccessError("Only Tuwaga admins can access this workspace.");
@@ -57,9 +68,9 @@ function LoginContent() {
     }
 
     if (session.user.role === "admin") {
-      window.location.href = callbackUrl;
+      window.location.href = safeCallbackPath;
     }
-  }, [callbackUrl, isPending, session]);
+  }, [isPending, safeCallbackPath, session]);
 
   const handleSignIn = async () => {
     setIsLoading(true);
@@ -67,7 +78,7 @@ function LoginContent() {
     try {
       const result = await authClient.signIn.oauth2({
         providerId: "auth",
-        callbackURL: callbackUrl,
+        callbackURL: getAbsoluteCallbackUrl(),
       });
 
       if (result?.error) {

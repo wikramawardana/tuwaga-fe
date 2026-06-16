@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { signOut } from "@/lib/auth-client";
 
 type NavbarAction = {
   label: string;
@@ -20,6 +22,18 @@ export default function Navbar({
   actions = [{ label: "Support", href: "https://wa.me/6281234567890" }],
   sticky = false,
 }: NavbarProps) {
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+
+    try {
+      await signOut();
+    } finally {
+      window.location.href = "/login?callbackUrl=/admin";
+    }
+  };
+
   return (
     <header
       className={`${sticky ? "sticky" : "fixed"} top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-outline-variant/20 shadow-[0px_4px_20px_rgba(0,0,0,0.03)]`}
@@ -74,6 +88,17 @@ export default function Navbar({
               </button>
             );
           })}
+          {active === "admin" && (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-70"
+            >
+              <span className="material-symbols-outlined text-lg">logout</span>
+              {isSigningOut ? "Signing out..." : "Sign out"}
+            </button>
+          )}
         </div>
       </nav>
     </header>
