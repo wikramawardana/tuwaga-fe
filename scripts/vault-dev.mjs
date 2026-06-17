@@ -14,9 +14,9 @@
  *   pnpm dev  →  runs: node scripts/vault-dev.mjs next dev --turbopack -p XXXX
  */
 
-import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
-import { resolve, dirname } from "node:path";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -133,9 +133,7 @@ async function loadVaultSecrets() {
     }
   }
 
-  console.log(
-    `[vault] Loaded ${count} secrets from ${VAULT_SECRET_PATH}`,
-  );
+  console.log(`[vault] Loaded ${count} secrets from ${VAULT_SECRET_PATH}`);
 }
 
 await loadVaultSecrets();
