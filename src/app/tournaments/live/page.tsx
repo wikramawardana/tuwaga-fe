@@ -123,23 +123,38 @@ export default function LiveScoresPage() {
                       Live
                     </span>
                   </div>
-                  <div className="mt-5 grid gap-3 md:grid-cols-2">
-                    {[match.teamA, match.teamB].map((team) => (
-                      <div
-                        key={team.id ?? team.player1}
-                        className="rounded-lg bg-surface-container-low p-4"
-                      >
-                        <p className="font-extrabold text-on-surface">
-                          {team.player1}
-                        </p>
-                        <p className="text-sm text-on-surface-variant">
-                          {team.player2}
-                        </p>
-                        <p className="mt-3 text-2xl font-extrabold text-primary">
-                          {team.scores.length ? team.scores.join(" - ") : "-"}
-                        </p>
-                      </div>
-                    ))}
+
+                  <div className="mt-5 grid gap-4 md:grid-cols-[1fr_auto_1fr] items-center">
+                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
+                      <p className="font-extrabold text-on-surface">
+                        {match.teamA.player1}
+                      </p>
+                      <p className="text-sm text-on-surface-variant">
+                        {match.teamA.player2}
+                      </p>
+                      <p className="mt-2 text-2xl font-extrabold text-primary">
+                        {match.teamA.scores.length ? match.teamA.scores.join(" - ") : "-"}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-4xl font-extrabold text-on-surface">
+                        {match.teamA.scores.reduce((a, b) => a + b, 0)} - {match.teamB.scores.reduce((a, b) => a + b, 0)}
+                      </p>
+                      <p className="mt-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        vs
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
+                      <p className="font-extrabold text-on-surface">
+                        {match.teamB.player1}
+                      </p>
+                      <p className="text-sm text-on-surface-variant">
+                        {match.teamB.player2}
+                      </p>
+                      <p className="mt-2 text-2xl font-extrabold text-primary">
+                        {match.teamB.scores.length ? match.teamB.scores.join(" - ") : "-"}
+                      </p>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -157,7 +172,7 @@ export default function LiveScoresPage() {
                       className="rounded-lg bg-surface-container-low p-3"
                     >
                       <p className="text-xs font-bold uppercase text-primary">
-                        {match.day} - {match.time}
+                        {match.day} - {match.time} (EST)
                       </p>
                       <p className="mt-1 text-sm font-bold text-on-surface">
                         {match.teamA} vs {match.teamB}

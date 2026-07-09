@@ -89,7 +89,7 @@ export default function NewTournamentPage() {
     startsAt: "",
     endsAt: "",
     description: "",
-    entryFeePerPlayer: 250000,
+    entryFeePerPair: 250000,
     currency: "IDR",
     maxPlayers: 64,
     waitlistLimit: 12,
@@ -97,6 +97,7 @@ export default function NewTournamentPage() {
     matchDuration: 30,
     teamSize: "Doubles",
     format: "Group stage + knockout",
+    categories: "Men's Doubles, Women's Doubles, Mixed Doubles",
   });
 
   const updateForm = (field: keyof typeof form, value: string | number) => {
@@ -148,7 +149,7 @@ export default function NewTournamentPage() {
         startsAt: form.startsAt,
         endsAt: form.endsAt,
         description: form.description.trim() || undefined,
-        entryFeePerPlayer: form.entryFeePerPlayer,
+        entryFeePerPair: form.entryFeePerPair,
         currency: form.currency,
         maxPlayers: form.maxPlayers,
         waitlistLimit: form.waitlistLimit,
@@ -156,6 +157,10 @@ export default function NewTournamentPage() {
         matchDuration: form.matchDuration,
         teamSize: form.teamSize,
         format: form.format,
+        categories: form.categories
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
       });
       router.push(`/admin/tournaments/${tournament.id}`);
     } catch (err) {
@@ -398,10 +403,10 @@ export default function NewTournamentPage() {
                       type="number"
                       min="0"
                       step="10000"
-                      value={form.entryFeePerPlayer}
+                      value={form.entryFeePerPair}
                       onChange={(event) =>
                         updateForm(
-                          "entryFeePerPlayer",
+                          "entryFeePerPair",
                           Number(event.target.value),
                         )
                       }
@@ -495,6 +500,23 @@ export default function NewTournamentPage() {
                     <option>Round robin</option>
                     <option>Swiss pairing</option>
                   </select>
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Categories
+                  </span>
+                  <input
+                    value={form.categories}
+                    onChange={(event) =>
+                      updateForm("categories", event.target.value)
+                    }
+                    placeholder="Men's Doubles, Women's Doubles, Mixed Doubles"
+                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  />
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    Comma-separated list of categories for this tournament.
+                  </p>
                 </label>
 
                 <button

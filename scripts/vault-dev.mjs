@@ -1,17 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Vault secret loader for local development.
- *
- * Reads VAULT_ADDR / VAULT_TOKEN / VAULT_SECRET_PATH from the project's .env
- * file, fetches secrets from HashiCorp Vault KV v2, sets them as environment
- * variables, and then spawns the actual command (e.g. `next dev`).
- *
- * If VAULT_ADDR or VAULT_TOKEN are missing the script passes through
- * gracefully — this way CI, Docker, and non-Vault setups still work.
- *
- * Usage: node scripts/vault-dev.mjs <command> [args...]
- *   pnpm dev  →  runs: node scripts/vault-dev.mjs next dev --turbopack -p XXXX
+ * Load local development secrets from HashiCorp Vault before starting a
+ * command. Values already present in the process environment take precedence.
  */
 
 import { spawn } from "node:child_process";
@@ -22,23 +13,22 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 
-// ---------------------------------------------------------------------------
-// 1. Parse .env (minimal manual parser — no dependencies)
-// ---------------------------------------------------------------------------
-
 function parseEnv(filePath) {
   const result = {};
+
   try {
-    const content = readFileSync(filePath, "utf-8");
+    const content = readFileSync(filePath, "utf8");
+
     for (const line of content.split("\n")) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
-      const eqIdx = trimmed.indexOf("=");
-      if (eqIdx === -1) continue;
-      const key = trimmed.slice(0, eqIdx).trim();
-      let value = trimmed.slice(eqIdx + 1).trim();
 
-      // Strip surrounding single or double quotes
+      const separatorIndex = trimmed.indexOf("=");
+      if (separatorIndex === -1) continue;
+
+      const key = trimmed.slice(0, separatorIndex).trim();
+      let value = trimmed.slice(separatorIndex + 1).trim();
+
       if (
         (value.startsWith('"') && value.endsWith('"')) ||
         (value.startsWith("'") && value.endsWith("'"))
@@ -49,69 +39,61 @@ function parseEnv(filePath) {
       result[key] = value;
     }
   } catch {
-    // .env file is optional — that's fine
+    // Local environment files are optional.
   }
+
   return result;
 }
 
 const envFile = parseEnv(resolve(projectRoot, ".env"));
+const envLocalFile = parseEnv(resolve(projectRoot, ".env.local"));
 
-// Merge .env values into process.env (don't override existing env)
 for (const [key, value] of Object.entries(envFile)) {
-  if (!process.env[key]) {
-    process.env[key] = value;
-  }
+  if (!process.env[key]) process.env[key] = value;
 }
 
-// ---------------------------------------------------------------------------
-// 2. Load secrets from Vault (mirrors the Rust backend pattern)
-// ---------------------------------------------------------------------------
+for (const [key, value] of Object.entries(envLocalFile)) {
+  if (!process.env[key]) process.env[key] = value;
+}
 
-const VAULT_ADDR = process.env.VAULT_ADDR;
-const VAULT_TOKEN = process.env.VAULT_TOKEN;
-const VAULT_SECRET_PATH = process.env.VAULT_SECRET_PATH;
+const vaultAddress = process.env.VAULT_ADDR;
+const vaultToken = process.env.VAULT_TOKEN;
+const vaultSecretPath = process.env.VAULT_SECRET_PATH;
 
 async function loadVaultSecrets() {
-  if (!VAULT_ADDR || !VAULT_TOKEN) {
+  if (!vaultAddress || !vaultToken) {
     console.log(
       "[vault] VAULT_ADDR or VAULT_TOKEN not set — skipping Vault secrets",
     );
     return;
   }
 
-  if (!VAULT_SECRET_PATH || !VAULT_SECRET_PATH.includes("/")) {
+  if (!vaultSecretPath || !vaultSecretPath.includes("/")) {
     console.error(
-      "[vault] VAULT_SECRET_PATH must be set (e.g. secret/abl-fe-local)",
+      "[vault] VAULT_SECRET_PATH must include the mount and secret path",
     );
     process.exit(1);
   }
 
-  const [mount, ...pathParts] = VAULT_SECRET_PATH.split("/");
-  const path = pathParts.join("/");
-  const addr = VAULT_ADDR.replace(/\/$/, "");
-  const url = `${addr}/v1/${mount}/data/${path}`;
+  const [mount, ...pathParts] = vaultSecretPath.split("/");
+  const address = vaultAddress.replace(/\/$/, "");
+  const url = `${address}/v1/${mount}/data/${pathParts.join("/")}`;
 
   console.log(`[vault] Loading secrets from ${url} …`);
 
   let response;
   try {
     response = await fetch(url, {
-      headers: { "X-Vault-Token": VAULT_TOKEN },
+      headers: { "X-Vault-Token": vaultToken },
     });
-  } catch (err) {
-    if (err.code === "ECONNREFUSED" || err.code === "ENOTFOUND") {
-      console.error(
-        `[vault] Cannot reach ${addr} — is Vault running and reachable?`,
-      );
-    } else {
-      console.error(`[vault] Network error: ${err.message}`);
-    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error(`[vault] Unable to reach Vault: ${message}`);
     process.exit(1);
   }
 
   if (!response.ok) {
-    const body = await response.text().catch(() => "(no body)");
-    console.error(`[vault] Request failed (${response.status}): ${body}`);
+    console.error(`[vault] Request failed with status ${response.status}`);
     process.exit(1);
   }
 
@@ -119,41 +101,39 @@ async function loadVaultSecrets() {
   const secrets = json?.data?.data;
 
   if (!secrets || typeof secrets !== "object") {
-    console.error(
-      "[vault] Unexpected response — expected { data: { data: { … } } }",
-    );
+    console.error("[vault] Response does not contain KV v2 secret data");
     process.exit(1);
   }
 
-  let count = 0;
+  let loadedCount = 0;
   for (const [key, value] of Object.entries(secrets)) {
     if (typeof value === "string" && !process.env[key]) {
       process.env[key] = value;
-      count++;
+      loadedCount++;
     }
   }
 
-  console.log(`[vault] Loaded ${count} secrets from ${VAULT_SECRET_PATH}`);
+  console.log(`[vault] Loaded ${loadedCount} secrets from ${vaultSecretPath}`);
 }
 
 await loadVaultSecrets();
 
-// ---------------------------------------------------------------------------
-// 3. Spawn the actual command (e.g. `next dev`)
-// ---------------------------------------------------------------------------
+const [command, ...args] = process.argv.slice(2);
 
-const [cmd, ...args] = process.argv.slice(2);
-
-if (!cmd) {
+if (!command) {
   console.error("Usage: node scripts/vault-dev.mjs <command> [args...]");
   process.exit(1);
 }
 
-const child = spawn(cmd, args, {
+if (process.env.PORT && !args.includes("-p") && !args.includes("--port")) {
+  args.push("-p", process.env.PORT);
+}
+
+const child = spawn(command, args, {
   stdio: "inherit",
   env: process.env,
   cwd: projectRoot,
-  shell: true,
+  shell: false,
 });
 
 child.on("exit", (code) => {
@@ -163,6 +143,7 @@ child.on("exit", (code) => {
 process.on("SIGINT", () => {
   child.kill("SIGINT");
 });
+
 process.on("SIGTERM", () => {
   child.kill("SIGTERM");
 });

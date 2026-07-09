@@ -8,6 +8,8 @@ import type { AdminTournament } from "@/lib/adminTournaments";
 import {
   type Match as ApiMatch,
   type TeamStatus as ApiTeamStatus,
+  adminCreateRegistration,
+  type AdminCreateRegistrationInput,
   generateDraw as generateDrawRequest,
   getTournament,
   listMatches,
@@ -35,6 +37,7 @@ type Team = {
   id: string;
   player: string;
   partner: string;
+  category: string;
   level: string;
   city: string;
   paid: boolean;
@@ -65,6 +68,8 @@ const defaultSettings: AdminTournament["settings"] = {
   matchDuration: 30,
   teamSize: "Doubles",
   format: "Group stage + knockout",
+  status: "setup",
+  categories: [],
 };
 
 function loadingTournament(tournamentId: string): AdminTournament {
@@ -123,6 +128,8 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       matchDuration: tournament.settings.matchDuration,
       teamSize: tournament.settings.teamSize,
       format: tournament.settings.format,
+      status: tournament.status,
+      categories: tournament.settings.categories ?? [],
     },
   };
 }
@@ -133,14 +140,17 @@ function getTeamName(teams: Team[], teamId: string | null) {
   const team = teams.find((item) => item.id === teamId);
   if (!team) return "TBD";
 
-  return `${team.player} / ${team.partner}`;
+  return team.partner
+    ? `${team.player} / ${team.partner}`
+    : team.player;
 }
 
 function toTeam(team: RegistrationTeam): Team {
   return {
     id: team.id,
     player: team.player,
-    partner: team.partner,
+    partner: team.partner ?? "",
+    category: team.category,
     level: team.level,
     city: team.city,
     paid: team.paid,
@@ -240,9 +250,28 @@ export default function TournamentControlRoom({
   const [message, setMessage] = useState("Loading tournament data.");
   const [activeTab, setActiveTab] = useState<AdminTab>("registrations");
   const [teamFilter, setTeamFilter] = useState<TeamFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedMatchId, setSelectedMatchId] = useState("");
   const [confirmDraw, setConfirmDraw] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [insertOpen, setInsertOpen] = useState(false);
+  const [insertError, setInsertError] = useState("");
+  const [insertSubmitting, setInsertSubmitting] = useState(false);
+  const [insertHasPartner, setInsertHasPartner] = useState(false);
+  const [insertForm, setInsertForm] = useState({
+    playerFullName: "",
+    playerEmail: "",
+    playerPhone: "",
+    playerNationality: "ID",
+    playerSkillLevel: "Intermediate",
+    playerCity: "",
+    partnerFullName: "",
+    partnerEmail: "",
+    partnerSkillLevel: "Intermediate",
+    category: "",
+    paid: false,
+    status: "pending" as TeamStatus,
+  });
 
   useEffect(() => {
     let active = true;
@@ -304,9 +333,15 @@ export default function TournamentControlRoom({
   }, [matches, settings.maxPlayers, teams]);
 
   const filteredTeams = useMemo(() => {
-    if (teamFilter === "all") return teams;
-    return teams.filter((team) => team.status === teamFilter);
-  }, [teamFilter, teams]);
+    let result = teams;
+    if (teamFilter !== "all") {
+      result = result.filter((team) => team.status === teamFilter);
+    }
+    if (categoryFilter !== "all") {
+      result = result.filter((team) => team.category === categoryFilter);
+    }
+    return result;
+  }, [teamFilter, categoryFilter, teams]);
 
   const groupStandings = useMemo(() => {
     const standings = teams.reduce<
@@ -444,9 +479,19 @@ export default function TournamentControlRoom({
         matchDuration: saved.matchDuration,
         teamSize: saved.teamSize,
         format: saved.format,
+        categories: saved.categories,
+        status: settings.status,
       });
+      setTournament((current) => ({
+        ...current,
+        status: settings.status ?? current.status,
+        settings: {
+          ...current.settings,
+          status: settings.status ?? current.settings.status,
+        },
+      }));
       setMessage(
-        `${tournament.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}.`,
+        `${tournament.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}, status: ${settings.status ?? "unchanged"}.`,
       );
     } catch (err) {
       setMessage(
@@ -468,6 +513,80 @@ export default function TournamentControlRoom({
       setMessage(
         err instanceof Error ? err.message : "Failed to generate draw.",
       );
+    }
+  };
+
+  const submitInsertPlayers = async () => {
+    setInsertError("");
+    if (
+      !insertForm.playerFullName.trim() ||
+      !insertForm.playerEmail.trim() ||
+      !insertForm.playerPhone.trim()
+    ) {
+      setInsertError("Player name, email, and phone are required.");
+      return;
+    }
+
+    if (
+      insertHasPartner &&
+      (!insertForm.partnerFullName.trim() ||
+        !insertForm.partnerEmail.trim())
+    ) {
+      setInsertError("Partner name and email are required when registering with a partner.");
+      return;
+    }
+
+    setInsertSubmitting(true);
+    try {
+      const input: AdminCreateRegistrationInput = {
+        player: {
+          fullName: insertForm.playerFullName.trim(),
+          email: insertForm.playerEmail.trim(),
+          phone: insertForm.playerPhone.trim(),
+          nationality: insertForm.playerNationality,
+          skillLevel: insertForm.playerSkillLevel,
+          city: insertForm.playerCity.trim() || null,
+        },
+        category: insertForm.category || undefined,
+        paid: insertForm.paid,
+        status: insertForm.status,
+      };
+
+      if (insertHasPartner) {
+        input.partner = {
+          fullName: insertForm.partnerFullName.trim(),
+          email: insertForm.partnerEmail.trim(),
+          skillLevel: insertForm.partnerSkillLevel,
+        };
+      }
+
+      const created = await adminCreateRegistration(tournamentId, input);
+      setTeams((current) => [...current, toTeam(created)]);
+      setMessage(
+        `Team "${created.player}${created.partner ? ` / ${created.partner}` : ""}" added successfully.`,
+      );
+      setInsertOpen(false);
+      setInsertHasPartner(false);
+      setInsertForm({
+        playerFullName: "",
+        playerEmail: "",
+        playerPhone: "",
+        playerNationality: "ID",
+        playerSkillLevel: "Intermediate",
+        playerCity: "",
+        partnerFullName: "",
+        partnerEmail: "",
+        partnerSkillLevel: "Intermediate",
+        category: "",
+        paid: false,
+        status: "pending",
+      });
+    } catch (err) {
+      setInsertError(
+        err instanceof Error ? err.message : "Failed to insert players.",
+      );
+    } finally {
+      setInsertSubmitting(false);
     }
   };
 
@@ -505,6 +624,16 @@ export default function TournamentControlRoom({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                onClick={() => setInsertOpen(true)}
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  person_add
+                </span>
+                Insert players
+              </button>
+              <button
+                type="button"
                 onClick={() => setConfirmDraw(true)}
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
               >
@@ -519,7 +648,7 @@ export default function TournamentControlRoom({
                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
               >
                 <span className="material-symbols-outlined text-lg">save</span>
-                Save setup
+                Save tournament
               </button>
             </div>
           </div>
@@ -617,20 +746,34 @@ export default function TournamentControlRoom({
                         </button>
                       ))}
                     </div>
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="h-9 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface outline-none"
+                    >
+                      <option value="all">All categories</option>
+                      {(tournament.settings.categories ?? []).map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[1040px] border-collapse text-left">
                       <colgroup>
-                        <col className="w-[34%]" />
-                        <col className="w-[13%]" />
+                        <col className="w-[28%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[11%]" />
                         <col className="w-[9%]" />
-                        <col className="w-[14%]" />
-                        <col className="w-[14%]" />
-                        <col className="w-[16%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[11%]" />
+                        <col className="w-[19%]" />
                       </colgroup>
                       <thead>
                         <tr className="border-b border-outline-variant/20 bg-surface-container-low text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
                           <th className="px-5 py-3">Team</th>
+                          <th className="px-5 py-3">Category</th>
                           <th className="px-5 py-3">Level</th>
                           <th className="px-5 py-3">Group</th>
                           <th className="px-5 py-3">Payment</th>
@@ -646,7 +789,9 @@ export default function TournamentControlRoom({
                           >
                             <td className="px-5 py-5">
                               <p className="text-sm font-extrabold leading-5 text-on-surface">
-                                {team.player} / {team.partner}
+                                {team.partner
+                                  ? `${team.player} / ${team.partner}`
+                                  : team.player}
                               </p>
                               <p className="mt-1 text-xs font-semibold text-on-surface-variant">
                                 {team.id} - {team.city}
@@ -654,6 +799,9 @@ export default function TournamentControlRoom({
                               <p className="mt-1 text-xs text-on-surface-variant">
                                 Registered {team.registeredAt}
                               </p>
+                            </td>
+                            <td className="px-5 py-5 text-sm font-semibold text-on-surface">
+                              {team.category}
                             </td>
                             <td className="px-5 py-5 text-sm font-semibold text-on-surface-variant">
                               {team.level}
@@ -799,7 +947,9 @@ export default function TournamentControlRoom({
                             .map((team) => (
                               <tr key={team.id}>
                                 <td className="py-3 font-bold text-on-surface">
-                                  {team.player} / {team.partner}
+                                  {team.partner
+                                    ? `${team.player} / ${team.partner}`
+                                    : team.player}
                                 </td>
                                 <td className="py-3 text-center">
                                   {team.played}
@@ -824,92 +974,161 @@ export default function TournamentControlRoom({
 
               {activeTab === "knockout" && (
                 <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <h2 className="text-lg font-extrabold text-on-surface">
-                    Knockout phase
-                  </h2>
-                  <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-lg font-extrabold text-on-surface">
+                        Knockout phase
+                      </h2>
+                      <p className="text-sm text-on-surface-variant">
+                        Group winners advance to knockout. Regenerate to update OOP.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDraw(true)}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                    >
+                      <span className="material-symbols-outlined text-lg">
+                        shuffle
+                      </span>
+                      Regenerate knockout
+                    </button>
+                  </div>
+
+                  <div className="mt-5 grid gap-4">
                     {matches
                       .filter((match) => match.phase === "knockout")
                       .map((match) => (
-                        <button
+                        <div
                           key={match.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedMatchId(match.id);
-                            setActiveTab("draw");
-                          }}
-                          className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5"
+                          className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4"
                         >
-                          <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                            {match.round}
-                          </p>
-                          <p className="mt-3 font-extrabold text-on-surface">
-                            {getTeamName(teams, match.teamAId)}
-                          </p>
-                          <p className="my-1 text-xs font-bold uppercase text-on-surface-variant">
-                            versus
-                          </p>
-                          <p className="font-extrabold text-on-surface">
-                            {getTeamName(teams, match.teamBId)}
-                          </p>
-                          <p className="mt-3 text-xs text-on-surface-variant">
-                            Winner: {getTeamName(teams, match.winnerTeamId)}
-                          </p>
-                        </button>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                                {match.round}
+                              </p>
+                              <div className="mt-2 grid gap-3 md:grid-cols-2">
+                                <div>
+                                  <p className="text-sm font-bold text-on-surface">
+                                    {getTeamName(teams, match.teamAId)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-on-surface">
+                                    {getTeamName(teams, match.teamBId)}
+                                  </p>
+                                </div>
+                              </div>
+                              {match.winnerTeamId && (
+                                <p className="mt-2 text-xs font-semibold text-secondary">
+                                  Winner: {getTeamName(teams, match.winnerTeamId)}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMatchId(match.id);
+                                setActiveTab("draw");
+                              }}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-outline-variant/50 bg-white px-3 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-low"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">
+                                edit
+                              </span>
+                              Edit
+                            </button>
+                          </div>
+                        </div>
                       ))}
+                    {matches.filter((m) => m.phase === "knockout").length ===
+                      0 && (
+                      <div className="rounded-lg bg-surface-container-low p-5 text-sm font-semibold text-on-surface-variant">
+                        No knockout matches yet. Generate the draw first, then
+                        group winners will appear here.
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
               {activeTab === "courts" && (
                 <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <h2 className="text-lg font-extrabold text-on-surface">
-                    Court allocation
-                  </h2>
-                  <div className="mt-5 grid gap-3 xl:grid-cols-2">
-                    {Array.from({ length: settings.courts }, (_, index) => {
-                      const courtId = index + 1;
-                      const courtMatches = matches.filter(
-                        (match) => match.courtId === courtId,
-                      );
-                      return (
-                        <div
-                          key={courtId}
-                          className="rounded-lg bg-surface-container-low p-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <p className="font-bold text-on-surface">
-                              Court {courtId}
-                            </p>
-                            <span className="material-symbols-outlined text-primary">
-                              sports_tennis
-                            </span>
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            {courtMatches.length === 0 && (
-                              <p className="text-sm text-on-surface-variant">
-                                Available for assignment
-                              </p>
-                            )}
-                            {courtMatches.map((match) => (
-                              <button
-                                key={match.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedMatchId(match.id);
-                                  setActiveTab("draw");
-                                }}
-                                className="w-full rounded-md bg-white p-3 text-left text-sm font-semibold text-on-surface"
-                              >
-                                {match.time} -{" "}
-                                {getTeamName(teams, match.teamAId)} vs{" "}
-                                {getTeamName(teams, match.teamBId)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 className="text-lg font-extrabold text-on-surface">
+                        Order of Play (OOP)
+                      </h2>
+                      <p className="text-sm text-on-surface-variant">
+                        Scheduled matches ordered by time across all courts.
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-lg bg-surface-container-low px-3 py-2 text-xs font-bold text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[15px]">
+                        schedule
+                      </span>
+                      {matches.length} matches
+                    </span>
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <table className="w-full min-w-[700px] border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-outline-variant/20 bg-surface-container-low text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                          <th className="px-4 py-3">Time</th>
+                          <th className="px-4 py-3">Court</th>
+                          <th className="px-4 py-3">Match</th>
+                          <th className="px-4 py-3">Round</th>
+                          <th className="px-4 py-3">Score</th>
+                          <th className="px-4 py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant/20">
+                        {matches
+                          .sort((a, b) => a.time.localeCompare(b.time))
+                          .map((match) => (
+                            <tr
+                              key={match.id}
+                              className="align-middle transition-colors hover:bg-surface-container-low/50 cursor-pointer"
+                              onClick={() => {
+                                setSelectedMatchId(match.id);
+                                setActiveTab("draw");
+                              }}
+                            >
+                              <td className="px-4 py-4 text-sm font-bold text-on-surface">
+                                {match.time}
+                              </td>
+                              <td className="px-4 py-4 text-sm font-semibold text-on-surface-variant">
+                                {match.courtId
+                                  ? `Court ${match.courtId}`
+                                  : "—"}
+                              </td>
+                              <td className="px-4 py-4">
+                                <p className="text-sm font-bold text-on-surface">
+                                  {getTeamName(teams, match.teamAId)}
+                                </p>
+                                <p className="text-xs text-on-surface-variant">
+                                  vs
+                                </p>
+                                <p className="text-sm font-bold text-on-surface">
+                                  {getTeamName(teams, match.teamBId)}
+                                </p>
+                              </td>
+                              <td className="px-4 py-4 text-sm font-semibold text-on-surface-variant">
+                                {match.round}
+                              </td>
+                              <td className="px-4 py-4 text-sm font-bold text-primary">
+                                {match.score}
+                              </td>
+                              <td className="px-4 py-4">
+                                <StatusBadge
+                                  {...matchStatusMeta[match.status]}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
@@ -995,6 +1214,26 @@ export default function TournamentControlRoom({
                         <option value={30}>30 minutes</option>
                         <option value={45}>45 minutes</option>
                         <option value={60}>60 minutes</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Tournament status
+                      </span>
+                      <select
+                        value={settings.status ?? "setup"}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            status: event.target.value as AdminTournament["status"],
+                          }))
+                        }
+                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      >
+                        <option value="setup">Setup</option>
+                        <option value="registration">Registration</option>
+                        <option value="live">Live</option>
+                        <option value="completed">Completed</option>
                       </select>
                     </label>
                   </div>
@@ -1163,7 +1402,7 @@ export default function TournamentControlRoom({
                       <span className="material-symbols-outlined text-lg">
                         send
                       </span>
-                      Save match
+                      Save match details
                     </button>
                   </div>
                 )}
@@ -1209,6 +1448,343 @@ export default function TournamentControlRoom({
                 className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
               >
                 Generate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {insertOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="insert-players-title"
+            className="w-full max-w-lg rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)] max-h-[90vh] overflow-y-auto"
+          >
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+              <span className="material-symbols-outlined">person_add</span>
+            </div>
+            <h2
+              id="insert-players-title"
+              className="text-xl font-extrabold text-on-surface"
+            >
+              Insert players
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+              Manually register a team (player + partner) for this tournament.
+            </p>
+
+            <div className="mt-6 grid gap-4">
+              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
+                <legend className="text-sm font-extrabold text-on-surface px-2">
+                  Player
+                </legend>
+                <div className="grid gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Full name *
+                      </span>
+                      <input
+                        value={insertForm.playerFullName}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerFullName: e.target.value,
+                          }))
+                        }
+                        placeholder="Player name"
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Email *
+                      </span>
+                      <input
+                        type="email"
+                        value={insertForm.playerEmail}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerEmail: e.target.value,
+                          }))
+                        }
+                        placeholder="player@email.com"
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Phone *
+                      </span>
+                      <input
+                        value={insertForm.playerPhone}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerPhone: e.target.value,
+                          }))
+                        }
+                        placeholder="+62..."
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Nationality
+                      </span>
+                      <input
+                        value={insertForm.playerNationality}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerNationality: e.target.value,
+                          }))
+                        }
+                        placeholder="ID"
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Skill level
+                      </span>
+                      <select
+                        value={insertForm.playerSkillLevel}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerSkillLevel: e.target.value,
+                          }))
+                        }
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      >
+                        <option>Beginner</option>
+                        <option>Intermediate</option>
+                        <option>Advanced</option>
+                        <option>Professional</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        City
+                      </span>
+                      <input
+                        value={insertForm.playerCity}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            playerCity: e.target.value,
+                          }))
+                        }
+                        placeholder="Jakarta"
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </fieldset>
+
+              {(tournament.settings.categories ?? []).length > 0 && (
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Category
+                  </span>
+                  <select
+                    value={insertForm.category}
+                    onChange={(e) =>
+                      setInsertForm((f) => ({
+                        ...f,
+                        category: e.target.value,
+                      }))
+                    }
+                    className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  >
+                    <option value="">Select category</option>
+                    {(tournament.settings.categories ?? []).map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
+                <legend className="text-sm font-extrabold text-on-surface px-2">
+                  Partner
+                </legend>
+                <div className="mb-4 flex items-center gap-4">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={insertHasPartner}
+                    onClick={() =>
+                      setInsertHasPartner((prev) => !prev)
+                    }
+                    className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
+                      insertHasPartner
+                        ? "bg-secondary"
+                        : "bg-outline-variant"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 rounded-full bg-white shadow-md transition-transform ${
+                        insertHasPartner
+                          ? "translate-x-[26px]"
+                          : "translate-x-[4px]"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-semibold text-on-surface">
+                    {insertHasPartner
+                      ? "Registering with partner"
+                      : "Solo registration"}
+                  </span>
+                </div>
+
+                {insertHasPartner && (
+                  <div className="grid gap-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                          Full name *
+                        </span>
+                        <input
+                          value={insertForm.partnerFullName}
+                          onChange={(e) =>
+                            setInsertForm((f) => ({
+                              ...f,
+                              partnerFullName: e.target.value,
+                            }))
+                          }
+                          placeholder="Partner name"
+                          className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                          Email *
+                        </span>
+                        <input
+                          type="email"
+                          value={insertForm.partnerEmail}
+                          onChange={(e) =>
+                            setInsertForm((f) => ({
+                              ...f,
+                              partnerEmail: e.target.value,
+                            }))
+                          }
+                          placeholder="partner@email.com"
+                          className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        />
+                      </label>
+                    </div>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Skill level
+                      </span>
+                      <select
+                        value={insertForm.partnerSkillLevel}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            partnerSkillLevel: e.target.value,
+                          }))
+                        }
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      >
+                        <option>Beginner</option>
+                        <option>Intermediate</option>
+                        <option>Advanced</option>
+                        <option>Professional</option>
+                      </select>
+                    </label>
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
+                <legend className="text-sm font-extrabold text-on-surface px-2">
+                  Admin overrides
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={insertForm.paid}
+                      onChange={(e) =>
+                        setInsertForm((f) => ({
+                          ...f,
+                          paid: e.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded accent-primary"
+                    />
+                    <span className="text-sm font-semibold text-on-surface">
+                      Mark as paid
+                    </span>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                      Team status
+                    </span>
+                    <select
+                      value={insertForm.status}
+                      onChange={(e) =>
+                        setInsertForm((f) => ({
+                          ...f,
+                          status: e.target.value as TeamStatus,
+                        }))
+                      }
+                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="waitlist">Waitlist</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+
+            {insertError && (
+              <div className="mt-5 rounded-lg border border-error/20 bg-error-container px-4 py-3 text-sm font-semibold text-on-error-container">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-lg">error</span>
+                  <p>{insertError}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setInsertOpen(false);
+                  setInsertError("");
+                }}
+                disabled={insertSubmitting}
+                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submitInsertPlayers}
+                disabled={insertSubmitting}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90 disabled:cursor-wait disabled:opacity-70"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  {insertSubmitting ? "hourglass_top" : "person_add"}
+                </span>
+                {insertSubmitting ? "Inserting..." : "Insert players"}
               </button>
             </div>
           </div>

@@ -16,6 +16,8 @@ export type TournamentSettings = {
   groupSize: number;
   qualifierCount: number;
   knockoutSeedMode: string;
+  status?: TournamentStatus;
+  categories: string[];
 };
 
 export type Tournament = {
@@ -30,7 +32,7 @@ export type Tournament = {
   status: TournamentStatus;
   description: string;
   heroImageUrl: string | null;
-  entryFeePerPlayer: number;
+  entryFeePerPair: number;
   currency: string;
   settings: TournamentSettings;
   createdAt: string;
@@ -41,7 +43,8 @@ export type RegistrationTeam = {
   id: string;
   tournamentId: string;
   player: string;
-  partner: string;
+  partner: string | null;
+  category: string;
   level: string;
   city: string;
   paid: boolean;
@@ -165,7 +168,7 @@ export type RegistrationSummary = {
     badge: string;
     dateLabel: string;
     location: string;
-    entryFeePerPlayer: number;
+    entryFeePerPair: number;
     currency: string;
   };
   fees: {
@@ -186,19 +189,11 @@ type ApiEnvelope<T> = {
 };
 
 function getApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-  if (configuredUrl) {
-    return configuredUrl;
+  const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+  if (!configuredUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set.");
   }
-
-  if (
-    typeof window !== "undefined" &&
-    window.location.hostname === "tuwaga.wikra.my.id"
-  ) {
-    return "https://api-tuwaga.wikra.my.id/api/v1";
-  }
-
-  return "http://127.0.0.1:8004/api/v1";
+  return configuredUrl;
 }
 
 const apiBaseUrl = getApiBaseUrl();
@@ -308,7 +303,7 @@ export async function getTournament(id: string) {
 
 export async function getCurrentTournament() {
   const tournaments = await listTournaments();
-  return tournaments[0] ?? null;
+  return tournaments.find((t) => t.status !== "setup") ?? null;
 }
 
 export async function createTournament(input: {
@@ -318,7 +313,7 @@ export async function createTournament(input: {
   startsAt?: string;
   endsAt?: string;
   description?: string;
-  entryFeePerPlayer?: number;
+  entryFeePerPair?: number;
   currency?: string;
   maxPlayers: number;
   waitlistLimit: number;
@@ -326,6 +321,7 @@ export async function createTournament(input: {
   matchDuration: number;
   teamSize: string;
   format: string;
+  categories?: string[];
 }) {
   const data = await apiRequest<{ tournament: Tournament }>(
     "/admin/tournaments",
@@ -398,6 +394,7 @@ export async function createRegistration(
   tournamentId: string,
   input: {
     acceptedTerms: boolean;
+    category: string;
     player: {
       fullName: string;
       email: string;
@@ -407,7 +404,7 @@ export async function createRegistration(
       city?: string | null;
       membershipId?: string | null;
     };
-    partner: {
+    partner?: {
       fullName: string;
       email: string;
       skillLevel: string;
@@ -422,6 +419,42 @@ export async function createRegistration(
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export type AdminCreateRegistrationInput = {
+  player: {
+    fullName: string;
+    email: string;
+    phone: string;
+    nationality: string;
+    skillLevel: string;
+    city?: string | null;
+    membershipId?: string | null;
+  };
+  partner?: {
+    fullName: string;
+    email: string;
+    skillLevel: string;
+    membershipId?: string | null;
+  };
+  category?: string;
+  paid?: boolean;
+  paymentStatus?: "unpaid" | "pending" | "paid" | "failed" | "refunded";
+  status?: TeamStatus;
+};
+
+export async function adminCreateRegistration(
+  tournamentId: string,
+  input: AdminCreateRegistrationInput,
+) {
+  const data = await apiRequest<{ team: RegistrationTeam }>(
+    `/admin/tournaments/${tournamentId}/registrations`,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
+  return data.team;
 }
 
 export async function updateMatch(

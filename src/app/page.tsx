@@ -68,7 +68,7 @@ export default function HomePage() {
 
     listTournaments()
       .then((items) => {
-        if (active) setTournaments(items);
+        if (active) setTournaments(items.filter((t) => t.status !== "setup"));
       })
       .catch(() => {
         if (active) setTournaments([]);
@@ -260,18 +260,7 @@ export default function HomePage() {
                         {tournament.venue}
                       </p>
 
-                      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <div className="rounded-lg bg-surface-container-low p-4">
-                          <span className="material-symbols-outlined mb-2 text-primary">
-                            group
-                          </span>
-                          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                            Capacity
-                          </p>
-                          <p className="text-lg font-bold text-on-surface">
-                            {tournament.settings.maxPlayers} players
-                          </p>
-                        </div>
+                      <div className="mb-6 grid grid-cols-1 gap-3">
                         <div className="rounded-lg bg-surface-container-low p-4">
                           <span className="material-symbols-outlined mb-2 text-secondary">
                             verified

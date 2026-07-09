@@ -12,5 +12,7 @@ export type AdminTournament = {
     matchDuration: number;
     teamSize: string;
     format: string;
+    status: "setup" | "registration" | "live" | "completed";
+    categories: string[];
   };
 };

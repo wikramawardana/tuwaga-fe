@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import RegistrationShell from "@/components/RegistrationShell";
 import {
   createRegistration,
   getCurrentTournament,
   getRegistrationSummary,
+  getTournament,
   type RegistrationSummary,
   type Tournament,
 } from "@/lib/tuwagaApi";
@@ -154,7 +156,7 @@ function TournamentSummary({
                 icon: "payments",
                 label: "Entry",
                 value: summary
-                  ? `${formatMoney(summary.tournament.entryFeePerPlayer)} / player`
+                  ? `${formatMoney(summary.tournament.entryFeePerPair)} / pair`
                   : "Loading",
               },
             ].map((item) => (
@@ -188,33 +190,6 @@ function TournamentSummary({
             </div>
           </div>
 
-          <div className="space-y-2 border-t border-surface-container pt-5">
-            <div className="flex justify-between text-[14px] text-on-surface-variant">
-              <span>Registration Fee (2 players)</span>
-              <span className="text-on-surface">
-                {summary ? formatMoney(summary.fees.registrationFee) : "-"}
-              </span>
-            </div>
-            <div className="flex justify-between text-[14px] text-on-surface-variant">
-              <span>Service Fee</span>
-              <span className="text-on-surface">
-                {summary ? formatMoney(summary.fees.serviceFee) : "-"}
-              </span>
-            </div>
-            <div className="flex justify-between text-[14px] text-on-surface-variant">
-              <span>Payment Admin</span>
-              <span className="text-on-surface">
-                {summary ? formatMoney(summary.fees.paymentAdminFee) : "-"}
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-surface-container pt-3 text-[20px] font-semibold">
-              <span>Total</span>
-              <span className="text-primary">
-                {summary ? formatMoney(summary.fees.total) : "-"}
-              </span>
-            </div>
-          </div>
-
           <div className="rounded-lg border border-primary/10 bg-primary/5 p-4 text-[12px] font-semibold leading-relaxed text-primary">
             WhatsApp support: {summary?.support.whatsapp ?? "Loading"}.
             Registration is saved to the backend.
@@ -240,9 +215,12 @@ function TournamentSummary({
 }
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
   const [selectedSkill, setSelectedSkill] =
     useState<SkillValue>("intermediate");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [hasPartner, setHasPartner] = useState(false);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [summary, setSummary] = useState<RegistrationSummary | null>(null);
   const [message, setMessage] = useState("");
@@ -260,12 +238,24 @@ export default function RegisterPage() {
 
     async function loadSummary() {
       try {
-        const current = await getCurrentTournament();
+        const tournamentSlug = searchParams.get("tournament");
+        let current: Tournament | null = null;
+
+        if (tournamentSlug) {
+          current = await getTournament(tournamentSlug);
+        } else {
+          current = await getCurrentTournament();
+        }
+
         if (!active) return;
         setTournament(current);
         if (!current) {
           setMessage("No tournament found in the backend.");
           return;
+        }
+
+        if ((current.settings.categories ?? []).length > 0 && !selectedCategory) {
+          setSelectedCategory((current.settings.categories ?? [])[0]);
         }
 
         const nextSummary = await getRegistrationSummary(current.id);
@@ -286,7 +276,7 @@ export default function RegisterPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [searchParams, selectedCategory]);
 
   const submitRegistration = async (
     event: React.FormEvent<HTMLFormElement>,
@@ -306,8 +296,18 @@ export default function RegisterPage() {
 
     setSubmitting(true);
     try {
+      const partnerInput = hasPartner
+        ? {
+            fullName: field("partner-name"),
+            email: field("partner-email"),
+            skillLevel: field("partner-level") || selectedSkill,
+            membershipId: field("partner-id") || undefined,
+          }
+        : undefined;
+
       const response = await createRegistration(tournament.id, {
         acceptedTerms: agreed,
+        category: selectedCategory,
         player: {
           fullName: field("full-name"),
           email: field("email"),
@@ -317,12 +317,7 @@ export default function RegisterPage() {
           city: null,
           membershipId: null,
         },
-        partner: {
-          fullName: field("partner-name"),
-          email: field("partner-email"),
-          skillLevel: field("partner-level") || selectedSkill,
-          membershipId: field("partner-id") || null,
-        },
+        partner: partnerInput,
       });
       setMessage(`Registration saved: ${response.registration.id}`);
       form.reset();
@@ -353,6 +348,111 @@ export default function RegisterPage() {
               {message}
             </div>
           )}
+          <FormSection
+            icon="sports_score"
+            title="Tournament Category"
+            description="Choose the competition level for this registration."
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {SKILL_LEVELS.map((skill) => {
+                const isSelected = selectedSkill === skill.value;
+                return (
+                  <label key={skill.value} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name="skill-level"
+                      value={skill.value}
+                      checked={isSelected}
+                      onChange={() => setSelectedSkill(skill.value)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`h-full rounded-xl border bg-white p-5 transition-all ${
+                        isSelected
+                          ? "border-primary ring-2 ring-primary/10"
+                          : "border-outline-variant hover:border-primary/40"
+                      }`}
+                    >
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-low text-primary">
+                          <span className="material-symbols-outlined text-[24px]">
+                            {skill.icon}
+                          </span>
+                        </div>
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${
+                            isSelected ? "bg-primary opacity-100" : "opacity-0"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">
+                            check
+                          </span>
+                        </span>
+                      </div>
+                      <h3 className="text-[20px] font-semibold text-on-surface">
+                        {skill.title}
+                      </h3>
+                      <p className="mt-2 text-[14px] leading-[1.5] text-on-surface-variant">
+                        {skill.description}
+                      </p>
+                      <span className="mt-4 inline-flex rounded-full bg-primary-fixed px-3 py-1 text-[12px] font-semibold text-primary">
+                        {skill.label}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </FormSection>
+
+          {tournament && (tournament.settings.categories ?? []).length > 1 && (
+            <FormSection
+              icon="category"
+              title="Event Category"
+              description="Select the event category you want to compete in."
+            >
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {(tournament.settings.categories ?? []).map((cat) => {
+                  const isSelected = selectedCategory === cat;
+                  return (
+                    <label key={cat} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="category"
+                        value={cat}
+                        checked={isSelected}
+                        onChange={() => setSelectedCategory(cat)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`rounded-xl border bg-white p-4 transition-all ${
+                          isSelected
+                            ? "border-primary ring-2 ring-primary/10"
+                            : "border-outline-variant hover:border-primary/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${
+                              isSelected ? "bg-primary opacity-100" : "opacity-0"
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              check
+                            </span>
+                          </span>
+                          <h3 className="text-[16px] font-semibold text-on-surface">
+                            {cat}
+                          </h3>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </FormSection>
+          )}
+
           <FormSection
             icon="person"
             title="Player Information"
@@ -414,167 +514,99 @@ export default function RegisterPage() {
           </FormSection>
 
           <FormSection
-            icon="sports_score"
-            title="Tournament Category"
-            description="Choose the competition level for this registration."
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {SKILL_LEVELS.map((skill) => {
-                const isSelected = selectedSkill === skill.value;
-                return (
-                  <label key={skill.value} className="cursor-pointer">
-                    <input
-                      type="radio"
-                      name="skill-level"
-                      value={skill.value}
-                      checked={isSelected}
-                      onChange={() => setSelectedSkill(skill.value)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`h-full rounded-xl border bg-white p-5 transition-all ${
-                        isSelected
-                          ? "border-primary ring-2 ring-primary/10"
-                          : "border-outline-variant hover:border-primary/40"
-                      }`}
-                    >
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-low text-primary">
-                          <span className="material-symbols-outlined text-[24px]">
-                            {skill.icon}
-                          </span>
-                        </div>
-                        <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${
-                            isSelected ? "bg-primary opacity-100" : "opacity-0"
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            check
-                          </span>
-                        </span>
-                      </div>
-                      <h3 className="text-[20px] font-semibold text-on-surface">
-                        {skill.title}
-                      </h3>
-                      <p className="mt-2 text-[14px] leading-[1.5] text-on-surface-variant">
-                        {skill.description}
-                      </p>
-                      <span className="mt-4 inline-flex rounded-full bg-primary-fixed px-3 py-1 text-[12px] font-semibold text-primary">
-                        {skill.label}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </FormSection>
-
-          <FormSection
             icon="group_add"
             title="Partner Details"
-            description="Add teammate information for the current tournament."
+            description="Add a teammate for doubles play. Leave toggled off for singles registration."
           >
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-name">
-                  Partner Full Name
-                </FieldLabel>
-                <input
-                  id="partner-name"
-                  type="text"
-                  placeholder="Raka Wijaya"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+            <div className="mb-5 flex items-center gap-4">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={hasPartner}
+                onClick={() => setHasPartner((prev) => !prev)}
+                className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
+                  hasPartner
+                    ? "bg-primary"
+                    : "bg-outline-variant"
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 rounded-full bg-white shadow-md transition-transform ${
+                    hasPartner ? "translate-x-[26px]" : "translate-x-[4px]"
+                  }`}
                 />
-              </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-email">Partner Email</FieldLabel>
-                <input
-                  id="partner-email"
-                  type="email"
-                  placeholder="raka@tuwaga.id"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-level">
-                  Partner Skill Level
-                </FieldLabel>
-                <div className="relative">
-                  <select
-                    id="partner-level"
-                    defaultValue="intermediate"
-                    className="w-full cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="" disabled>
-                      Select level
-                    </option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                    <option value="professional">Professional</option>
-                  </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
-                    expand_more
-                  </span>
+              </button>
+              <span className="text-sm font-semibold text-on-surface">
+                {hasPartner ? "Registering with partner" : "Registering solo"}
+              </span>
+            </div>
+
+            {hasPartner && (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="partner-name">
+                    Partner Full Name
+                  </FieldLabel>
+                  <input
+                    id="partner-name"
+                    type="text"
+                    placeholder="Raka Wijaya"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="partner-email">Partner Email</FieldLabel>
+                  <input
+                    id="partner-email"
+                    type="email"
+                    placeholder="raka@tuwaga.id"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="partner-level">
+                    Partner Skill Level
+                  </FieldLabel>
+                  <div className="relative">
+                    <select
+                      id="partner-level"
+                      defaultValue="intermediate"
+                      className="w-full cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="" disabled>
+                        Select level
+                      </option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="professional">Professional</option>
+                    </select>
+                    <span className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="partner-id">
+                    Partner Membership ID
+                  </FieldLabel>
+                  <input
+                    id="partner-id"
+                    type="text"
+                    placeholder="TWG-XXXXXX (optional)"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-id">
-                  Partner Membership ID
-                </FieldLabel>
-                <input
-                  id="partner-id"
-                  type="text"
-                  placeholder="TWG-XXXXXX (optional)"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            </div>
+            )}
           </FormSection>
 
           <FormSection
             icon="lock"
-            title="Payment Details"
-            description="Mock payment fields for the MVP registration interface."
+            title="Confirmation"
+            description="Review your details before submitting."
           >
             <div className="space-y-6">
-              <div className="space-y-2">
-                <FieldLabel htmlFor="card-number">Card Number</FieldLabel>
-                <input
-                  id="card-number"
-                  inputMode="numeric"
-                  placeholder="1234 5678 9012 3456"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="space-y-2">
-                  <FieldLabel htmlFor="expiry">Expiry Date</FieldLabel>
-                  <input
-                    id="expiry"
-                    placeholder="MM / YY"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <FieldLabel htmlFor="cvv">CVV</FieldLabel>
-                  <input
-                    id="cvv"
-                    inputMode="numeric"
-                    placeholder="123"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <FieldLabel htmlFor="card-name">Cardholder Name</FieldLabel>
-                  <input
-                    id="card-name"
-                    placeholder="Bima Pratama"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-              </div>
               <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-surface-container-low p-4">
                 <input
                   type="checkbox"
@@ -584,7 +616,7 @@ export default function RegisterPage() {
                 />
                 <span className="text-[14px] font-medium leading-relaxed text-on-surface-variant">
                   I confirm all registration details are accurate and agree to
-                  the tournament rules and payment terms.
+                  the tournament rules and registration terms.
                 </span>
               </label>
             </div>
