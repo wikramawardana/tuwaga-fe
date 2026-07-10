@@ -1,11 +1,11 @@
 import TournamentControlRoom from "@/components/admin/TournamentControlRoom";
 
 export default async function AdminTournamentPage({
-  params,
+	params,
 }: {
-  params: Promise<{ id: string }>;
+	params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+	const { id } = await params;
 
-  return <TournamentControlRoom tournamentId={id} />;
+	return <TournamentControlRoom tournamentId={id} />;
 }
