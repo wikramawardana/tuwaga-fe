@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind v4 @theme directive */
 @theme {
 	/* ── Brand palette ─────────────────────────────────────────── */
 	--color-primary: #1a56db;
