@@ -4,31 +4,31 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PageTransition({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	const pathname = usePathname();
-	const [isAnimating, setIsAnimating] = useState(false);
+  const pathname = usePathname();
+  const [isAnimating, setIsAnimating] = useState(false);
 
-	useEffect(() => {
-		if (!pathname) return;
+  useEffect(() => {
+    if (!pathname) return;
 
-		setIsAnimating(true);
-		const timeout = window.setTimeout(() => setIsAnimating(false), 520);
+    setIsAnimating(true);
+    const timeout = window.setTimeout(() => setIsAnimating(false), 520);
 
-		return () => window.clearTimeout(timeout);
-	}, [pathname]);
+    return () => window.clearTimeout(timeout);
+  }, [pathname]);
 
-	return (
-		<>
-			<div
-				aria-hidden="true"
-				className={`route-transition-bar ${isAnimating ? "is-active" : ""}`}
-			/>
-			<div key={pathname} className="page-transition">
-				{children}
-			</div>
-		</>
-	);
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className={`route-transition-bar ${isAnimating ? "is-active" : ""}`}
+      />
+      <div key={pathname} className="page-transition">
+        {children}
+      </div>
+    </>
+  );
 }
