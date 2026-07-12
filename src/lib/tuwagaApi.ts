@@ -189,10 +189,7 @@ type ApiEnvelope<T> = {
 };
 
 function getApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.replace(
-    /\/$/,
-    "",
-  );
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
   if (!configuredUrl) {
     throw new Error("NEXT_PUBLIC_API_URL is not set.");
   }
