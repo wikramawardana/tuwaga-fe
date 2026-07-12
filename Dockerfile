@@ -22,14 +22,18 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG NEXT_PUBLIC_APP_URL
-ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# NEXT_PUBLIC_* values are inlined into the browser bundle at build time, so a
+# missing NEXT_PUBLIC_API_URL must fail the build rather than silently bake
+# a localhost URL that breaks every client in production.
+RUN test -n "$NEXT_PUBLIC_API_URL" || (echo "ERROR: NEXT_PUBLIC_API_URL build-arg is required" && exit 1)
 RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
     APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3004}" \
-    NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3005}" \
+    NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
     BETTER_AUTH_SECRET="dummy" \
     AUTH_URL="https://auth.wikra.my.id" \
     AUTH_CLIENT_ID="dummy" \
