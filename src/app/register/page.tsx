@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import RegistrationShell from "@/components/RegistrationShell";
 import {
   createRegistration,
@@ -215,6 +215,14 @@ function TournamentSummary({
 }
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterPageContent />
+    </Suspense>
+  );
+}
+
+function RegisterPageContent() {
   const searchParams = useSearchParams();
   const [selectedSkill, setSelectedSkill] =
     useState<SkillValue>("intermediate");
