@@ -497,14 +497,14 @@ export default function TournamentControlRoom({
     }
   };
 
-  const generateDraw = async () => {
+  const generateDraw = async (phase: "group" | "knockout" | "all" = "all") => {
     setConfirmDraw(false);
     try {
-      const draw = await generateDrawRequest(tournamentId);
+      const draw = await generateDrawRequest(tournamentId, phase);
       const nextMatches = draw.matches.map(toMatch);
       setMatches(nextMatches);
       setSelectedMatchId(nextMatches[0]?.id ?? "");
-      setActiveTab("draw");
+      setActiveTab(phase === "knockout" ? "knockout" : "draw");
       setMessage(draw.message);
     } catch (err) {
       setMessage(
@@ -861,11 +861,11 @@ export default function TournamentControlRoom({
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
                       <h2 className="text-lg font-extrabold text-on-surface">
-                        Match drawer
+                        Group Stage — Order of Play
                       </h2>
                       <p className="text-sm text-on-surface-variant">
-                        Select a match, assign court, set score, and publish the
-                        result.
+                        Group matches generated from approved paid teams. Edit
+                        court assignments and scores in the match detail panel.
                       </p>
                     </div>
                     <button
@@ -876,11 +876,13 @@ export default function TournamentControlRoom({
                       <span className="material-symbols-outlined text-lg">
                         shuffle
                       </span>
-                      Regenerate
+                      Regenerate groups
                     </button>
                   </div>
                   <div className="mt-4 grid gap-3 xl:grid-cols-2">
-                    {matches.map((match) => (
+                    {matches
+                      .filter((m) => m.phase === "group")
+                      .map((match) => (
                       <button
                         key={match.id}
                         type="button"
@@ -978,7 +980,7 @@ export default function TournamentControlRoom({
                     </div>
                     <button
                       type="button"
-                      onClick={() => setConfirmDraw(true)}
+                      onClick={() => generateDraw("knockout")}
                       className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
                     >
                       <span className="material-symbols-outlined text-lg">
@@ -1437,10 +1439,17 @@ export default function TournamentControlRoom({
               </button>
               <button
                 type="button"
-                onClick={generateDraw}
+                onClick={() => generateDraw("group")}
+                className="h-10 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
+              >
+                Groups only
+              </button>
+              <button
+                type="button"
+                onClick={() => generateDraw("all")}
                 className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
               >
-                Generate
+                Generate all
               </button>
             </div>
           </div>

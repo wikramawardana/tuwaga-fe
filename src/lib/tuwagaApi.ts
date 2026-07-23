@@ -504,13 +504,17 @@ export async function updateSettings(
   return data.settings;
 }
 
-export async function generateDraw(tournamentId: string) {
+export async function generateDraw(
+  tournamentId: string,
+  phase: "group" | "knockout" | "all" = "all",
+) {
   return apiRequest<{ message: string; matches: Match[] }>(
     `/admin/tournaments/${tournamentId}/generate-draw`,
     {
       method: "POST",
       body: JSON.stringify({
         mode: "group-stage-plus-knockout",
+        phase,
         includeOnlyPaidApprovedTeams: true,
         overwriteExistingMatches: true,
       }),
