@@ -26,6 +26,7 @@ export const auth = betterAuth({
   },
   account: {
     skipStateCookieCheck: true,
+    storeStateStrategy: "cookie",
   },
   emailAndPassword: {
     enabled: false,
