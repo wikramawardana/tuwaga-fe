@@ -9,25 +9,67 @@ import {
   createRegistration,
   getRegistrationSummary,
   getTournamentBySlug,
-  uploadQualification,
-  type RegistrationSummary,
   type Tournament,
+  uploadQualification,
 } from "@/lib/tuwagaApi";
 
-const WIZARD_STEPS = ["Category", "Player", "Partner", "Qualification", "Review"];
+const WIZARD_STEPS = [
+  "Category",
+  "Player",
+  "Partner",
+  "Qualification",
+  "Review",
+];
 
 const SKILL_LEVELS = [
-  { value: "beginner", icon: "school", title: "Beginner", description: "New tournament participant with basic scoring and match-flow awareness.", label: "Level 1-2" },
-  { value: "intermediate", icon: "sports_tennis", title: "Intermediate", description: "Consistent rhythm, reliable scoring, and ready for local Indonesian events.", label: "Level 3-4" },
-  { value: "advanced", icon: "bolt", title: "Advanced", description: "Strong tactical execution, reliable court awareness, and match control.", label: "Level 5-6" },
-  { value: "professional", icon: "military_tech", title: "Professional", description: "National-level competitor with technical and psychological discipline.", label: "Level 7+" },
+  {
+    value: "beginner",
+    icon: "school",
+    title: "Beginner",
+    description:
+      "New tournament participant with basic scoring and match-flow awareness.",
+    label: "Level 1-2",
+  },
+  {
+    value: "intermediate",
+    icon: "sports_tennis",
+    title: "Intermediate",
+    description:
+      "Consistent rhythm, reliable scoring, and ready for local Indonesian events.",
+    label: "Level 3-4",
+  },
+  {
+    value: "advanced",
+    icon: "bolt",
+    title: "Advanced",
+    description:
+      "Strong tactical execution, reliable court awareness, and match control.",
+    label: "Level 5-6",
+  },
+  {
+    value: "professional",
+    icon: "military_tech",
+    title: "Professional",
+    description:
+      "National-level competitor with technical and psychological discipline.",
+    label: "Level 7+",
+  },
 ] as const;
 
 type SkillValue = (typeof SKILL_LEVELS)[number]["value"];
 
-function FieldLabel({ children, htmlFor }: { children: string; htmlFor: string }) {
+function FieldLabel({
+  children,
+  htmlFor,
+}: {
+  children: string;
+  htmlFor: string;
+}) {
   return (
-    <label htmlFor={htmlFor} className="block text-[14px] font-medium tracking-[0.01em] text-on-surface">
+    <label
+      htmlFor={htmlFor}
+      className="block text-[14px] font-medium tracking-[0.01em] text-on-surface"
+    >
       {children}
     </label>
   );
@@ -91,7 +133,9 @@ function StepActions({
           }`}
         >
           Next
-          <span className="material-symbols-outlined text-lg">arrow_forward</span>
+          <span className="material-symbols-outlined text-lg">
+            arrow_forward
+          </span>
         </button>
       )}
     </div>
@@ -104,16 +148,25 @@ export default function TournamentRegisterPage() {
 
   const [step, setStep] = useState(0);
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [summary, setSummary] = useState<RegistrationSummary | null>(null);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Form state
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSkill, setSelectedSkill] = useState<SkillValue>("intermediate");
-  const [player, setPlayer] = useState({ fullName: "", email: "", phone: "", nationality: "ID" });
-  const [partner, setPartner] = useState({ fullName: "", email: "", skillLevel: "intermediate" as string });
+  const [selectedSkill, setSelectedSkill] =
+    useState<SkillValue>("intermediate");
+  const [player, setPlayer] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    nationality: "ID",
+  });
+  const [partner, setPartner] = useState({
+    fullName: "",
+    email: "",
+    skillLevel: "intermediate" as string,
+  });
   const [qualificationFile, setQualificationFile] = useState<File | null>(null);
   const [qualificationUrl, setQualificationUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -134,27 +187,40 @@ export default function TournamentRegisterPage() {
         }
         const nextSummary = await getRegistrationSummary(current.id);
         if (!active) return;
-        setSummary(nextSummary);
       } catch (err) {
         if (!active) return;
-        setMessage(err instanceof Error ? err.message : "Failed to load tournament.");
+        setMessage(
+          err instanceof Error ? err.message : "Failed to load tournament.",
+        );
       } finally {
         if (active) setLoading(false);
       }
     }
 
     loadTournament();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   const canAdvance = useMemo(() => {
     switch (step) {
-      case 0: return !!selectedCategory;
-      case 1: return !!player.fullName.trim() && !!player.email.trim() && !!player.phone.trim();
-      case 2: return !!partner.fullName.trim() && !!partner.email.trim();
-      case 3: return true; // qualification is optional
-      case 4: return agreed;
-      default: return false;
+      case 0:
+        return !!selectedCategory;
+      case 1:
+        return (
+          !!player.fullName.trim() &&
+          !!player.email.trim() &&
+          !!player.phone.trim()
+        );
+      case 2:
+        return !!partner.fullName.trim() && !!partner.email.trim();
+      case 3:
+        return true; // qualification is optional
+      case 4:
+        return agreed;
+      default:
+        return false;
     }
   }, [step, selectedCategory, player, partner, agreed]);
 
@@ -165,7 +231,9 @@ export default function TournamentRegisterPage() {
       const result = await uploadQualification(file);
       setQualificationUrl(result.url);
     } catch {
-      setMessage("Failed to upload qualification image. You can still continue.");
+      setMessage(
+        "Failed to upload qualification image. You can still continue.",
+      );
     } finally {
       setUploading(false);
     }
@@ -194,7 +262,9 @@ export default function TournamentRegisterPage() {
       });
       setMessage(`Registration saved: ${response.registration.id}`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Failed to submit registration.");
+      setMessage(
+        err instanceof Error ? err.message : "Failed to submit registration.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -250,11 +320,17 @@ export default function TournamentRegisterPage() {
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">category</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  category
+                </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">Event Category</h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">Select the category you want to compete in.</p>
+                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+                  Event Category
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+                  Select the category you want to compete in.
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -262,13 +338,28 @@ export default function TournamentRegisterPage() {
                 const isSelected = selectedCategory === cat;
                 return (
                   <label key={cat} className="cursor-pointer">
-                    <input type="radio" name="category" value={cat} checked={isSelected} onChange={() => setSelectedCategory(cat)} className="sr-only" />
-                    <div className={`rounded-xl border bg-white p-5 transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}>
+                    <input
+                      type="radio"
+                      name="category"
+                      value={cat}
+                      checked={isSelected}
+                      onChange={() => setSelectedCategory(cat)}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`rounded-xl border bg-white p-5 transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}
+                    >
                       <div className="flex items-center gap-3">
-                        <span className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${isSelected ? "bg-primary opacity-100" : "opacity-0"}`}>
-                          <span className="material-symbols-outlined text-[16px]">check</span>
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${isSelected ? "bg-primary opacity-100" : "opacity-0"}`}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">
+                            check
+                          </span>
                         </span>
-                        <h3 className="text-[18px] font-semibold text-on-surface">{cat}</h3>
+                        <h3 className="text-[18px] font-semibold text-on-surface">
+                          {cat}
+                        </h3>
                       </div>
                     </div>
                   </label>
@@ -277,17 +368,34 @@ export default function TournamentRegisterPage() {
             </div>
 
             <div className="mt-8">
-              <h3 className="mb-4 text-[18px] font-semibold text-on-surface">Skill Level</h3>
+              <h3 className="mb-4 text-[18px] font-semibold text-on-surface">
+                Skill Level
+              </h3>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {SKILL_LEVELS.map((skill) => {
                   const isSelected = selectedSkill === skill.value;
                   return (
                     <label key={skill.value} className="cursor-pointer">
-                      <input type="radio" name="skill-level" value={skill.value} checked={isSelected} onChange={() => setSelectedSkill(skill.value)} className="sr-only" />
-                      <div className={`rounded-xl border bg-white p-4 text-center transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}>
-                        <span className="material-symbols-outlined text-[28px] text-primary">{skill.icon}</span>
-                        <p className="mt-2 text-sm font-bold text-on-surface">{skill.title}</p>
-                        <p className="text-xs text-on-surface-variant">{skill.label}</p>
+                      <input
+                        type="radio"
+                        name="skill-level"
+                        value={skill.value}
+                        checked={isSelected}
+                        onChange={() => setSelectedSkill(skill.value)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`rounded-xl border bg-white p-4 text-center transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}
+                      >
+                        <span className="material-symbols-outlined text-[28px] text-primary">
+                          {skill.icon}
+                        </span>
+                        <p className="mt-2 text-sm font-bold text-on-surface">
+                          {skill.title}
+                        </p>
+                        <p className="text-xs text-on-surface-variant">
+                          {skill.label}
+                        </p>
                       </div>
                     </label>
                   );
@@ -302,32 +410,77 @@ export default function TournamentRegisterPage() {
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">person</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  person
+                </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">Player Information</h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">Your details for tournament verification.</p>
+                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+                  Player Information
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+                  Your details for tournament verification.
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <FieldLabel htmlFor="full-name">Full Name *</FieldLabel>
-                <input id="full-name" type="text" required value={player.fullName} onChange={(e) => setPlayer((p) => ({ ...p, fullName: e.target.value }))} placeholder="Bima Pratama" className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+                <input
+                  id="full-name"
+                  type="text"
+                  required
+                  value={player.fullName}
+                  onChange={(e) =>
+                    setPlayer((p) => ({ ...p, fullName: e.target.value }))
+                  }
+                  placeholder="Bima Pratama"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
                 <FieldLabel htmlFor="email">Email *</FieldLabel>
-                <input id="email" type="email" required value={player.email} onChange={(e) => setPlayer((p) => ({ ...p, email: e.target.value }))} placeholder="bima@tuwaga.id" className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={player.email}
+                  onChange={(e) =>
+                    setPlayer((p) => ({ ...p, email: e.target.value }))
+                  }
+                  placeholder="bima@tuwaga.id"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
                 <FieldLabel htmlFor="phone">Phone *</FieldLabel>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">+62</span>
-                  <input id="phone" type="tel" required value={player.phone} onChange={(e) => setPlayer((p) => ({ ...p, phone: e.target.value }))} placeholder="812 3456 7890" className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">
+                    +62
+                  </span>
+                  <input
+                    id="phone"
+                    type="tel"
+                    required
+                    value={player.phone}
+                    onChange={(e) =>
+                      setPlayer((p) => ({ ...p, phone: e.target.value }))
+                    }
+                    placeholder="812 3456 7890"
+                    className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <FieldLabel htmlFor="nationality">Nationality</FieldLabel>
-                <select id="nationality" value={player.nationality} onChange={(e) => setPlayer((p) => ({ ...p, nationality: e.target.value }))} className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary">
+                <select
+                  id="nationality"
+                  value={player.nationality}
+                  onChange={(e) =>
+                    setPlayer((p) => ({ ...p, nationality: e.target.value }))
+                  }
+                  className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                >
                   <option value="ID">Indonesia</option>
                   <option value="MY">Malaysia</option>
                   <option value="SG">Singapore</option>
@@ -344,25 +497,62 @@ export default function TournamentRegisterPage() {
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">group_add</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  group_add
+                </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">Partner Details</h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">Your doubles partner for this tournament.</p>
+                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+                  Partner Details
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+                  Your doubles partner for this tournament.
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <FieldLabel htmlFor="partner-name">Partner Full Name *</FieldLabel>
-                <input id="partner-name" type="text" required value={partner.fullName} onChange={(e) => setPartner((p) => ({ ...p, fullName: e.target.value }))} placeholder="Raka Wijaya" className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+                <FieldLabel htmlFor="partner-name">
+                  Partner Full Name *
+                </FieldLabel>
+                <input
+                  id="partner-name"
+                  type="text"
+                  required
+                  value={partner.fullName}
+                  onChange={(e) =>
+                    setPartner((p) => ({ ...p, fullName: e.target.value }))
+                  }
+                  placeholder="Raka Wijaya"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
                 <FieldLabel htmlFor="partner-email">Partner Email *</FieldLabel>
-                <input id="partner-email" type="email" required value={partner.email} onChange={(e) => setPartner((p) => ({ ...p, email: e.target.value }))} placeholder="raka@tuwaga.id" className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary" />
+                <input
+                  id="partner-email"
+                  type="email"
+                  required
+                  value={partner.email}
+                  onChange={(e) =>
+                    setPartner((p) => ({ ...p, email: e.target.value }))
+                  }
+                  placeholder="raka@tuwaga.id"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                />
               </div>
               <div className="space-y-2">
-                <FieldLabel htmlFor="partner-level">Partner Skill Level</FieldLabel>
-                <select id="partner-level" value={partner.skillLevel} onChange={(e) => setPartner((p) => ({ ...p, skillLevel: e.target.value }))} className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary">
+                <FieldLabel htmlFor="partner-level">
+                  Partner Skill Level
+                </FieldLabel>
+                <select
+                  id="partner-level"
+                  value={partner.skillLevel}
+                  onChange={(e) =>
+                    setPartner((p) => ({ ...p, skillLevel: e.target.value }))
+                  }
+                  className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
@@ -378,11 +568,17 @@ export default function TournamentRegisterPage() {
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">upload_file</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  upload_file
+                </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">Qualification</h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">Upload a qualification image (optional). Max 5MB.</p>
+                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+                  Qualification
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+                  Upload a qualification image (optional). Max 5MB.
+                </p>
               </div>
             </div>
 
@@ -398,24 +594,50 @@ export default function TournamentRegisterPage() {
               />
               {qualificationFile ? (
                 <>
-                  <span className="material-symbols-outlined text-[40px] text-secondary">check_circle</span>
-                  <p className="mt-3 text-sm font-bold text-on-surface">{qualificationFile.name}</p>
-                  <p className="text-xs text-on-surface-variant">{(qualificationFile.size / 1024).toFixed(0)} KB</p>
-                  {uploading && <p className="mt-2 text-xs font-bold text-primary">Uploading...</p>}
-                  {qualificationUrl && <p className="mt-1 text-xs font-bold text-secondary">Uploaded ✓</p>}
+                  <span className="material-symbols-outlined text-[40px] text-secondary">
+                    check_circle
+                  </span>
+                  <p className="mt-3 text-sm font-bold text-on-surface">
+                    {qualificationFile.name}
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    {(qualificationFile.size / 1024).toFixed(0)} KB
+                  </p>
+                  {uploading && (
+                    <p className="mt-2 text-xs font-bold text-primary">
+                      Uploading...
+                    </p>
+                  )}
+                  {qualificationUrl && (
+                    <p className="mt-1 text-xs font-bold text-secondary">
+                      Uploaded ✓
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[40px] text-on-surface-variant">cloud_upload</span>
-                  <p className="mt-3 text-sm font-bold text-on-surface">Click to upload qualification image</p>
-                  <p className="text-xs text-on-surface-variant">JPG, PNG, or WebP — Max 5MB</p>
+                  <span className="material-symbols-outlined text-[40px] text-on-surface-variant">
+                    cloud_upload
+                  </span>
+                  <p className="mt-3 text-sm font-bold text-on-surface">
+                    Click to upload qualification image
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    JPG, PNG, or WebP — Max 5MB
+                  </p>
                 </>
               )}
             </label>
 
             {qualificationUrl && (
-              <div className="mt-4 overflow-hidden rounded-lg border border-outline-variant/30">
-                <img src={qualificationUrl} alt="Qualification" className="h-48 w-full object-cover" />
+              <div className="relative mt-4 h-48 overflow-hidden rounded-lg border border-outline-variant/30">
+                <Image
+                  src={qualificationUrl}
+                  alt="Qualification"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
               </div>
             )}
           </section>
@@ -426,41 +648,74 @@ export default function TournamentRegisterPage() {
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">fact_check</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  fact_check
+                </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">Review & Submit</h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">Confirm your details before submitting.</p>
+                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+                  Review & Submit
+                </h2>
+                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+                  Confirm your details before submitting.
+                </p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Category</p>
-                <p className="mt-1 text-sm font-bold text-on-surface">{selectedCategory} — {SKILL_LEVELS.find((s) => s.value === selectedSkill)?.title}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  Category
+                </p>
+                <p className="mt-1 text-sm font-bold text-on-surface">
+                  {selectedCategory} —{" "}
+                  {SKILL_LEVELS.find((s) => s.value === selectedSkill)?.title}
+                </p>
               </div>
               <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Player</p>
-                <p className="mt-1 text-sm font-bold text-on-surface">{player.fullName}</p>
-                <p className="text-xs text-on-surface-variant">{player.email} · +62{player.phone}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  Player
+                </p>
+                <p className="mt-1 text-sm font-bold text-on-surface">
+                  {player.fullName}
+                </p>
+                <p className="text-xs text-on-surface-variant">
+                  {player.email} · +62{player.phone}
+                </p>
               </div>
               <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Partner</p>
-                <p className="mt-1 text-sm font-bold text-on-surface">{partner.fullName}</p>
-                <p className="text-xs text-on-surface-variant">{partner.email} · {partner.skillLevel}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  Partner
+                </p>
+                <p className="mt-1 text-sm font-bold text-on-surface">
+                  {partner.fullName}
+                </p>
+                <p className="text-xs text-on-surface-variant">
+                  {partner.email} · {partner.skillLevel}
+                </p>
               </div>
               {qualificationUrl && (
                 <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Qualification</p>
-                  <p className="mt-1 text-sm font-bold text-secondary">Image uploaded ✓</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Qualification
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-secondary">
+                    Image uploaded ✓
+                  </p>
                 </div>
               )}
             </div>
 
             <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-lg bg-surface-container-low p-4">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 accent-primary" />
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-primary"
+              />
               <span className="text-[14px] font-medium leading-relaxed text-on-surface-variant">
-                I confirm all registration details are accurate and agree to the tournament rules and registration terms.
+                I confirm all registration details are accurate and agree to the
+                tournament rules and registration terms.
               </span>
             </label>
           </section>

@@ -190,9 +190,9 @@ type ApiEnvelope<T> = {
 };
 
 function getApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
   if (!configuredUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set.");
+    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set.");
   }
   return configuredUrl;
 }
@@ -539,9 +539,9 @@ export async function uploadQualification(
     body: formData,
   });
 
-  const envelope = (await response
-    .json()
-    .catch(() => null)) as ApiEnvelope<{ url: string }> | null;
+  const envelope = (await response.json().catch(() => null)) as ApiEnvelope<{
+    url: string;
+  }> | null;
 
   if (!response.ok || envelope?.status === "error") {
     throw new Error(envelope?.message || `Upload failed: ${response.status}`);

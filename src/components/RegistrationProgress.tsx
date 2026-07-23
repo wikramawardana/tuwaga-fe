@@ -5,7 +5,13 @@ export default function RegistrationProgress({
   steps?: string[];
   current: number;
 }) {
-  const labels = steps ?? ["Category", "Player", "Partner", "Qualification", "Review"];
+  const labels = steps ?? [
+    "Category",
+    "Player",
+    "Partner",
+    "Qualification",
+    "Review",
+  ];
 
   return (
     <div className="mx-auto mb-12 w-full max-w-3xl">

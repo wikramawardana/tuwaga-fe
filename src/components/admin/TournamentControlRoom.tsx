@@ -524,10 +524,7 @@ export default function TournamentControlRoom({
       return;
     }
 
-    if (
-      !insertForm.partnerFullName.trim() ||
-      !insertForm.partnerEmail.trim()
-    ) {
+    if (!insertForm.partnerFullName.trim() || !insertForm.partnerEmail.trim()) {
       setInsertError("Partner name and email are required for pair entry.");
       return;
     }
@@ -883,34 +880,34 @@ export default function TournamentControlRoom({
                     {matches
                       .filter((m) => m.phase === "group")
                       .map((match) => (
-                      <button
-                        key={match.id}
-                        type="button"
-                        onClick={() => setSelectedMatchId(match.id)}
-                        className={`w-full rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0px_12px_32px_rgba(17,24,39,0.08)] ${
-                          selectedMatch?.id === match.id
-                            ? "border-primary bg-primary/5"
-                            : "border-outline-variant/30 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-extrabold text-on-surface">
-                              {getTeamName(teams, match.teamAId)} vs{" "}
-                              {getTeamName(teams, match.teamBId)}
-                            </p>
-                            <p className="mt-1 text-xs text-on-surface-variant">
-                              {match.round} -{" "}
-                              {match.courtId
-                                ? `Court ${match.courtId}`
-                                : "Court unassigned"}{" "}
-                              - {match.time}
-                            </p>
+                        <button
+                          key={match.id}
+                          type="button"
+                          onClick={() => setSelectedMatchId(match.id)}
+                          className={`w-full rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0px_12px_32px_rgba(17,24,39,0.08)] ${
+                            selectedMatch?.id === match.id
+                              ? "border-primary bg-primary/5"
+                              : "border-outline-variant/30 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-extrabold text-on-surface">
+                                {getTeamName(teams, match.teamAId)} vs{" "}
+                                {getTeamName(teams, match.teamBId)}
+                              </p>
+                              <p className="mt-1 text-xs text-on-surface-variant">
+                                {match.round} -{" "}
+                                {match.courtId
+                                  ? `Court ${match.courtId}`
+                                  : "Court unassigned"}{" "}
+                                - {match.time}
+                              </p>
+                            </div>
+                            <StatusBadge {...matchStatusMeta[match.status]} />
                           </div>
-                          <StatusBadge {...matchStatusMeta[match.status]} />
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      ))}
                   </div>
                 </div>
               )}
