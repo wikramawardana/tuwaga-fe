@@ -185,7 +185,7 @@ export default function TournamentRegisterPage() {
         if ((current.settings.categories ?? []).length > 0) {
           setSelectedCategory((current.settings.categories ?? [])[0]);
         }
-        const nextSummary = await getRegistrationSummary(current.id);
+        await getRegistrationSummary(current.id);
         if (!active) return;
       } catch (err) {
         if (!active) return;

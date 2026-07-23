@@ -24,9 +24,9 @@ function SetScoreRow({
 
   return (
     <div className="mt-2 flex flex-wrap gap-1">
-      {sets.map((set, i) => (
+      {sets.map((set) => (
         <span
-          key={i}
+          key={`${set.teamA}-${set.teamB}`}
           className={`inline-flex h-6 min-w-[36px] items-center justify-center rounded px-1.5 text-xs font-bold ${
             set[teamIndex] > set[teamIndex === "teamA" ? "teamB" : "teamA"]
               ? "bg-secondary/10 text-secondary"

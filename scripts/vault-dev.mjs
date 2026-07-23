@@ -126,7 +126,12 @@ if (!command) {
 }
 
 const isBuildCommand = args.includes("build");
-if (process.env.PORT && !isBuildCommand && !args.includes("-p") && !args.includes("--port")) {
+if (
+  process.env.PORT &&
+  !isBuildCommand &&
+  !args.includes("-p") &&
+  !args.includes("--port")
+) {
   args.push("-p", process.env.PORT);
 }
 
