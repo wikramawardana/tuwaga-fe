@@ -301,6 +301,13 @@ export async function getTournament(id: string) {
   return data.tournament;
 }
 
+export async function getTournamentBySlug(slug: string) {
+  const data = await apiRequest<{ tournament: Tournament }>(
+    `/tournaments/slug/${slug}`,
+  );
+  return data.tournament;
+}
+
 export async function getCurrentTournament() {
   const tournaments = await listTournaments();
   return tournaments.find((t) => t.status !== "setup") ?? null;

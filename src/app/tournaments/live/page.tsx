@@ -3,12 +3,41 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import ScoreCard from "@/components/ScoreCard";
 import {
   getCurrentTournament,
   getLive,
   type LiveResponse,
   type Tournament,
 } from "@/lib/tuwagaApi";
+
+function CountdownBadge({ time }: { time: string }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const [hours, minutes] = time.split(":").map(Number);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+  const today = new Date();
+  const target = new Date(today);
+  target.setHours(hours, minutes, 0, 0);
+
+  const diffMs = target.getTime() - now;
+  if (diffMs <= 0) return null;
+
+  const diffMin = Math.round(diffMs / 60_000);
+  if (diffMin > 120) return null;
+
+  return (
+    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+      in ~{diffMin} min
+    </span>
+  );
+}
 
 export default function LiveScoresPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -93,6 +122,7 @@ export default function LiveScoresPage() {
 
         {!error && (
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+            {/* Live now — using ScoreCard */}
             <section className="space-y-4">
               <h2 className="text-lg font-extrabold text-on-surface">
                 Live now
@@ -106,66 +136,19 @@ export default function LiveScoresPage() {
                 </div>
               )}
               {live?.activeMatches.map((match) => (
-                <article
+                <ScoreCard
                   key={match.id}
-                  className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                        {match.court} - {match.courtLabel}
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-on-surface-variant">
-                        {match.setInfo}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-error px-3 py-1 text-xs font-bold uppercase text-on-error">
-                      Live
-                    </span>
-                  </div>
-
-                  <div className="mt-5 grid gap-4 md:grid-cols-[1fr_auto_1fr] items-center">
-                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                      <p className="font-extrabold text-on-surface">
-                        {match.teamA.player1}
-                      </p>
-                      <p className="text-sm text-on-surface-variant">
-                        {match.teamA.player2}
-                      </p>
-                      <p className="mt-2 text-2xl font-extrabold text-primary">
-                        {match.teamA.scores.length
-                          ? match.teamA.scores.join(" - ")
-                          : "-"}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-4xl font-extrabold text-on-surface">
-                        {match.teamA.scores.reduce((a, b) => a + b, 0)} -{" "}
-                        {match.teamB.scores.reduce((a, b) => a + b, 0)}
-                      </p>
-                      <p className="mt-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        vs
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                      <p className="font-extrabold text-on-surface">
-                        {match.teamB.player1}
-                      </p>
-                      <p className="text-sm text-on-surface-variant">
-                        {match.teamB.player2}
-                      </p>
-                      <p className="mt-2 text-2xl font-extrabold text-primary">
-                        {match.teamB.scores.length
-                          ? match.teamB.scores.join(" - ")
-                          : "-"}
-                      </p>
-                    </div>
-                  </div>
-                </article>
+                  courtLabel={`${match.court} — ${match.courtLabel}`}
+                  setInfo={match.setInfo}
+                  status="live"
+                  teamA={match.teamA}
+                  teamB={match.teamB}
+                />
               ))}
             </section>
 
             <aside className="space-y-6">
+              {/* Next up with EST countdown */}
               <section className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
                 <h2 className="text-lg font-extrabold text-on-surface">
                   Next up
@@ -176,9 +159,12 @@ export default function LiveScoresPage() {
                       key={match.id}
                       className="rounded-lg bg-surface-container-low p-3"
                     >
-                      <p className="text-xs font-bold uppercase text-primary">
-                        {match.day} - {match.time} (EST)
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold uppercase text-primary">
+                          {match.day} — {match.time}
+                        </p>
+                        <CountdownBadge time={match.time} />
+                      </div>
                       <p className="mt-1 text-sm font-bold text-on-surface">
                         {match.teamA} vs {match.teamB}
                       </p>
@@ -195,6 +181,7 @@ export default function LiveScoresPage() {
                 </div>
               </section>
 
+              {/* Recent results */}
               <section className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
                 <h2 className="text-lg font-extrabold text-on-surface">
                   Recent results
@@ -209,7 +196,7 @@ export default function LiveScoresPage() {
                         {result.winner}
                       </p>
                       <p className="text-xs text-on-surface-variant">
-                        def. {result.loser} - {result.score}
+                        def. {result.loser} — {result.score}
                       </p>
                     </div>
                   ))}

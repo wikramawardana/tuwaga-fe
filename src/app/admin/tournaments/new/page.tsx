@@ -83,6 +83,12 @@ export default function NewTournamentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [categories, setCategories] = useState<string[]>([
+    "Men's Doubles",
+    "Women's Doubles",
+    "Mixed Doubles",
+  ]);
+  const [newCategory, setNewCategory] = useState("");
   const [form, setForm] = useState({
     name: "",
     venue: "",
@@ -97,8 +103,19 @@ export default function NewTournamentPage() {
     matchDuration: 30,
     teamSize: "Doubles",
     format: "Group stage + knockout",
-    categories: "Men's Doubles, Women's Doubles, Mixed Doubles",
   });
+
+  const addCategory = () => {
+    const trimmed = newCategory.trim();
+    if (trimmed && !categories.includes(trimmed)) {
+      setCategories((prev) => [...prev, trimmed]);
+      setNewCategory("");
+    }
+  };
+
+  const removeCategory = (cat: string) => {
+    setCategories((prev) => prev.filter((c) => c !== cat));
+  };
 
   const updateForm = (field: keyof typeof form, value: string | number) => {
     setError("");
@@ -157,10 +174,7 @@ export default function NewTournamentPage() {
         matchDuration: form.matchDuration,
         teamSize: form.teamSize,
         format: form.format,
-        categories: form.categories
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        categories,
       });
       router.push(`/admin/tournaments/${tournament.id}`);
     } catch (err) {
@@ -502,22 +516,58 @@ export default function NewTournamentPage() {
                   </select>
                 </label>
 
-                <label className="block">
+                <div className="block">
                   <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                     Categories
                   </span>
-                  <input
-                    value={form.categories}
-                    onChange={(event) =>
-                      updateForm("categories", event.target.value)
-                    }
-                    placeholder="Men's Doubles, Women's Doubles, Mixed Doubles"
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                  />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {categories.map((cat) => (
+                      <span
+                        key={cat}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/8 px-3 py-1.5 text-sm font-bold text-primary"
+                      >
+                        {cat}
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(cat)}
+                          className="flex h-4 w-4 items-center justify-center rounded-full text-primary/60 transition-colors hover:bg-primary/15 hover:text-primary"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            close
+                          </span>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      value={newCategory}
+                      onChange={(event) => setNewCategory(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addCategory();
+                        }
+                      }}
+                      placeholder="Add category..."
+                      className="h-10 flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCategory}
+                      className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
+                    >
+                      <span className="material-symbols-outlined text-lg">
+                        add
+                      </span>
+                      Add
+                    </button>
+                  </div>
                   <p className="mt-1 text-xs text-on-surface-variant">
-                    Comma-separated list of categories for this tournament.
+                    Players will choose from these categories during
+                    registration.
                   </p>
-                </label>
+                </div>
 
                 <button
                   type="button"

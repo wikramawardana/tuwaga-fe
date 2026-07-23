@@ -255,7 +255,6 @@ export default function TournamentControlRoom({
   const [insertOpen, setInsertOpen] = useState(false);
   const [insertError, setInsertError] = useState("");
   const [insertSubmitting, setInsertSubmitting] = useState(false);
-  const [insertHasPartner, setInsertHasPartner] = useState(false);
   const [insertForm, setInsertForm] = useState({
     playerFullName: "",
     playerEmail: "",
@@ -526,12 +525,10 @@ export default function TournamentControlRoom({
     }
 
     if (
-      insertHasPartner &&
-      (!insertForm.partnerFullName.trim() || !insertForm.partnerEmail.trim())
+      !insertForm.partnerFullName.trim() ||
+      !insertForm.partnerEmail.trim()
     ) {
-      setInsertError(
-        "Partner name and email are required when registering with a partner.",
-      );
+      setInsertError("Partner name and email are required for pair entry.");
       return;
     }
 
@@ -546,18 +543,15 @@ export default function TournamentControlRoom({
           skillLevel: insertForm.playerSkillLevel,
           city: insertForm.playerCity.trim() || null,
         },
+        partner: {
+          fullName: insertForm.partnerFullName.trim(),
+          email: insertForm.partnerEmail.trim(),
+          skillLevel: insertForm.partnerSkillLevel,
+        },
         category: insertForm.category || undefined,
         paid: insertForm.paid,
         status: insertForm.status,
       };
-
-      if (insertHasPartner) {
-        input.partner = {
-          fullName: insertForm.partnerFullName.trim(),
-          email: insertForm.partnerEmail.trim(),
-          skillLevel: insertForm.partnerSkillLevel,
-        };
-      }
 
       const created = await adminCreateRegistration(tournamentId, input);
       setTeams((current) => [...current, toTeam(created)]);
@@ -565,7 +559,6 @@ export default function TournamentControlRoom({
         `Team "${created.player}${created.partner ? ` / ${created.partner}` : ""}" added successfully.`,
       );
       setInsertOpen(false);
-      setInsertHasPartner(false);
       setInsertForm({
         playerFullName: "",
         playerEmail: "",
@@ -644,10 +637,10 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={saveSettings}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
               >
                 <span className="material-symbols-outlined text-lg">save</span>
-                Save tournament
+                Save settings
               </button>
             </div>
           </div>
@@ -1397,12 +1390,12 @@ export default function TournamentControlRoom({
                           `Match ${selectedMatch.id} saved and sent to referee.`,
                         )
                       }
-                      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-primary/90"
                     >
                       <span className="material-symbols-outlined text-lg">
                         send
                       </span>
-                      Save match details
+                      Save match
                     </button>
                   </div>
                 )}
@@ -1620,90 +1613,63 @@ export default function TournamentControlRoom({
                 <legend className="text-sm font-extrabold text-on-surface px-2">
                   Partner
                 </legend>
-                <div className="mb-4 flex items-center gap-4">
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={insertHasPartner}
-                    onClick={() => setInsertHasPartner((prev) => !prev)}
-                    className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
-                      insertHasPartner ? "bg-secondary" : "bg-outline-variant"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-6 w-6 rounded-full bg-white shadow-md transition-transform ${
-                        insertHasPartner
-                          ? "translate-x-[26px]"
-                          : "translate-x-[4px]"
-                      }`}
-                    />
-                  </button>
-                  <span className="text-sm font-semibold text-on-surface">
-                    {insertHasPartner
-                      ? "Registering with partner"
-                      : "Solo registration"}
-                  </span>
-                </div>
-
-                {insertHasPartner && (
-                  <div className="grid gap-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                          Full name *
-                        </span>
-                        <input
-                          value={insertForm.partnerFullName}
-                          onChange={(e) =>
-                            setInsertForm((f) => ({
-                              ...f,
-                              partnerFullName: e.target.value,
-                            }))
-                          }
-                          placeholder="Partner name"
-                          className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                          Email *
-                        </span>
-                        <input
-                          type="email"
-                          value={insertForm.partnerEmail}
-                          onChange={(e) =>
-                            setInsertForm((f) => ({
-                              ...f,
-                              partnerEmail: e.target.value,
-                            }))
-                          }
-                          placeholder="partner@email.com"
-                          className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                        />
-                      </label>
-                    </div>
+                <div className="grid gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Skill level
+                        Full name *
                       </span>
-                      <select
-                        value={insertForm.partnerSkillLevel}
+                      <input
+                        value={insertForm.partnerFullName}
                         onChange={(e) =>
                           setInsertForm((f) => ({
                             ...f,
-                            partnerSkillLevel: e.target.value,
+                            partnerFullName: e.target.value,
                           }))
                         }
+                        placeholder="Partner name"
                         className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      >
-                        <option>Beginner</option>
-                        <option>Intermediate</option>
-                        <option>Advanced</option>
-                        <option>Professional</option>
-                      </select>
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Email *
+                      </span>
+                      <input
+                        type="email"
+                        value={insertForm.partnerEmail}
+                        onChange={(e) =>
+                          setInsertForm((f) => ({
+                            ...f,
+                            partnerEmail: e.target.value,
+                          }))
+                        }
+                        placeholder="partner@email.com"
+                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
                     </label>
                   </div>
-                )}
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                      Skill level
+                    </span>
+                    <select
+                      value={insertForm.partnerSkillLevel}
+                      onChange={(e) =>
+                        setInsertForm((f) => ({
+                          ...f,
+                          partnerSkillLevel: e.target.value,
+                        }))
+                      }
+                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    >
+                      <option>Beginner</option>
+                      <option>Intermediate</option>
+                      <option>Advanced</option>
+                      <option>Professional</option>
+                    </select>
+                  </label>
+                </div>
               </fieldset>
 
               <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
