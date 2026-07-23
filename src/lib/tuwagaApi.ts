@@ -52,6 +52,7 @@ export type RegistrationTeam = {
   registeredAt: string;
   status: TeamStatus;
   group: string | null;
+  qualificationUrl: string | null;
 };
 
 export type Match = {
@@ -402,6 +403,7 @@ export async function createRegistration(
   input: {
     acceptedTerms: boolean;
     category: string;
+    qualificationUrl?: string;
     player: {
       fullName: string;
       email: string;
@@ -520,4 +522,34 @@ export async function generateDraw(
       }),
     },
   );
+}
+
+export async function uploadQualification(
+  file: File,
+): Promise<{ url: string }> {
+  const token = await getAuthToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${apiBaseUrl}/upload`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  const envelope = (await response
+    .json()
+    .catch(() => null)) as ApiEnvelope<{ url: string }> | null;
+
+  if (!response.ok || envelope?.status === "error") {
+    throw new Error(envelope?.message || `Upload failed: ${response.status}`);
+  }
+
+  if (!envelope?.data) {
+    throw new Error("Upload response did not include data.");
+  }
+
+  return envelope.data;
 }
