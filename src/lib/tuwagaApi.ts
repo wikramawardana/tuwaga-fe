@@ -374,6 +374,15 @@ export async function updateRegistration(
   return data.team;
 }
 
+export async function deleteRegistration(tournamentId: string, teamId: string) {
+  return apiRequest<{ id: string }>(
+    `/admin/tournaments/${tournamentId}/registrations/${teamId}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
 export async function listMatches(tournamentId: string) {
   const data = await apiRequest<{ matches: Match[] }>(
     `/tournaments/${tournamentId}/matches`,

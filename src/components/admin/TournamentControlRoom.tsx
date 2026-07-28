@@ -10,6 +10,7 @@ import {
   type Match as ApiMatch,
   type TeamStatus as ApiTeamStatus,
   adminCreateRegistration,
+  deleteRegistration,
   generateDraw as generateDrawRequest,
   getTournament,
   listMatches,
@@ -427,6 +428,26 @@ export default function TournamentControlRoom({
     await updateTeam(teamId, { paid: true });
   };
 
+  const removeTeam = async (teamId: string) => {
+    const team = teams.find((item) => item.id === teamId);
+    if (!team) return;
+
+    const teamName = team.partner
+      ? `${team.player} / ${team.partner}`
+      : team.player;
+    if (!window.confirm(`Remove the registration for ${teamName}?`)) return;
+
+    try {
+      await deleteRegistration(tournamentId, teamId);
+      setTeams((current) => current.filter((item) => item.id !== teamId));
+      setMessage(`Registration for ${teamName} removed.`);
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to remove registration.",
+      );
+    }
+  };
+
   const runTeamAction = async (teamId: string, action: string) => {
     if (action === "mark-paid") {
       await markPaid(teamId);
@@ -440,6 +461,11 @@ export default function TournamentControlRoom({
 
     if (action === "waitlist") {
       await updateTeamStatus(teamId, "waitlist");
+      return;
+    }
+
+    if (action === "remove") {
+      await removeTeam(teamId);
     }
   };
 
@@ -843,6 +869,7 @@ export default function TournamentControlRoom({
                                 >
                                   Move to waitlist
                                 </option>
+                                <option value="remove">Remove</option>
                               </select>
                             </td>
                           </tr>
