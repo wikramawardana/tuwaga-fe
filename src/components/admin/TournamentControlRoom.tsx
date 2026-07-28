@@ -260,11 +260,11 @@ export default function TournamentControlRoom({
     playerEmail: "",
     playerPhone: "",
     playerNationality: "ID",
-    playerSkillLevel: "Intermediate",
+    playerSkillLevel: "intermediate",
     playerCity: "",
     partnerFullName: "",
     partnerEmail: "",
-    partnerSkillLevel: "Intermediate",
+    partnerSkillLevel: "intermediate",
     category: "",
     paid: false,
     status: "pending" as TeamStatus,
@@ -561,11 +561,11 @@ export default function TournamentControlRoom({
         playerEmail: "",
         playerPhone: "",
         playerNationality: "ID",
-        playerSkillLevel: "Intermediate",
+        playerSkillLevel: "intermediate",
         playerCity: "",
         partnerFullName: "",
         partnerEmail: "",
-        partnerSkillLevel: "Intermediate",
+        partnerSkillLevel: "intermediate",
         category: "",
         paid: false,
         status: "pending",
@@ -1564,10 +1564,10 @@ export default function TournamentControlRoom({
                         }
                         className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                       >
-                        <option>Beginner</option>
-                        <option>Intermediate</option>
-                        <option>Advanced</option>
-                        <option>Professional</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="professional">Professional</option>
                       </select>
                     </label>
                     <label className="block">
@@ -1669,10 +1669,10 @@ export default function TournamentControlRoom({
                       }
                       className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                     >
-                      <option>Beginner</option>
-                      <option>Intermediate</option>
-                      <option>Advanced</option>
-                      <option>Professional</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="professional">Professional</option>
                     </select>
                   </label>
                 </div>
