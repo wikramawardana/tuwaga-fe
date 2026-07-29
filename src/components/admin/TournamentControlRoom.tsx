@@ -853,8 +853,8 @@ export default function TournamentControlRoom({
             </div>
           </div>
 
-          <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-[1fr_380px]">
-            <section className="flex min-h-0 flex-col">
+          <div className="mt-6 grid min-w-0 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <section className="flex min-h-0 min-w-0 flex-col">
               {activeTab === "registrations" && (
                 <div className="h-full rounded-lg border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
                   <div className="flex flex-col gap-3 border-b border-outline-variant/20 px-5 py-4 md:flex-row md:items-center md:justify-between">
@@ -1402,10 +1402,10 @@ export default function TournamentControlRoom({
               )}
             </section>
 
-            <aside className="flex">
-              <div className="h-full w-full rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
+            <aside className="flex min-w-0">
+              <div className="h-full min-w-0 w-full overflow-hidden rounded-lg border border-outline-variant/30 bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <h2 className="text-lg font-extrabold text-on-surface">
                       Match details
                     </h2>
@@ -1422,16 +1422,16 @@ export default function TournamentControlRoom({
                   <div className="mt-5 space-y-4">
                     {/* Match info card */}
                     <div className="rounded-lg bg-surface-container-low p-4">
-                      <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                      <p className="break-all text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         {selectedMatch.id} - {selectedMatch.round}
                       </p>
-                      <h3 className="mt-2 text-lg font-extrabold text-on-surface">
+                      <h3 className="mt-2 break-words text-lg font-extrabold text-on-surface">
                         {getTeamName(teams, selectedMatch.teamAId)}
                       </h3>
                       <p className="my-2 text-xs font-bold uppercase tracking-wider text-primary">
                         versus
                       </p>
-                      <h3 className="text-lg font-extrabold text-on-surface">
+                      <h3 className="break-words text-lg font-extrabold text-on-surface">
                         {getTeamName(teams, selectedMatch.teamBId)}
                       </h3>
                     </div>
@@ -1524,9 +1524,9 @@ export default function TournamentControlRoom({
                               return (
                                 <div
                                   key={`set-${index}-${set.teamA}-${set.teamB}`}
-                                  className="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"
+                                  className="flex min-w-0 items-center gap-1.5 rounded-lg bg-surface-container-low p-2.5 sm:gap-2 sm:p-3"
                                 >
-                                  <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
+                                  <span className="w-6 shrink-0 text-xs font-bold uppercase text-on-surface-variant sm:w-8">
                                     S{index + 1}
                                   </span>
                                   <input
@@ -1541,7 +1541,7 @@ export default function TournamentControlRoom({
                                         Number(e.target.value),
                                       )
                                     }
-                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                    className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
                                       aWins
                                         ? "border-secondary/40 bg-secondary/5 text-secondary"
                                         : "border-outline-variant/50 text-on-surface"
@@ -1562,14 +1562,14 @@ export default function TournamentControlRoom({
                                         Number(e.target.value),
                                       )
                                     }
-                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                    className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
                                       bWins
                                         ? "border-secondary/40 bg-secondary/5 text-secondary"
                                         : "border-outline-variant/50 text-on-surface"
                                     }`}
                                   />
                                   {(aWins || bWins) && (
-                                    <span className="material-symbols-outlined text-base text-secondary">
+                                    <span className="material-symbols-outlined hidden text-base text-secondary sm:inline-block">
                                       check_circle
                                     </span>
                                   )}
@@ -1713,9 +1713,9 @@ export default function TournamentControlRoom({
                               return (
                                 <div
                                   key={`set-${index}-${set.teamA}-${set.teamB}`}
-                                  className="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"
+                                  className="flex min-w-0 items-center gap-1.5 rounded-lg bg-surface-container-low p-2.5 sm:gap-2 sm:p-3"
                                 >
-                                  <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
+                                  <span className="w-6 shrink-0 text-xs font-bold uppercase text-on-surface-variant sm:w-8">
                                     S{index + 1}
                                   </span>
                                   <input
@@ -1730,7 +1730,7 @@ export default function TournamentControlRoom({
                                         Number(e.target.value),
                                       )
                                     }
-                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                    className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
                                       aWins
                                         ? "border-secondary/40 bg-secondary/5 text-secondary"
                                         : "border-outline-variant/50 text-on-surface"
@@ -1751,14 +1751,14 @@ export default function TournamentControlRoom({
                                         Number(e.target.value),
                                       )
                                     }
-                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                    className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
                                       bWins
                                         ? "border-secondary/40 bg-secondary/5 text-secondary"
                                         : "border-outline-variant/50 text-on-surface"
                                     }`}
                                   />
                                   {(aWins || bWins) && (
-                                    <span className="material-symbols-outlined text-base text-secondary">
+                                    <span className="material-symbols-outlined hidden text-base text-secondary sm:inline-block">
                                       check_circle
                                     </span>
                                   )}
