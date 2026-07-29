@@ -166,6 +166,7 @@ function toTeam(team: RegistrationTeam): Team {
 }
 
 function toMatch(match: ApiMatch): Match {
+  const rawSets = match.scoreSets ?? [];
   return {
     id: match.id,
     phase: match.phase,
@@ -176,7 +177,10 @@ function toMatch(match: ApiMatch): Match {
     teamAId: match.teamAId,
     teamBId: match.teamBId,
     score: match.score,
-    scoreSets: match.scoreSets ?? [],
+    scoreSets: rawSets.map((s: Record<string, number>) => ({
+      teamA: s.team_a ?? s.teamA ?? 0,
+      teamB: s.team_b ?? s.teamB ?? 0,
+    })),
     referee: match.referee,
     status: match.status,
     winnerTeamId: match.winnerTeamId,
@@ -503,8 +507,19 @@ export default function TournamentControlRoom({
     async (matchId: string, patch: Partial<Match>) => {
       const previous = matches;
       setMatchPatch(matchId, patch);
+      const apiPatch: Record<string, unknown> = { ...patch };
+      if (patch.scoreSets) {
+        apiPatch.scoreSets = patch.scoreSets.map((s) => ({
+          team_a: s.teamA,
+          team_b: s.teamB,
+        }));
+      }
       try {
-        const updated = await updateMatchRequest(tournamentId, matchId, patch);
+        const updated = await updateMatchRequest(
+          tournamentId,
+          matchId,
+          apiPatch as Partial<Match>,
+        );
         setMatchPatch(matchId, toMatch(updated));
         setMessage(`Match ${matchId} saved.`);
       } catch (err) {
