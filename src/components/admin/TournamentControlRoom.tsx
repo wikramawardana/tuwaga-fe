@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
@@ -57,6 +57,7 @@ type Match = {
   teamAId: string | null;
   teamBId: string | null;
   score: string;
+  scoreSets: Array<{ teamA: number; teamB: number }>;
   referee: string;
   status: MatchStatus;
   winnerTeamId: string | null;
@@ -160,7 +161,7 @@ function toTeam(team: RegistrationTeam): Team {
       minute: "2-digit",
     }),
     status: team.status === "rejected" ? "pending" : team.status,
-    group: team.group ?? "A",
+    group: team.group ?? "",
   };
 }
 
@@ -175,10 +176,17 @@ function toMatch(match: ApiMatch): Match {
     teamAId: match.teamAId,
     teamBId: match.teamBId,
     score: match.score,
+    scoreSets: match.scoreSets ?? [],
     referee: match.referee,
     status: match.status,
     winnerTeamId: match.winnerTeamId,
   };
+}
+
+function computeScoreString(
+  sets: Array<{ teamA: number; teamB: number }>,
+): string {
+  return sets.map((s) => `${s.teamA}-${s.teamB}`).join(", ");
 }
 
 function MetricCard({
@@ -252,10 +260,16 @@ export default function TournamentControlRoom({
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedMatchId, setSelectedMatchId] = useState("");
   const [confirmDraw, setConfirmDraw] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<Team | null>(null);
+  const [removingTeamId, setRemovingTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [insertOpen, setInsertOpen] = useState(false);
   const [insertError, setInsertError] = useState("");
   const [insertSubmitting, setInsertSubmitting] = useState(false);
+  const [showWinnerPicker, setShowWinnerPicker] = useState(false);
+  const [draftSets, setDraftSets] = useState<
+    Array<{ teamA: number; teamB: number }>
+  >([]);
   const [insertForm, setInsertForm] = useState({
     playerFullName: "",
     playerEmail: "",
@@ -342,29 +356,31 @@ export default function TournamentControlRoom({
   }, [teamFilter, categoryFilter, teams]);
 
   const groupStandings = useMemo(() => {
-    const standings = teams.reduce<
-      Record<
-        string,
-        Array<
-          Team & {
-            played: number;
-            wins: number;
-            losses: number;
-            points: number;
-          }
+    const standings = teams
+      .filter((team) => team.group)
+      .reduce<
+        Record<
+          string,
+          Array<
+            Team & {
+              played: number;
+              wins: number;
+              losses: number;
+              points: number;
+            }
+          >
         >
-      >
-    >((current, team) => {
-      current[team.group] = current[team.group] ?? [];
-      current[team.group].push({
-        ...team,
-        played: 0,
-        wins: 0,
-        losses: 0,
-        points: 0,
-      });
-      return current;
-    }, {});
+      >((current, team) => {
+        current[team.group] = current[team.group] ?? [];
+        current[team.group].push({
+          ...team,
+          played: 0,
+          wins: 0,
+          losses: 0,
+          points: 0,
+        });
+        return current;
+      }, {});
 
     matches
       .filter(
@@ -428,23 +444,25 @@ export default function TournamentControlRoom({
     await updateTeam(teamId, { paid: true });
   };
 
-  const removeTeam = async (teamId: string) => {
-    const team = teams.find((item) => item.id === teamId);
-    if (!team) return;
+  const removeTeam = async () => {
+    if (!removeTarget) return;
 
-    const teamName = team.partner
-      ? `${team.player} / ${team.partner}`
-      : team.player;
-    if (!window.confirm(`Remove the registration for ${teamName}?`)) return;
-
+    const teamId = removeTarget.id;
+    const teamName = removeTarget.partner
+      ? `${removeTarget.player} / ${removeTarget.partner}`
+      : removeTarget.player;
+    setRemovingTeamId(teamId);
     try {
       await deleteRegistration(tournamentId, teamId);
       setTeams((current) => current.filter((item) => item.id !== teamId));
+      setRemoveTarget(null);
       setMessage(`Registration for ${teamName} removed.`);
     } catch (err) {
       setMessage(
         err instanceof Error ? err.message : "Failed to remove registration.",
       );
+    } finally {
+      setRemovingTeamId(null);
     }
   };
 
@@ -465,31 +483,87 @@ export default function TournamentControlRoom({
     }
 
     if (action === "remove") {
-      await removeTeam(teamId);
+      const team = teams.find((item) => item.id === teamId);
+      if (team) setRemoveTarget(team);
     }
   };
 
-  const setMatchPatch = (matchId: string, patch: Partial<Match>) => {
-    setMatches((current) =>
-      current.map((match) =>
-        match.id === matchId ? { ...match, ...patch } : match,
+  const setMatchPatch = useCallback(
+    (matchId: string, patch: Partial<Match>) => {
+      setMatches((current) =>
+        current.map((match) =>
+          match.id === matchId ? { ...match, ...patch } : match,
+        ),
+      );
+    },
+    [],
+  );
+
+  const updateMatch = useCallback(
+    async (matchId: string, patch: Partial<Match>) => {
+      const previous = matches;
+      setMatchPatch(matchId, patch);
+      try {
+        const updated = await updateMatchRequest(tournamentId, matchId, patch);
+        setMatchPatch(matchId, toMatch(updated));
+        setMessage(`Match ${matchId} saved.`);
+      } catch (err) {
+        setMatches(previous);
+        setMessage(
+          err instanceof Error ? err.message : "Failed to update match.",
+        );
+      }
+    },
+    [matches, tournamentId, setMatchPatch],
+  );
+
+  useEffect(() => {
+    setDraftSets(selectedMatch?.scoreSets ?? []);
+    setShowWinnerPicker(false);
+  }, [selectedMatch]);
+
+  useEffect(() => {
+    if (!selectedMatch || selectedMatch.status !== "live") return;
+    const timer = setTimeout(() => {
+      updateMatch(selectedMatch.id, {
+        scoreSets: draftSets,
+        score: computeScoreString(draftSets),
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [draftSets, selectedMatch, updateMatch]);
+
+  const updateDraftSet = (
+    index: number,
+    side: "teamA" | "teamB",
+    value: number,
+  ) => {
+    setDraftSets((current) =>
+      current.map((s, i) =>
+        i === index
+          ? { ...s, [side]: Math.max(0, Math.min(99, value || 0)) }
+          : s,
       ),
     );
   };
 
-  const updateMatch = async (matchId: string, patch: Partial<Match>) => {
-    const previous = matches;
-    setMatchPatch(matchId, patch);
-    try {
-      const updated = await updateMatchRequest(tournamentId, matchId, patch);
-      setMatchPatch(matchId, toMatch(updated));
-      setMessage(`Match ${matchId} saved.`);
-    } catch (err) {
-      setMatches(previous);
-      setMessage(
-        err instanceof Error ? err.message : "Failed to update match.",
-      );
-    }
+  const addDraftSet = () => {
+    setDraftSets((c) => [...c, { teamA: 0, teamB: 0 }]);
+  };
+
+  const removeDraftSet = (index: number) => {
+    setDraftSets((c) => c.filter((_, i) => i !== index));
+  };
+
+  const finishMatch = async (winnerTeamId: string) => {
+    if (!selectedMatch) return;
+    setShowWinnerPicker(false);
+    await updateMatch(selectedMatch.id, {
+      winnerTeamId,
+      status: "completed",
+      scoreSets: draftSets,
+      score: computeScoreString(draftSets),
+    });
   };
 
   const saveSettings = async () => {
@@ -831,6 +905,7 @@ export default function TournamentControlRoom({
                                 }
                                 className="h-9 w-16 rounded-lg border border-outline-variant/50 bg-white px-2 text-sm font-bold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                               >
+                                <option value="">—</option>
                                 {["A", "B", "C", "D"].map((group) => (
                                   <option key={group}>{group}</option>
                                 ))}
@@ -941,6 +1016,20 @@ export default function TournamentControlRoom({
 
               {activeTab === "groups" && (
                 <div className="grid gap-6 xl:grid-cols-2">
+                  {groupStandings.length === 0 && (
+                    <div className="rounded-lg border border-outline-variant/30 bg-white p-8 text-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] xl:col-span-2">
+                      <span className="material-symbols-outlined text-4xl text-on-surface-variant">
+                        table_chart
+                      </span>
+                      <p className="mt-3 text-sm font-bold text-on-surface">
+                        No groups assigned yet
+                      </p>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        Assign groups to teams in the Registrations tab, or
+                        generate the draw to auto-assign them.
+                      </p>
+                    </div>
+                  )}
                   {groupStandings.map(([group, rows]) => (
                     <div
                       key={group}
@@ -1268,7 +1357,7 @@ export default function TournamentControlRoom({
                       Match details
                     </h2>
                     <p className="text-sm text-on-surface-variant">
-                      Assign court, result, winner, and referee.
+                      Manage match status, scoring, and results.
                     </p>
                   </div>
                   <span className="material-symbols-outlined text-primary">
@@ -1278,6 +1367,7 @@ export default function TournamentControlRoom({
 
                 {selectedMatch && (
                   <div className="mt-5 space-y-4">
+                    {/* Match info card */}
                     <div className="rounded-lg bg-surface-container-low p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         {selectedMatch.id} - {selectedMatch.round}
@@ -1293,6 +1383,7 @@ export default function TournamentControlRoom({
                       </h3>
                     </div>
 
+                    {/* Court selector — always visible */}
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         Court
@@ -1320,80 +1411,283 @@ export default function TournamentControlRoom({
                       </select>
                     </label>
 
-                    <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Status
-                      </span>
-                      <div className="mt-2 grid grid-cols-3 gap-2 rounded-lg bg-surface-container-low p-1">
-                        {(
-                          ["scheduled", "live", "completed"] as MatchStatus[]
-                        ).map((status) => (
+                    {/* ── Scheduled state ── */}
+                    {selectedMatch.status === "scheduled" && (
+                      <div className="space-y-3">
+                        <StatusBadge {...matchStatusMeta.scheduled} />
+                        <div className="rounded-lg border border-outline-variant/20 bg-surface-container-low p-4 text-center">
+                          <span className="material-symbols-outlined text-3xl text-on-surface-variant">
+                            score
+                          </span>
+                          <p className="mt-2 text-sm font-semibold text-on-surface-variant">
+                            Start the match to enter scores
+                          </p>
+                        </div>
+                        {!selectedMatch.teamAId || !selectedMatch.teamBId ? (
+                          <div className="rounded-lg bg-surface-container-low p-4 text-center">
+                            <span className="material-symbols-outlined text-2xl text-on-surface-variant">
+                              hourglass_empty
+                            </span>
+                            <p className="mt-2 text-xs font-semibold text-on-surface-variant">
+                              Teams not yet determined.
+                            </p>
+                          </div>
+                        ) : (
                           <button
-                            key={status}
                             type="button"
                             onClick={() =>
-                              updateMatch(selectedMatch.id, { status })
+                              updateMatch(selectedMatch.id, { status: "live" })
                             }
-                            className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md text-xs font-bold transition-colors ${
-                              selectedMatch.status === status
-                                ? "bg-white text-primary shadow-sm"
-                                : "text-on-surface-variant hover:bg-white hover:text-primary"
-                            }`}
+                            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-bold text-on-secondary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-secondary/90"
                           >
-                            <span className="material-symbols-outlined text-[15px]">
-                              {matchStatusMeta[status].icon}
+                            <span className="material-symbols-outlined text-lg">
+                              play_arrow
                             </span>
-                            {matchStatusMeta[status].label}
+                            Start match
                           </button>
-                        ))}
+                        )}
                       </div>
-                    </div>
+                    )}
 
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Score
-                      </span>
-                      <input
-                        value={selectedMatch.score}
-                        onChange={(event) =>
-                          updateMatch(selectedMatch.id, {
-                            score: event.target.value,
-                          })
-                        }
-                        className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
-                      />
-                    </label>
+                    {/* ── Live state ── */}
+                    {selectedMatch.status === "live" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-error px-3 py-1 text-xs font-bold uppercase text-on-error">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-on-error" />
+                            Live
+                          </span>
+                        </div>
 
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Winner
-                      </span>
-                      <select
-                        value={selectedMatch.winnerTeamId ?? ""}
-                        onChange={(event) =>
-                          updateMatch(selectedMatch.id, {
-                            winnerTeamId: event.target.value || null,
-                            status: event.target.value
-                              ? "completed"
-                              : selectedMatch.status,
-                          })
-                        }
-                        className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
-                      >
-                        <option value="">No winner yet</option>
-                        {selectedMatch.teamAId && (
-                          <option value={selectedMatch.teamAId}>
-                            {getTeamName(teams, selectedMatch.teamAId)}
-                          </option>
+                        {/* Set-based scoring */}
+                        <div>
+                          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                            Score
+                          </span>
+                          <div className="mt-2 space-y-2">
+                            {draftSets.map((set, index) => {
+                              const aWins = set.teamA > set.teamB;
+                              const bWins = set.teamB > set.teamA;
+                              return (
+                                <div
+                                  key={`set-${index}-${set.teamA}-${set.teamB}`}
+                                  className="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"
+                                >
+                                  <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
+                                    S{index + 1}
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={99}
+                                    value={set.teamA}
+                                    onChange={(e) =>
+                                      updateDraftSet(
+                                        index,
+                                        "teamA",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                      aWins
+                                        ? "border-secondary/40 bg-secondary/5 text-secondary"
+                                        : "border-outline-variant/50 text-on-surface"
+                                    }`}
+                                  />
+                                  <span className="text-sm font-bold text-on-surface-variant">
+                                    –
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={99}
+                                    value={set.teamB}
+                                    onChange={(e) =>
+                                      updateDraftSet(
+                                        index,
+                                        "teamB",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                      bWins
+                                        ? "border-secondary/40 bg-secondary/5 text-secondary"
+                                        : "border-outline-variant/50 text-on-surface"
+                                    }`}
+                                  />
+                                  {(aWins || bWins) && (
+                                    <span className="material-symbols-outlined text-base text-secondary">
+                                      check_circle
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeDraftSet(index)}
+                                    className="ml-auto text-on-surface-variant transition-colors hover:text-error"
+                                    aria-label={`Remove set ${index + 1}`}
+                                  >
+                                    <span className="material-symbols-outlined text-lg">
+                                      close
+                                    </span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              onClick={addDraftSet}
+                              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-outline-variant/50 text-sm font-bold text-primary transition-colors hover:border-primary/40 hover:bg-primary/5"
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                add
+                              </span>
+                              Add set
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Finish Match */}
+                        {draftSets.length > 0 &&
+                          !showWinnerPicker &&
+                          selectedMatch.teamAId &&
+                          selectedMatch.teamBId && (
+                            <button
+                              type="button"
+                              onClick={() => setShowWinnerPicker(true)}
+                              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-bold text-on-secondary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-secondary/90"
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                emoji_events
+                              </span>
+                              Finish match
+                            </button>
+                          )}
+
+                        {showWinnerPicker && (
+                          <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
+                            <p className="text-sm font-extrabold text-on-surface">
+                              Who won the match?
+                            </p>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              {selectedMatch.teamAId && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    finishMatch(selectedMatch.teamAId ?? "")
+                                  }
+                                  className="flex h-12 items-center justify-center rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface transition-colors hover:border-secondary hover:bg-secondary/5"
+                                >
+                                  {getTeamName(teams, selectedMatch.teamAId)}
+                                </button>
+                              )}
+                              {selectedMatch.teamBId && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    finishMatch(selectedMatch.teamBId ?? "")
+                                  }
+                                  className="flex h-12 items-center justify-center rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface transition-colors hover:border-secondary hover:bg-secondary/5"
+                                >
+                                  {getTeamName(teams, selectedMatch.teamBId)}
+                                </button>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowWinnerPicker(false)}
+                              className="mt-2 w-full text-center text-xs font-bold text-on-surface-variant transition-colors hover:text-primary"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         )}
-                        {selectedMatch.teamBId && (
-                          <option value={selectedMatch.teamBId}>
-                            {getTeamName(teams, selectedMatch.teamBId)}
-                          </option>
-                        )}
-                      </select>
-                    </label>
+                      </div>
+                    )}
 
+                    {/* ── Completed state ── */}
+                    {selectedMatch.status === "completed" && (
+                      <div className="space-y-3">
+                        <StatusBadge {...matchStatusMeta.completed} />
+
+                        {/* Winner banner */}
+                        {selectedMatch.winnerTeamId && (
+                          <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-xl text-secondary">
+                                emoji_events
+                              </span>
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                                  Winner
+                                </p>
+                                <p className="text-sm font-extrabold text-on-surface">
+                                  {getTeamName(
+                                    teams,
+                                    selectedMatch.winnerTeamId,
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Read-only score display */}
+                        {selectedMatch.scoreSets.length > 0 && (
+                          <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                              Final score
+                            </span>
+                            <div className="mt-2 space-y-2">
+                              {selectedMatch.scoreSets.map((set, index) => {
+                                const aWins = set.teamA > set.teamB;
+                                const bWins = set.teamB > set.teamA;
+                                return (
+                                  <div
+                                    key={`set-${index}-${set.teamA}-${set.teamB}`}
+                                    className="flex items-center gap-3 rounded-lg bg-surface-container-low p-3"
+                                  >
+                                    <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
+                                      S{index + 1}
+                                    </span>
+                                    <span
+                                      className={`text-lg font-extrabold tabular-nums ${
+                                        aWins
+                                          ? "text-secondary"
+                                          : "text-on-surface-variant"
+                                      }`}
+                                    >
+                                      {set.teamA}
+                                    </span>
+                                    <span className="text-sm font-bold text-on-surface-variant">
+                                      –
+                                    </span>
+                                    <span
+                                      className={`text-lg font-extrabold tabular-nums ${
+                                        bWins
+                                          ? "text-secondary"
+                                          : "text-on-surface-variant"
+                                      }`}
+                                    >
+                                      {set.teamB}
+                                    </span>
+                                    {(aWins || bWins) && (
+                                      <span className="material-symbols-outlined text-base text-secondary">
+                                        check_circle
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <p className="mt-2 text-center text-sm font-bold text-primary">
+                              {selectedMatch.score}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Referee — editable except when completed */}
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         Referee
@@ -1405,24 +1699,14 @@ export default function TournamentControlRoom({
                             referee: event.target.value,
                           })
                         }
-                        className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
+                        disabled={selectedMatch.status === "completed"}
+                        className={`mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface ${
+                          selectedMatch.status === "completed"
+                            ? "cursor-not-allowed opacity-50"
+                            : ""
+                        }`}
                       />
                     </label>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setMessage(
-                          `Match ${selectedMatch.id} saved and sent to referee.`,
-                        )
-                      }
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-primary/90"
-                    >
-                      <span className="material-symbols-outlined text-lg">
-                        send
-                      </span>
-                      Save match
-                    </button>
                   </div>
                 )}
               </div>
@@ -1431,6 +1715,60 @@ export default function TournamentControlRoom({
         </div>
       </main>
       <Footer />
+
+      {removeTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-registration-title"
+            aria-describedby="remove-registration-description"
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
+          >
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-error/10 text-error">
+              <span className="material-symbols-outlined">person_remove</span>
+            </div>
+            <h2
+              id="remove-registration-title"
+              className="text-xl font-extrabold text-on-surface"
+            >
+              Remove registration?
+            </h2>
+            <p
+              id="remove-registration-description"
+              className="mt-2 text-sm leading-relaxed text-on-surface-variant"
+            >
+              This will permanently remove{" "}
+              <span className="font-bold text-on-surface">
+                {removeTarget.partner
+                  ? `${removeTarget.player} / ${removeTarget.partner}`
+                  : removeTarget.player}
+              </span>{" "}
+              from this tournament.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setRemoveTarget(null)}
+                disabled={removingTeamId === removeTarget.id}
+                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={removeTeam}
+                disabled={removingTeamId === removeTarget.id}
+                className="h-10 rounded-lg bg-error px-4 text-sm font-bold text-on-error transition-colors hover:bg-error/90 disabled:cursor-wait disabled:opacity-70"
+              >
+                {removingTeamId === removeTarget.id
+                  ? "Removing..."
+                  : "Remove registration"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmDraw && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">

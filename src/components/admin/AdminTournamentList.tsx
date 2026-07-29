@@ -262,37 +262,33 @@ export default function AdminTournamentList() {
       </div>
 
       {deleteTarget && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/35 px-6 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-tournament-title"
-            className="w-full max-w-md rounded-lg border border-outline-variant/30 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
+            className="w-full max-w-md rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
           >
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-error/10 text-error">
-                <span className="material-symbols-outlined">delete</span>
-              </div>
-              <div>
-                <h3
-                  id="delete-tournament-title"
-                  className="text-lg font-extrabold text-on-surface"
-                >
-                  Delete tournament?
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-                  This will remove {deleteTarget.name}, including its
-                  registrations and matches.
-                </p>
-              </div>
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-error/10 text-error">
+              <span className="material-symbols-outlined">delete</span>
             </div>
+            <h3
+              id="delete-tournament-title"
+              className="text-xl font-extrabold text-on-surface"
+            >
+              Delete tournament?
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+              This will remove {deleteTarget.name}, including its registrations
+              and matches.
+            </p>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={deletingId === deleteTarget.id}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-outline-variant px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -300,7 +296,7 @@ export default function AdminTournamentList() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deletingId === deleteTarget.id}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-error px-4 text-sm font-bold text-on-error transition-colors hover:bg-error/90 disabled:cursor-wait disabled:opacity-70"
+                className="h-10 rounded-lg bg-error px-4 text-sm font-bold text-on-error transition-colors hover:bg-error/90 disabled:cursor-wait disabled:opacity-70"
               >
                 {deletingId === deleteTarget.id ? "Deleting..." : "Delete"}
               </button>
