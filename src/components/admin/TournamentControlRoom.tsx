@@ -1657,12 +1657,29 @@ export default function TournamentControlRoom({
                       </div>
                     )}
 
-                    {/* ── Completed state ── */}
+                    {/* ── Completed state (editable) ── */}
                     {selectedMatch.status === "completed" && (
                       <div className="space-y-3">
-                        <StatusBadge {...matchStatusMeta.completed} />
+                        <div className="flex items-center gap-2">
+                          <StatusBadge {...matchStatusMeta.completed} />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateMatch(selectedMatch.id, {
+                                status: "live",
+                                winnerTeamId: null,
+                              })
+                            }
+                            className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-outline-variant/50 px-2.5 text-xs font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                          >
+                            <span className="material-symbols-outlined text-sm">
+                              replay
+                            </span>
+                            Reopen
+                          </button>
+                        </div>
 
-                        {/* Winner banner */}
+                        {/* Winner banner — editable */}
                         {selectedMatch.winnerTeamId && (
                           <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
                             <div className="flex items-center gap-2">
@@ -1684,59 +1701,137 @@ export default function TournamentControlRoom({
                           </div>
                         )}
 
-                        {/* Read-only score display */}
-                        {selectedMatch.scoreSets.length > 0 && (
-                          <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                              Final score
-                            </span>
-                            <div className="mt-2 space-y-2">
-                              {selectedMatch.scoreSets.map((set, index) => {
-                                const aWins = set.teamA > set.teamB;
-                                const bWins = set.teamB > set.teamA;
-                                return (
-                                  <div
-                                    key={`set-${index}-${set.teamA}-${set.teamB}`}
-                                    className="flex items-center gap-3 rounded-lg bg-surface-container-low p-3"
+                        {/* Editable score sets */}
+                        <div>
+                          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                            Score
+                          </span>
+                          <div className="mt-2 space-y-2">
+                            {draftSets.map((set, index) => {
+                              const aWins = set.teamA > set.teamB;
+                              const bWins = set.teamB > set.teamA;
+                              return (
+                                <div
+                                  key={`set-${index}-${set.teamA}-${set.teamB}`}
+                                  className="flex items-center gap-2 rounded-lg bg-surface-container-low p-3"
+                                >
+                                  <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
+                                    S{index + 1}
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={99}
+                                    value={set.teamA}
+                                    onChange={(e) =>
+                                      updateDraftSet(
+                                        index,
+                                        "teamA",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                      aWins
+                                        ? "border-secondary/40 bg-secondary/5 text-secondary"
+                                        : "border-outline-variant/50 text-on-surface"
+                                    }`}
+                                  />
+                                  <span className="text-sm font-bold text-on-surface-variant">
+                                    –
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={99}
+                                    value={set.teamB}
+                                    onChange={(e) =>
+                                      updateDraftSet(
+                                        index,
+                                        "teamB",
+                                        Number(e.target.value),
+                                      )
+                                    }
+                                    className={`h-10 w-16 rounded-lg border bg-white text-center text-lg font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 ${
+                                      bWins
+                                        ? "border-secondary/40 bg-secondary/5 text-secondary"
+                                        : "border-outline-variant/50 text-on-surface"
+                                    }`}
+                                  />
+                                  {(aWins || bWins) && (
+                                    <span className="material-symbols-outlined text-base text-secondary">
+                                      check_circle
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeDraftSet(index)}
+                                    className="ml-auto text-on-surface-variant transition-colors hover:text-error"
+                                    aria-label={`Remove set ${index + 1}`}
                                   >
-                                    <span className="w-8 text-xs font-bold uppercase text-on-surface-variant">
-                                      S{index + 1}
+                                    <span className="material-symbols-outlined text-lg">
+                                      close
                                     </span>
-                                    <span
-                                      className={`text-lg font-extrabold tabular-nums ${
-                                        aWins
-                                          ? "text-secondary"
-                                          : "text-on-surface-variant"
-                                      }`}
-                                    >
-                                      {set.teamA}
-                                    </span>
-                                    <span className="text-sm font-bold text-on-surface-variant">
-                                      –
-                                    </span>
-                                    <span
-                                      className={`text-lg font-extrabold tabular-nums ${
-                                        bWins
-                                          ? "text-secondary"
-                                          : "text-on-surface-variant"
-                                      }`}
-                                    >
-                                      {set.teamB}
-                                    </span>
-                                    {(aWins || bWins) && (
-                                      <span className="material-symbols-outlined text-base text-secondary">
-                                        check_circle
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <p className="mt-2 text-center text-sm font-bold text-primary">
-                              {selectedMatch.score}
-                            </p>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              onClick={addDraftSet}
+                              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-outline-variant/50 text-sm font-bold text-primary transition-colors hover:border-primary/40 hover:bg-primary/5"
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                add
+                              </span>
+                              Add set
+                            </button>
                           </div>
-                        )}
+                        </div>
+
+                        {/* Change winner */}
+                        <label className="block">
+                          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                            Winner
+                          </span>
+                          <select
+                            value={selectedMatch.winnerTeamId ?? ""}
+                            onChange={(event) =>
+                              updateMatch(selectedMatch.id, {
+                                winnerTeamId: event.target.value || null,
+                              })
+                            }
+                            className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
+                          >
+                            <option value="">No winner</option>
+                            {selectedMatch.teamAId && (
+                              <option value={selectedMatch.teamAId}>
+                                {getTeamName(teams, selectedMatch.teamAId)}
+                              </option>
+                            )}
+                            {selectedMatch.teamBId && (
+                              <option value={selectedMatch.teamBId}>
+                                {getTeamName(teams, selectedMatch.teamBId)}
+                              </option>
+                            )}
+                          </select>
+                        </label>
+
+                        {/* Save score changes */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateMatch(selectedMatch.id, {
+                              scoreSets: draftSets,
+                              score: computeScoreString(draftSets),
+                            })
+                          }
+                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-primary/90"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            save
+                          </span>
+                          Save changes
+                        </button>
                       </div>
                     )}
 
@@ -1752,12 +1847,7 @@ export default function TournamentControlRoom({
                             referee: event.target.value,
                           })
                         }
-                        disabled={selectedMatch.status === "completed"}
-                        className={`mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface ${
-                          selectedMatch.status === "completed"
-                            ? "cursor-not-allowed opacity-50"
-                            : ""
-                        }`}
+                        className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
                       />
                     </label>
                   </div>
