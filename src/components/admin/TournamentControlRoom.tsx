@@ -544,7 +544,7 @@ export default function TournamentControlRoom({
         scoreSets: draftSets,
         score: computeScoreString(draftSets),
       });
-    }, 800);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [draftSets, selectedMatch, updateMatch]);
 
