@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import {
+  createDivisionLabel,
+  DIVISION_SKILL_LEVELS,
+  type DivisionSkillLevel,
+} from "@/lib/matchDivisions";
 import { createTournament as createTournamentRequest } from "@/lib/tuwagaApi";
 
 function RequiredMark() {
@@ -84,11 +89,13 @@ export default function NewTournamentPage() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [categories, setCategories] = useState<string[]>([
-    "Men's Doubles",
-    "Women's Doubles",
-    "Mixed Doubles",
+    "Men's Doubles — Intermediate",
+    "Women's Doubles — Intermediate",
+    "Mixed Doubles — Intermediate",
   ]);
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryLevel, setNewCategoryLevel] =
+    useState<DivisionSkillLevel>("intermediate");
   const [form, setForm] = useState({
     name: "",
     venue: "",
@@ -106,9 +113,9 @@ export default function NewTournamentPage() {
   });
 
   const addCategory = () => {
-    const trimmed = newCategory.trim();
-    if (trimmed && !categories.includes(trimmed)) {
-      setCategories((prev) => [...prev, trimmed]);
+    const division = createDivisionLabel(newCategory, newCategoryLevel);
+    if (division && !categories.includes(division)) {
+      setCategories((prev) => [...prev, division]);
       setNewCategory("");
     }
   };
@@ -518,7 +525,7 @@ export default function NewTournamentPage() {
 
                 <div className="block">
                   <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Categories
+                    Match divisions
                   </span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {categories.map((cat) => (
@@ -539,7 +546,7 @@ export default function NewTournamentPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]">
                     <input
                       value={newCategory}
                       onChange={(event) => setNewCategory(event.target.value)}
@@ -549,9 +556,24 @@ export default function NewTournamentPage() {
                           addCategory();
                         }
                       }}
-                      placeholder="Add category..."
-                      className="h-10 flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      placeholder="e.g. Men's Doubles"
+                      className="h-10 min-w-0 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
+                    <select
+                      value={newCategoryLevel}
+                      onChange={(event) =>
+                        setNewCategoryLevel(
+                          event.target.value as DivisionSkillLevel,
+                        )
+                      }
+                      className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    >
+                      {DIVISION_SKILL_LEVELS.map((level) => (
+                        <option key={level.value} value={level.value}>
+                          {level.label}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       onClick={addCategory}
@@ -564,8 +586,8 @@ export default function NewTournamentPage() {
                     </button>
                   </div>
                   <p className="mt-1 text-xs text-on-surface-variant">
-                    Players will choose from these categories during
-                    registration.
+                    Each division combines match category and competition level.
+                    Teams choose one division during registration.
                   </p>
                 </div>
 

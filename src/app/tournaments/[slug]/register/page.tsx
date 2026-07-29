@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import RegistrationProgress from "@/components/RegistrationProgress";
 import RegistrationShell from "@/components/RegistrationShell";
+import { divisionSkillLabel, divisionSkillLevel } from "@/lib/matchDivisions";
 import {
   createRegistration,
   getRegistrationSummary,
@@ -14,49 +15,12 @@ import {
 } from "@/lib/tuwagaApi";
 
 const WIZARD_STEPS = [
-  "Category",
+  "Division",
   "Player",
   "Partner",
   "Qualification",
   "Review",
 ];
-
-const SKILL_LEVELS = [
-  {
-    value: "beginner",
-    icon: "school",
-    title: "Beginner",
-    description:
-      "New tournament participant with basic scoring and match-flow awareness.",
-    label: "Level 1-2",
-  },
-  {
-    value: "intermediate",
-    icon: "sports_tennis",
-    title: "Intermediate",
-    description:
-      "Consistent rhythm, reliable scoring, and ready for local Indonesian events.",
-    label: "Level 3-4",
-  },
-  {
-    value: "advanced",
-    icon: "bolt",
-    title: "Advanced",
-    description:
-      "Strong tactical execution, reliable court awareness, and match control.",
-    label: "Level 5-6",
-  },
-  {
-    value: "professional",
-    icon: "military_tech",
-    title: "Professional",
-    description:
-      "National-level competitor with technical and psychological discipline.",
-    label: "Level 7+",
-  },
-] as const;
-
-type SkillValue = (typeof SKILL_LEVELS)[number]["value"];
 
 function FieldLabel({
   children,
@@ -154,8 +118,6 @@ export default function TournamentRegisterPage() {
 
   // Form state
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSkill, setSelectedSkill] =
-    useState<SkillValue>("intermediate");
   const [player, setPlayer] = useState({
     fullName: "",
     email: "",
@@ -165,7 +127,6 @@ export default function TournamentRegisterPage() {
   const [partner, setPartner] = useState({
     fullName: "",
     email: "",
-    skillLevel: "intermediate" as string,
   });
   const [qualificationFile, setQualificationFile] = useState<File | null>(null);
   const [qualificationUrl, setQualificationUrl] = useState("");
@@ -243,6 +204,7 @@ export default function TournamentRegisterPage() {
     if (!tournament) return;
     setSubmitting(true);
     try {
+      const divisionLevel = divisionSkillLevel(selectedCategory);
       const response = await createRegistration(tournament.id, {
         acceptedTerms: agreed,
         category: selectedCategory,
@@ -252,12 +214,12 @@ export default function TournamentRegisterPage() {
           email: player.email.trim(),
           phone: player.phone.trim(),
           nationality: player.nationality,
-          skillLevel: selectedSkill,
+          skillLevel: divisionLevel,
         },
         partner: {
           fullName: partner.fullName.trim(),
           email: partner.email.trim(),
-          skillLevel: partner.skillLevel,
+          skillLevel: divisionLevel,
         },
       });
       setMessage(`Registration saved: ${response.registration.id}`);
@@ -326,10 +288,11 @@ export default function TournamentRegisterPage() {
               </div>
               <div>
                 <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Event Category
+                  Match Division
                 </h2>
                 <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Select the category you want to compete in.
+                  Select one division. It defines the match category and skill
+                  level for both players.
                 </p>
               </div>
             </div>
@@ -365,42 +328,6 @@ export default function TournamentRegisterPage() {
                   </label>
                 );
               })}
-            </div>
-
-            <div className="mt-8">
-              <h3 className="mb-4 text-[18px] font-semibold text-on-surface">
-                Skill Level
-              </h3>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {SKILL_LEVELS.map((skill) => {
-                  const isSelected = selectedSkill === skill.value;
-                  return (
-                    <label key={skill.value} className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="skill-level"
-                        value={skill.value}
-                        checked={isSelected}
-                        onChange={() => setSelectedSkill(skill.value)}
-                        className="sr-only"
-                      />
-                      <div
-                        className={`rounded-xl border bg-white p-4 text-center transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}
-                      >
-                        <span className="material-symbols-outlined text-[28px] text-primary">
-                          {skill.icon}
-                        </span>
-                        <p className="mt-2 text-sm font-bold text-on-surface">
-                          {skill.title}
-                        </p>
-                        <p className="text-xs text-on-surface-variant">
-                          {skill.label}
-                        </p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
             </div>
           </section>
         )}
@@ -541,24 +468,6 @@ export default function TournamentRegisterPage() {
                   className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
                 />
               </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-level">
-                  Partner Skill Level
-                </FieldLabel>
-                <select
-                  id="partner-level"
-                  value={partner.skillLevel}
-                  onChange={(e) =>
-                    setPartner((p) => ({ ...p, skillLevel: e.target.value }))
-                  }
-                  className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="professional">Professional</option>
-                </select>
-              </div>
             </div>
           </section>
         )}
@@ -665,11 +574,10 @@ export default function TournamentRegisterPage() {
             <div className="space-y-4">
               <div className="rounded-lg bg-surface-container-low p-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Category
+                  Match division
                 </p>
                 <p className="mt-1 text-sm font-bold text-on-surface">
-                  {selectedCategory} —{" "}
-                  {SKILL_LEVELS.find((s) => s.value === selectedSkill)?.title}
+                  {selectedCategory} ({divisionSkillLabel(selectedCategory)})
                 </p>
               </div>
               <div className="rounded-lg bg-surface-container-low p-4">
@@ -691,7 +599,7 @@ export default function TournamentRegisterPage() {
                   {partner.fullName}
                 </p>
                 <p className="text-xs text-on-surface-variant">
-                  {partner.email} · {partner.skillLevel}
+                  {partner.email} · {divisionSkillLabel(selectedCategory)}
                 </p>
               </div>
               {qualificationUrl && (

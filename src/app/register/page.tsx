@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import RegistrationShell from "@/components/RegistrationShell";
+import { divisionSkillLabel, divisionSkillLevel } from "@/lib/matchDivisions";
 import {
   createRegistration,
   getCurrentTournament,
@@ -12,43 +13,6 @@ import {
   type RegistrationSummary,
   type Tournament,
 } from "@/lib/tuwagaApi";
-
-const SKILL_LEVELS = [
-  {
-    value: "beginner",
-    icon: "school",
-    title: "Beginner",
-    description:
-      "New tournament participant with basic scoring and match-flow awareness.",
-    label: "Level 1-2",
-  },
-  {
-    value: "intermediate",
-    icon: "sports_tennis",
-    title: "Intermediate",
-    description:
-      "Consistent rhythm, reliable scoring, and ready for local Indonesian events.",
-    label: "Level 3-4",
-  },
-  {
-    value: "advanced",
-    icon: "bolt",
-    title: "Advanced",
-    description:
-      "Strong tactical execution, reliable court awareness, and match control.",
-    label: "Level 5-6",
-  },
-  {
-    value: "professional",
-    icon: "military_tech",
-    title: "Professional",
-    description:
-      "National-level competitor with technical and psychological discipline.",
-    label: "Level 7+",
-  },
-] as const;
-
-type SkillValue = (typeof SKILL_LEVELS)[number]["value"];
 
 function FieldLabel({
   children,
@@ -99,12 +63,12 @@ function FormSection({
 }
 
 function TournamentSummary({
-  selectedSkill,
+  selectedDivision,
   agreed,
   summary,
   submitting,
 }: {
-  selectedSkill: (typeof SKILL_LEVELS)[number];
+  selectedDivision: string;
   agreed: boolean;
   summary: RegistrationSummary | null;
   submitting: boolean;
@@ -178,14 +142,16 @@ function TournamentSummary({
 
           <div className="border-t border-surface-container pt-5">
             <p className="text-[12px] font-semibold uppercase tracking-wider text-on-surface-variant">
-              Selected Category
+              Selected Match Division
             </p>
-            <div className="mt-2 flex items-center justify-between rounded-lg bg-surface-container p-3">
-              <span className="text-[14px] font-semibold capitalize text-primary">
-                {selectedSkill.value}
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-surface-container p-3">
+              <span className="text-[14px] font-semibold text-primary">
+                {selectedDivision || "Select a division"}
               </span>
               <span className="text-[12px] font-semibold text-on-surface-variant">
-                {selectedSkill.label}
+                {selectedDivision
+                  ? divisionSkillLabel(selectedDivision)
+                  : "Required"}
               </span>
             </div>
           </div>
@@ -198,9 +164,9 @@ function TournamentSummary({
           <button
             type="submit"
             form="registration-form"
-            disabled={!agreed || submitting}
+            disabled={!agreed || !selectedDivision || submitting}
             className={`flex h-12 w-full items-center justify-center gap-2 rounded-lg px-7 text-[14px] font-semibold tracking-[0.01em] shadow-lg transition-all active:scale-95 ${
-              agreed
+              agreed && selectedDivision
                 ? "bg-primary text-on-primary shadow-primary/20 hover:bg-on-primary-fixed-variant"
                 : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
             }`}
@@ -224,8 +190,6 @@ export default function RegisterPage() {
 
 function RegisterPageContent() {
   const searchParams = useSearchParams();
-  const [selectedSkill, setSelectedSkill] =
-    useState<SkillValue>("intermediate");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [hasPartner, setHasPartner] = useState(false);
@@ -233,13 +197,6 @@ function RegisterPageContent() {
   const [summary, setSummary] = useState<RegistrationSummary | null>(null);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const selectedSkillData = useMemo(
-    () =>
-      SKILL_LEVELS.find((skill) => skill.value === selectedSkill) ??
-      SKILL_LEVELS[1],
-    [selectedSkill],
-  );
 
   useEffect(() => {
     let active = true;
@@ -262,11 +219,11 @@ function RegisterPageContent() {
           return;
         }
 
-        if (
-          (current.settings.categories ?? []).length > 0 &&
-          !selectedCategory
-        ) {
-          setSelectedCategory((current.settings.categories ?? [])[0]);
+        if ((current.settings.categories ?? []).length > 0) {
+          setSelectedCategory(
+            (previous) =>
+              previous || (current.settings.categories ?? [])[0] || "",
+          );
         }
 
         const nextSummary = await getRegistrationSummary(current.id);
@@ -287,7 +244,7 @@ function RegisterPageContent() {
     return () => {
       active = false;
     };
-  }, [searchParams, selectedCategory]);
+  }, [searchParams]);
 
   const submitRegistration = async (
     event: React.FormEvent<HTMLFormElement>,
@@ -295,6 +252,10 @@ function RegisterPageContent() {
     event.preventDefault();
     if (!tournament) {
       setMessage("No tournament is available for registration.");
+      return;
+    }
+    if (!selectedCategory) {
+      setMessage("Select a match division before submitting.");
       return;
     }
 
@@ -307,11 +268,12 @@ function RegisterPageContent() {
 
     setSubmitting(true);
     try {
+      const divisionLevel = divisionSkillLevel(selectedCategory);
       const partnerInput = hasPartner
         ? {
             fullName: field("partner-name"),
             email: field("partner-email"),
-            skillLevel: field("partner-level") || selectedSkill,
+            skillLevel: divisionLevel,
             membershipId: field("partner-id") || undefined,
           }
         : undefined;
@@ -324,7 +286,7 @@ function RegisterPageContent() {
           email: field("email"),
           phone: field("phone"),
           nationality: field("nationality"),
-          skillLevel: selectedSkill,
+          skillLevel: divisionLevel,
           city: null,
           membershipId: null,
         },
@@ -360,68 +322,11 @@ function RegisterPageContent() {
             </div>
           )}
           <FormSection
-            icon="sports_score"
-            title="Tournament Category"
-            description="Choose the competition level for this registration."
+            icon="category"
+            title="Match Division"
+            description="Choose one division. Its match category and competition level apply to both players."
           >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {SKILL_LEVELS.map((skill) => {
-                const isSelected = selectedSkill === skill.value;
-                return (
-                  <label key={skill.value} className="cursor-pointer">
-                    <input
-                      type="radio"
-                      name="skill-level"
-                      value={skill.value}
-                      checked={isSelected}
-                      onChange={() => setSelectedSkill(skill.value)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`h-full rounded-xl border bg-white p-5 transition-all ${
-                        isSelected
-                          ? "border-primary ring-2 ring-primary/10"
-                          : "border-outline-variant hover:border-primary/40"
-                      }`}
-                    >
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-low text-primary">
-                          <span className="material-symbols-outlined text-[24px]">
-                            {skill.icon}
-                          </span>
-                        </div>
-                        <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${
-                            isSelected ? "bg-primary opacity-100" : "opacity-0"
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            check
-                          </span>
-                        </span>
-                      </div>
-                      <h3 className="text-[20px] font-semibold text-on-surface">
-                        {skill.title}
-                      </h3>
-                      <p className="mt-2 text-[14px] leading-[1.5] text-on-surface-variant">
-                        {skill.description}
-                      </p>
-                      <span className="mt-4 inline-flex rounded-full bg-primary-fixed px-3 py-1 text-[12px] font-semibold text-primary">
-                        {skill.label}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </FormSection>
-
-          {tournament && (tournament.settings.categories ?? []).length > 1 && (
-            <FormSection
-              icon="category"
-              title="Event Category"
-              description="Select the event category you want to compete in."
-            >
+            {tournament && (tournament.settings.categories ?? []).length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {(tournament.settings.categories ?? []).map((cat) => {
                   const isSelected = selectedCategory === cat;
@@ -463,8 +368,12 @@ function RegisterPageContent() {
                   );
                 })}
               </div>
-            </FormSection>
-          )}
+            ) : (
+              <p className="rounded-lg bg-surface-container p-4 text-sm font-semibold text-on-surface-variant">
+                No match divisions are available for this tournament.
+              </p>
+            )}
+          </FormSection>
 
           <FormSection
             icon="person"
@@ -575,29 +484,6 @@ function RegisterPageContent() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <FieldLabel htmlFor="partner-level">
-                    Partner Skill Level
-                  </FieldLabel>
-                  <div className="relative">
-                    <select
-                      id="partner-level"
-                      defaultValue="intermediate"
-                      className="w-full cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="" disabled>
-                        Select level
-                      </option>
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                      <option value="professional">Professional</option>
-                    </select>
-                    <span className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
-                      expand_more
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
                   <FieldLabel htmlFor="partner-id">
                     Partner Membership ID
                   </FieldLabel>
@@ -635,7 +521,7 @@ function RegisterPageContent() {
         </form>
 
         <TournamentSummary
-          selectedSkill={selectedSkillData}
+          selectedDivision={selectedCategory}
           agreed={agreed}
           summary={summary}
           submitting={submitting}

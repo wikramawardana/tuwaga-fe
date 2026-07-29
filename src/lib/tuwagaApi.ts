@@ -58,6 +58,7 @@ export type RegistrationTeam = {
 export type Match = {
   id: string;
   tournamentId: string;
+  category: string;
   phase: Phase;
   group: string | null;
   round: string;
