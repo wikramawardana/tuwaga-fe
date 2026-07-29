@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
@@ -532,9 +532,15 @@ export default function TournamentControlRoom({
     [matches, tournamentId, setMatchPatch],
   );
 
+  const lastSyncedMatchId = useRef<string | null>(null);
+
   useEffect(() => {
-    setDraftSets(selectedMatch?.scoreSets ?? []);
-    setShowWinnerPicker(false);
+    const matchId = selectedMatch?.id ?? null;
+    if (matchId !== lastSyncedMatchId.current) {
+      lastSyncedMatchId.current = matchId;
+      setDraftSets(selectedMatch?.scoreSets ?? []);
+      setShowWinnerPicker(false);
+    }
   }, [selectedMatch]);
 
   useEffect(() => {
@@ -573,12 +579,44 @@ export default function TournamentControlRoom({
   const finishMatch = async (winnerTeamId: string) => {
     if (!selectedMatch) return;
     setShowWinnerPicker(false);
-    await updateMatch(selectedMatch.id, {
+
+    const finalSets = draftSets;
+    const finalScore = computeScoreString(finalSets);
+    const completedPatch = {
       winnerTeamId,
-      status: "completed",
-      scoreSets: draftSets,
-      score: computeScoreString(draftSets),
-    });
+      status: "completed" as MatchStatus,
+      scoreSets: finalSets,
+      score: finalScore,
+    };
+
+    // Optimistic update — immediately show completed
+    setMatchPatch(selectedMatch.id, completedPatch);
+    lastSyncedMatchId.current = null; // prevent sync effect from resetting
+
+    try {
+      const apiPatch: Record<string, unknown> = { ...completedPatch };
+      apiPatch.scoreSets = finalSets.map((s) => ({
+        team_a: s.teamA,
+        team_b: s.teamB,
+      }));
+      await updateMatchRequest(
+        tournamentId,
+        selectedMatch.id,
+        apiPatch as Partial<Match>,
+      );
+      setMessage(`Match ${selectedMatch.id} completed.`);
+    } catch (err) {
+      setMatches((current) =>
+        current.map((m) =>
+          m.id === selectedMatch.id
+            ? { ...m, status: "live" as MatchStatus }
+            : m,
+        ),
+      );
+      setMessage(
+        err instanceof Error ? err.message : "Failed to finish match.",
+      );
+    }
   };
 
   const saveSettings = async () => {
