@@ -70,6 +70,8 @@ const defaultSettings: AdminTournament["settings"] = {
   matchDuration: 30,
   teamSize: "Doubles",
   format: "Group stage + knockout",
+  groupSize: 4,
+  qualifierCount: 16,
   status: "setup",
   categories: [],
 };
@@ -130,6 +132,8 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       matchDuration: tournament.settings.matchDuration,
       teamSize: tournament.settings.teamSize,
       format: tournament.settings.format,
+      groupSize: tournament.settings.groupSize,
+      qualifierCount: tournament.settings.qualifierCount,
       status: tournament.status,
       categories: tournament.settings.categories ?? [],
     },
@@ -642,6 +646,8 @@ export default function TournamentControlRoom({
         matchDuration: saved.matchDuration,
         teamSize: saved.teamSize,
         format: saved.format,
+        groupSize: saved.groupSize,
+        qualifierCount: saved.qualifierCount,
         categories: saved.categories,
         status: settings.status,
       });
@@ -1000,20 +1006,15 @@ export default function TournamentControlRoom({
                               {team.category}
                             </td>
                             <td className="px-5 py-5">
-                              <select
-                                value={team.group}
-                                onChange={(event) =>
-                                  updateTeam(team.id, {
-                                    group: event.target.value,
-                                  })
-                                }
-                                className="h-9 w-16 rounded-lg border border-outline-variant/50 bg-white px-2 text-sm font-bold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                              >
-                                <option value="">—</option>
-                                {["A", "B", "C", "D"].map((group) => (
-                                  <option key={group}>{group}</option>
-                                ))}
-                              </select>
+                              <span className="inline-flex h-9 min-w-16 items-center justify-center rounded-lg border border-outline-variant/40 bg-surface-container-low px-2.5 text-sm font-bold text-on-surface">
+                                {team.group
+                                  ? (team.group.split(" · ").pop() ??
+                                    team.group)
+                                  : "—"}
+                              </span>
+                              <span className="mt-1 block text-[11px] text-on-surface-variant">
+                                Assigned by draw
+                              </span>
                             </td>
                             <td className="px-5 py-5">
                               <PaymentBadge paid={team.paid} />
@@ -1246,8 +1247,8 @@ export default function TournamentControlRoom({
                         Knockout phase
                       </h2>
                       <p className="text-sm text-on-surface-variant">
-                        Group winners advance to knockout. Regenerate to update
-                        OOP.
+                        Group winners and the best runner-ups advance to
+                        knockout. Regenerate to update OOP.
                       </p>
                     </div>
                     <button
@@ -1497,6 +1498,53 @@ export default function TournamentControlRoom({
                         <option value={45}>45 minutes</option>
                         <option value={60}>60 minutes</option>
                       </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Teams per group
+                      </span>
+                      <input
+                        type="number"
+                        min="2"
+                        max="16"
+                        value={settings.groupSize}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            groupSize: Number(event.target.value),
+                          }))
+                        }
+                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                      <span className="mt-1 block text-xs text-on-surface-variant">
+                        Every group plays a full round robin. Regenerate the
+                        draw to apply.
+                      </span>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Knockout size
+                      </span>
+                      <select
+                        value={settings.qualifierCount}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            qualifierCount: Number(event.target.value),
+                          }))
+                        }
+                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      >
+                        <option value={8}>8 teams (Quarter-finals)</option>
+                        <option value={16}>16 teams (Round of 16)</option>
+                        <option value={24}>24 teams (Round of 24)</option>
+                        <option value={32}>32 teams (Round of 32)</option>
+                      </select>
+                      <span className="mt-1 block text-xs text-on-surface-variant">
+                        Group winners qualify first, then the best runner-ups
+                        fill the bracket. Example: 9 groups + 16 slots = 9
+                        winners + 7 best runner-ups.
+                      </span>
                     </label>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">

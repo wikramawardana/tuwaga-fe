@@ -64,6 +64,8 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       matchDuration: tournament.settings.matchDuration,
       teamSize: tournament.settings.teamSize,
       format: tournament.settings.format,
+      groupSize: tournament.settings.groupSize,
+      qualifierCount: tournament.settings.qualifierCount,
       status: tournament.status,
       categories: tournament.settings.categories ?? [],
     },

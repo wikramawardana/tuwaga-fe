@@ -12,6 +12,8 @@ export type AdminTournament = {
     matchDuration: number;
     teamSize: string;
     format: string;
+    groupSize: number;
+    qualifierCount: number;
     status: "setup" | "registration" | "live" | "completed";
     categories: string[];
   };
