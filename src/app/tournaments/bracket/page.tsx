@@ -116,7 +116,9 @@ export default function TournamentBracketPage() {
               >
                 <div className="border-b border-outline-variant/20 px-5 py-4">
                   <h2 className="text-lg font-extrabold text-on-surface">
-                    Group {group.group}
+                    {group.group.includes(" · ")
+                      ? group.group
+                      : `Group ${group.group}`}
                   </h2>
                 </div>
                 <div className="overflow-x-auto">
@@ -136,6 +138,14 @@ export default function TournamentBracketPage() {
                         <tr key={team.teamId}>
                           <td className="px-5 py-4 font-bold text-on-surface">
                             {team.teamName}
+                            {team.qualified && (
+                              <span
+                                title="Qualified for knockout"
+                                className="ml-2 inline-flex items-center rounded-md bg-secondary/10 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-secondary"
+                              >
+                                Q
+                              </span>
+                            )}
                           </td>
                           <td className="px-3 py-4 text-center">
                             {team.played}
@@ -149,7 +159,7 @@ export default function TournamentBracketPage() {
                           </td>
                           <td className="px-5 py-4 text-right">
                             <span className="rounded-md bg-surface-container-low px-2 py-1 text-xs font-bold">
-                              #{team.globalRank}
+                              #{team.groupRank}
                             </span>
                           </td>
                         </tr>
@@ -186,6 +196,11 @@ export default function TournamentBracketPage() {
                       <p className="text-xs font-bold uppercase tracking-wider text-primary">
                         {match.label}
                       </p>
+                      {match.division && (
+                        <p className="mt-1 text-[11px] font-semibold text-on-surface-variant">
+                          {match.division}
+                        </p>
+                      )}
                       <p className="mt-3 font-bold text-on-surface">
                         {match.teamA?.teamName ?? "TBD"}
                       </p>

@@ -197,6 +197,32 @@ function computeScoreString(
   return sets.map((s) => `${s.teamA}-${s.teamB}`).join(", ");
 }
 
+/** Mirror of the backend grouping: full groups, a lone leftover joins the previous group. */
+function countGroups(teamCount: number, groupSize: number): number {
+  if (teamCount < 2) return 0;
+  const size = Math.max(2, groupSize);
+  const groups = Math.ceil(teamCount / size);
+  return groups > 1 && teamCount % size === 1 ? groups - 1 : groups;
+}
+
+/** Mirror of the qualification rule: group winners first, then best runner-ups. */
+function qualifierBreakdown(
+  teamCount: number,
+  groups: number,
+  qualifierCount: number,
+): string {
+  const winners = Math.min(groups, qualifierCount);
+  const runnerUps = Math.min(groups, Math.max(0, qualifierCount - winners));
+  const advancing = Math.min(teamCount, winners + runnerUps);
+  const shownWinners = Math.min(winners, advancing);
+  const shownRunners = advancing - shownWinners;
+  const parts = [`${shownWinners} group winners`];
+  if (shownRunners > 0) {
+    parts.push(`${shownRunners} runner-ups`);
+  }
+  return `${advancing} advance (${parts.join(" + ")})`;
+}
+
 function MetricCard({
   icon,
   label,
@@ -356,6 +382,33 @@ export default function TournamentControlRoom({
       capacity: Math.round((approved.length / settings.maxPlayers) * 100),
     };
   }, [matches, settings.maxPlayers, teams]);
+
+  // Projection shown in Setup: mirrors what "Generate draw" will produce for
+  // the teams that are approved and paid right now.
+  const drawPreview = useMemo(() => {
+    const eligible = teams.filter(
+      (team) => team.status === "approved" && team.paid,
+    );
+    const byDivision = new Map<string, number>();
+    for (const team of eligible) {
+      const division = team.category.trim() || "Open Division";
+      byDivision.set(division, (byDivision.get(division) ?? 0) + 1);
+    }
+    return [...byDivision.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([division, teamCount]) => {
+        const groups = countGroups(teamCount, settings.groupSize);
+        return {
+          division,
+          teamCount,
+          groups,
+          advancement:
+            groups > 0
+              ? qualifierBreakdown(teamCount, groups, settings.qualifierCount)
+              : "Needs at least two teams to draw",
+        };
+      });
+  }, [settings.groupSize, settings.qualifierCount, teams]);
 
   const filteredTeams = useMemo(() => {
     let result = teams;
@@ -1546,6 +1599,43 @@ export default function TournamentControlRoom({
                         winners + 7 best runner-ups.
                       </span>
                     </label>
+                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
+                      <h3 className="text-sm font-extrabold text-on-surface">
+                        Group stage projection
+                      </h3>
+                      <p className="mt-1 text-xs text-on-surface-variant">
+                        Based on teams that are approved and paid right now.
+                        Generating the draw splits each division into groups of
+                        up to {settings.groupSize} teams.
+                      </p>
+                      {drawPreview.length === 0 ? (
+                        <p className="mt-3 text-sm font-semibold text-on-surface-variant">
+                          No eligible teams yet. Approve and mark teams as paid
+                          to see the group projection.
+                        </p>
+                      ) : (
+                        <ul className="mt-3 space-y-2">
+                          {drawPreview.map((preview) => (
+                            <li
+                              key={preview.division}
+                              className="rounded-lg border border-outline-variant/20 bg-white px-4 py-3 text-sm"
+                            >
+                              <span className="font-extrabold text-on-surface">
+                                {preview.division}
+                              </span>
+                              <span className="text-on-surface-variant">
+                                {" "}
+                                — {preview.teamCount} teams →{" "}
+                                {preview.groups > 0
+                                  ? `${preview.groups} groups`
+                                  : "no draw"}{" "}
+                                → {preview.advancement}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         Tournament status

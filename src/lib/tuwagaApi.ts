@@ -127,6 +127,7 @@ export type StandingsResponse = {
     teams: Array<{
       teamId: string;
       teamName: string;
+      category: string;
       seed: number | null;
       played: number;
       wins: number;
@@ -146,6 +147,7 @@ export type BracketResponse = {
     matches: Array<{
       id: string;
       label: string;
+      division: string;
       teamA: BracketTeam | null;
       teamB: BracketTeam | null;
       winnerTeamId: string | null;
@@ -159,6 +161,7 @@ export type BracketTeam = {
   teamName: string;
   seed: number;
   group: string;
+  groupRank: number;
   points: number;
 };
 
