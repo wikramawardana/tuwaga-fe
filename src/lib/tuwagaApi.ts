@@ -18,6 +18,12 @@ export type TournamentSettings = {
   knockoutSeedMode: string;
   status?: TournamentStatus;
   categories: string[];
+  name?: string;
+  venue?: string;
+  dateLabel?: string;
+  startsAt?: string;
+  endsAt?: string;
+  description?: string;
 };
 
 export type Tournament = {

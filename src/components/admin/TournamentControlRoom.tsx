@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
@@ -74,6 +75,12 @@ const defaultSettings: AdminTournament["settings"] = {
   qualifierCount: 16,
   status: "setup",
   categories: [],
+  name: "",
+  venue: "",
+  dateLabel: "",
+  startsAt: "",
+  endsAt: "",
+  description: "",
 };
 
 function loadingTournament(tournamentId: string): AdminTournament {
@@ -136,6 +143,12 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       qualifierCount: tournament.settings.qualifierCount,
       status: tournament.status,
       categories: tournament.settings.categories ?? [],
+      name: tournament.name,
+      venue: tournament.venue,
+      dateLabel: tournament.dateLabel,
+      startsAt: tournament.startsAt ?? "",
+      endsAt: tournament.endsAt ?? "",
+      description: tournament.description,
     },
   };
 }
@@ -691,8 +704,17 @@ export default function TournamentControlRoom({
 
   const saveSettings = async () => {
     try {
-      const saved = await updateSettings(tournamentId, settings);
+      const payload = { ...settings };
+      if (payload.startsAt && payload.endsAt) {
+        payload.dateLabel = formatDateRange(payload.startsAt, payload.endsAt);
+      }
+      const saved = await updateSettings(tournamentId, payload);
+      // Refetch so header fields (name, venue, dates, description) stay in
+      // sync with what the backend stored.
+      const fresh = toAdminTournament(await getTournament(tournamentId));
+      setTournament(fresh);
       setSettings({
+        ...fresh.settings,
         maxPlayers: saved.maxPlayers,
         waitlistLimit: saved.waitlistLimit,
         courts: saved.courts,
@@ -702,19 +724,9 @@ export default function TournamentControlRoom({
         groupSize: saved.groupSize,
         qualifierCount: saved.qualifierCount,
         categories: saved.categories,
-        status: settings.status,
       });
-      setTournament((current) => ({
-        ...current,
-        status: settings.status ?? current.status,
-        settings: {
-          ...current.settings,
-          status: settings.status ?? current.settings.status,
-          categories: saved.categories,
-        },
-      }));
       setMessage(
-        `${tournament.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}, status: ${settings.status ?? "unchanged"}.`,
+        `${fresh.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}, status: ${settings.status ?? "unchanged"}.`,
       );
     } catch (err) {
       setMessage(
@@ -1475,6 +1487,74 @@ export default function TournamentControlRoom({
                     Tournament setup
                   </h2>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <label className="block md:col-span-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Tournament name
+                      </span>
+                      <input
+                        value={settings.name ?? ""}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            name: event.target.value,
+                          }))
+                        }
+                        placeholder="Jakarta Summer Open"
+                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                      <span className="mt-1 block text-xs text-on-surface-variant">
+                        Renaming keeps the public tournament URL unchanged.
+                      </span>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Venue
+                      </span>
+                      <input
+                        value={settings.venue ?? ""}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            venue: event.target.value,
+                          }))
+                        }
+                        placeholder="Main Arena"
+                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
+                    <div className="block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Date range
+                      </span>
+                      <DateRangePicker
+                        startsAt={settings.startsAt ?? ""}
+                        endsAt={settings.endsAt ?? ""}
+                        onChange={(startsAt, endsAt) =>
+                          setSettings((current) => ({
+                            ...current,
+                            startsAt,
+                            endsAt,
+                          }))
+                        }
+                      />
+                    </div>
+                    <label className="block md:col-span-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                        Description
+                      </span>
+                      <textarea
+                        value={settings.description ?? ""}
+                        onChange={(event) =>
+                          setSettings((current) => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                        rows={3}
+                        placeholder="Describe tournament purpose and operating notes."
+                        className="mt-2 w-full resize-none rounded-lg border border-outline-variant/50 bg-white px-3 py-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      />
+                    </label>
                     <label className="block">
                       <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                         Maximum players
@@ -1721,7 +1801,7 @@ export default function TournamentControlRoom({
                           );
                         })}
                       </div>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         <input
                           value={newDivisionName}
                           onChange={(event) =>
@@ -1734,7 +1814,7 @@ export default function TournamentControlRoom({
                             }
                           }}
                           placeholder="e.g. Mixed Doubles"
-                          className="h-10 min-w-0 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                          className="h-10 min-w-[180px] flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                         />
                         <select
                           value={newDivisionLevel}
@@ -1743,7 +1823,7 @@ export default function TournamentControlRoom({
                               event.target.value as DivisionSkillLevel,
                             )
                           }
-                          className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
+                          className="h-10 w-[160px] max-w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
                         >
                           {DIVISION_SKILL_LEVELS.map((level) => (
                             <option key={level.value} value={level.value}>

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import {
@@ -19,75 +20,10 @@ function RequiredMark() {
   );
 }
 
-function formatDateRange(startDate: string, endDate: string) {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  const start = new Date(`${startDate}T00:00:00`);
-  const end = new Date(`${endDate}T00:00:00`);
-
-  if (startDate === endDate) {
-    return formatter.format(start);
-  }
-
-  return `${formatter.format(start)} - ${formatter.format(end)}`;
-}
-
-const monthFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-});
-
-const weekdays = [
-  ["sun", "S"],
-  ["mon", "M"],
-  ["tue", "T"],
-  ["wed", "W"],
-  ["thu", "T"],
-  ["fri", "F"],
-  ["sat", "S"],
-] as const;
-
-function toDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function addMonths(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
-}
-
-function calendarDays(monthDate: Date) {
-  const firstOfMonth = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth(),
-    1,
-  );
-  const gridStart = new Date(firstOfMonth);
-  gridStart.setDate(firstOfMonth.getDate() - firstOfMonth.getDay());
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart);
-    date.setDate(gridStart.getDate() + index);
-
-    return {
-      key: toDateKey(date),
-      label: date.getDate(),
-      currentMonth: date.getMonth() === monthDate.getMonth(),
-    };
-  });
-}
-
 export default function NewTournamentPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [categories, setCategories] = useState<string[]>([
     "Men's Doubles — Intermediate",
     "Women's Doubles — Intermediate",
@@ -127,23 +63,6 @@ export default function NewTournamentPage() {
   const updateForm = (field: keyof typeof form, value: string | number) => {
     setError("");
     setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const selectDate = (dateKey: string) => {
-    setError("");
-    setForm((current) => {
-      if (!current.startsAt || current.endsAt) {
-        return { ...current, startsAt: dateKey, endsAt: "" };
-      }
-
-      if (dateKey < current.startsAt) {
-        setDatePickerOpen(false);
-        return { ...current, startsAt: dateKey, endsAt: current.startsAt };
-      }
-
-      setDatePickerOpen(false);
-      return { ...current, endsAt: dateKey };
-    });
   };
 
   const createTournament = async () => {
@@ -259,127 +178,23 @@ export default function NewTournamentPage() {
                       className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
                   </label>
-                  <div className="relative">
+                  <div>
                     <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       Date range
                       <RequiredMark />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setDatePickerOpen((current) => !current)}
-                      className="mt-2 flex h-11 w-full items-center justify-between rounded-lg border border-outline-variant/50 bg-white px-3 text-left text-sm font-semibold text-on-surface outline-none transition-colors hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    >
-                      <span
-                        className={
-                          form.startsAt &&
-                          form.endsAt &&
-                          form.endsAt >= form.startsAt
-                            ? "text-on-surface"
-                            : "text-on-surface-variant"
-                        }
-                      >
-                        {form.startsAt &&
-                        form.endsAt &&
-                        form.endsAt >= form.startsAt
-                          ? formatDateRange(form.startsAt, form.endsAt)
-                          : "Select date range"}
-                      </span>
-                      <span className="material-symbols-outlined text-lg text-on-surface-variant">
-                        date_range
-                      </span>
-                    </button>
-
-                    {datePickerOpen && (
-                      <div className="absolute right-0 z-20 mt-2 w-[320px] max-w-[calc(100vw-3rem)] rounded-lg border border-outline-variant/40 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.14)]">
-                        <div className="flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setVisibleMonth((current) =>
-                                addMonths(current, -1),
-                              )
-                            }
-                            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-                            aria-label="Previous month"
-                          >
-                            <span className="material-symbols-outlined text-xl">
-                              chevron_left
-                            </span>
-                          </button>
-                          <p className="text-sm font-extrabold text-on-surface">
-                            {monthFormatter.format(visibleMonth)}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setVisibleMonth((current) =>
-                                addMonths(current, 1),
-                              )
-                            }
-                            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-                            aria-label="Next month"
-                          >
-                            <span className="material-symbols-outlined text-xl">
-                              chevron_right
-                            </span>
-                          </button>
-                        </div>
-
-                        <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-on-surface-variant">
-                          {weekdays.map(([key, label]) => (
-                            <span key={key}>{label}</span>
-                          ))}
-                        </div>
-
-                        <div className="mt-2 grid grid-cols-7 gap-1">
-                          {calendarDays(visibleMonth).map((day) => {
-                            const isStart = day.key === form.startsAt;
-                            const isEnd = day.key === form.endsAt;
-                            const isInRange =
-                              form.startsAt &&
-                              form.endsAt &&
-                              day.key > form.startsAt &&
-                              day.key < form.endsAt;
-
-                            return (
-                              <button
-                                key={day.key}
-                                type="button"
-                                onClick={() => selectDate(day.key)}
-                                className={`h-9 rounded-lg text-sm font-bold transition-colors ${
-                                  isStart || isEnd
-                                    ? "bg-primary text-on-primary"
-                                    : isInRange
-                                      ? "bg-primary/10 text-primary"
-                                      : day.currentMonth
-                                        ? "text-on-surface hover:bg-surface-container-low"
-                                        : "text-on-surface-variant/50 hover:bg-surface-container-low"
-                                }`}
-                              >
-                                {day.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-outline-variant/20 pt-3">
-                          <p className="min-w-0 text-xs font-semibold text-on-surface-variant">
-                            {form.startsAt && form.endsAt
-                              ? formatDateRange(form.startsAt, form.endsAt)
-                              : form.startsAt
-                                ? "Select an end date"
-                                : "Select a start date"}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setDatePickerOpen(false)}
-                            className="h-9 rounded-lg bg-primary px-4 text-xs font-bold text-on-primary transition-colors hover:bg-primary/90"
-                          >
-                            Done
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <DateRangePicker
+                      startsAt={form.startsAt}
+                      endsAt={form.endsAt}
+                      onChange={(startsAt, endsAt) => {
+                        setError("");
+                        setForm((current) => ({
+                          ...current,
+                          startsAt,
+                          endsAt,
+                        }));
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -546,7 +361,7 @@ export default function NewTournamentPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_160px_auto]">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <input
                       value={newCategory}
                       onChange={(event) => setNewCategory(event.target.value)}
@@ -557,7 +372,7 @@ export default function NewTournamentPage() {
                         }
                       }}
                       placeholder="e.g. Men's Doubles"
-                      className="h-10 min-w-0 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      className="h-10 min-w-[180px] flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                     />
                     <select
                       value={newCategoryLevel}
@@ -566,7 +381,7 @@ export default function NewTournamentPage() {
                           event.target.value as DivisionSkillLevel,
                         )
                       }
-                      className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      className="h-10 w-[160px] max-w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                     >
                       {DIVISION_SKILL_LEVELS.map((level) => (
                         <option key={level.value} value={level.value}>

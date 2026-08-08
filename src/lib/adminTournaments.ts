@@ -16,5 +16,11 @@ export type AdminTournament = {
     qualifierCount: number;
     status: "setup" | "registration" | "live" | "completed";
     categories: string[];
+    name?: string;
+    venue?: string;
+    dateLabel?: string;
+    startsAt?: string;
+    endsAt?: string;
+    description?: string;
   };
 };
