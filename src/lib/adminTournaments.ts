@@ -1,3 +1,8 @@
+export type DivisionSettings = {
+  groupSize?: number;
+  knockoutSize?: number;
+};
+
 export type AdminTournament = {
   id: string;
   name: string;
@@ -14,6 +19,7 @@ export type AdminTournament = {
     format: string;
     groupSize: number;
     qualifierCount: number;
+    divisionSettings?: Record<string, DivisionSettings>;
     status: "setup" | "registration" | "live" | "completed";
     categories: string[];
     name?: string;

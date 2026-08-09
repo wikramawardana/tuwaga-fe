@@ -6,6 +6,11 @@ export type TeamStatus = "approved" | "pending" | "waitlist" | "rejected";
 export type MatchStatus = "live" | "scheduled" | "completed";
 export type Phase = "group" | "knockout";
 
+export type DivisionSettings = {
+  groupSize?: number;
+  knockoutSize?: number;
+};
+
 export type TournamentSettings = {
   maxPlayers: number;
   waitlistLimit: number;
@@ -16,6 +21,7 @@ export type TournamentSettings = {
   groupSize: number;
   qualifierCount: number;
   knockoutSeedMode: string;
+  divisionSettings?: Record<string, DivisionSettings>;
   status?: TournamentStatus;
   categories: string[];
   name?: string;

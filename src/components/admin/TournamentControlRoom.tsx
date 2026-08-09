@@ -73,6 +73,7 @@ const defaultSettings: AdminTournament["settings"] = {
   format: "Group stage + knockout",
   groupSize: 4,
   qualifierCount: 16,
+  divisionSettings: {},
   status: "setup",
   categories: [],
   name: "",
@@ -141,6 +142,7 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       format: tournament.settings.format,
       groupSize: tournament.settings.groupSize,
       qualifierCount: tournament.settings.qualifierCount,
+      divisionSettings: tournament.settings.divisionSettings ?? {},
       status: tournament.status,
       categories: tournament.settings.categories ?? [],
       name: tournament.name,
@@ -234,6 +236,25 @@ function qualifierBreakdown(
     parts.push(`${shownRunners} runner-ups`);
   }
   return `${advancing} advance (${parts.join(" + ")})`;
+}
+
+/** Effective group size for a division: its override, else the default. */
+function divisionGroupSize(
+  settings: AdminTournament["settings"],
+  division: string,
+): number {
+  return settings.divisionSettings?.[division]?.groupSize ?? settings.groupSize;
+}
+
+/** Effective knockout size for a division: its override, else the default. */
+function divisionKnockoutSize(
+  settings: AdminTournament["settings"],
+  division: string,
+): number {
+  return (
+    settings.divisionSettings?.[division]?.knockoutSize ??
+    settings.qualifierCount
+  );
 }
 
 function MetricCard({
@@ -410,18 +431,22 @@ export default function TournamentControlRoom({
     return [...byDivision.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([division, teamCount]) => {
-        const groups = countGroups(teamCount, settings.groupSize);
+        const groupSize = divisionGroupSize(settings, division);
+        const knockoutSize = divisionKnockoutSize(settings, division);
+        const groups = countGroups(teamCount, groupSize);
         return {
           division,
           teamCount,
+          groupSize,
+          knockoutSize,
           groups,
           advancement:
             groups > 0
-              ? qualifierBreakdown(teamCount, groups, settings.qualifierCount)
+              ? qualifierBreakdown(teamCount, groups, knockoutSize)
               : "Needs at least two teams to draw",
         };
       });
-  }, [settings.groupSize, settings.qualifierCount, teams]);
+  }, [settings, teams]);
 
   const filteredTeams = useMemo(() => {
     let result = teams;
@@ -723,6 +748,7 @@ export default function TournamentControlRoom({
         format: saved.format,
         groupSize: saved.groupSize,
         qualifierCount: saved.qualifierCount,
+        divisionSettings: saved.divisionSettings ?? {},
         categories: saved.categories,
       });
       setMessage(
@@ -755,10 +781,37 @@ export default function TournamentControlRoom({
       );
       return;
     }
-    setSettings((current) => ({
-      ...current,
-      categories: current.categories.filter((item) => item !== division),
-    }));
+    setSettings((current) => {
+      const overrides = { ...(current.divisionSettings ?? {}) };
+      delete overrides[division];
+      return {
+        ...current,
+        categories: current.categories.filter((item) => item !== division),
+        divisionSettings: overrides,
+      };
+    });
+  };
+
+  const setDivisionOverride = (
+    division: string,
+    field: "groupSize" | "knockoutSize",
+    value: number | null,
+  ) => {
+    setSettings((current) => {
+      const overrides = { ...(current.divisionSettings ?? {}) };
+      const entry = { ...(overrides[division] ?? {}) };
+      if (value === null) {
+        delete entry[field];
+      } else {
+        entry[field] = value;
+      }
+      if (Object.keys(entry).length === 0) {
+        delete overrides[division];
+      } else {
+        overrides[division] = entry;
+      }
+      return { ...current, divisionSettings: overrides };
+    });
   };
 
   const generateDraw = async (phase: "group" | "knockout" | "all" = "all") => {
@@ -1685,8 +1738,8 @@ export default function TournamentControlRoom({
                       </h3>
                       <p className="mt-1 text-xs text-on-surface-variant">
                         Based on teams that are approved and paid right now.
-                        Generating the draw splits each division into groups of
-                        up to {settings.groupSize} teams.
+                        Generating the draw splits each division into groups
+                        using its own group size below.
                       </p>
                       {drawPreview.length === 0 ? (
                         <p className="mt-3 text-sm font-semibold text-on-surface-variant">
@@ -1707,13 +1760,109 @@ export default function TournamentControlRoom({
                                 {" "}
                                 — {preview.teamCount} teams →{" "}
                                 {preview.groups > 0
-                                  ? `${preview.groups} groups`
+                                  ? `${preview.groups} groups of ${preview.groupSize}`
                                   : "no draw"}{" "}
                                 → {preview.advancement}
                               </span>
                             </li>
                           ))}
                         </ul>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
+                      <h3 className="text-sm font-extrabold text-on-surface">
+                        Per-division format
+                      </h3>
+                      <p className="mt-1 text-xs text-on-surface-variant">
+                        Override the group size and knockout size for a single
+                        division. Leave a value on "Default" to use the
+                        tournament-wide setting above. Regenerate the draw to
+                        apply.
+                      </p>
+                      {settings.categories.length === 0 ? (
+                        <p className="mt-3 text-sm font-semibold text-on-surface-variant">
+                          Add a match division to configure its format.
+                        </p>
+                      ) : (
+                        <div className="mt-3 space-y-3">
+                          {settings.categories.map((division) => {
+                            const override =
+                              settings.divisionSettings?.[division] ?? {};
+                            return (
+                              <div
+                                key={division}
+                                className="rounded-lg border border-outline-variant/20 bg-white p-4"
+                              >
+                                <p className="text-sm font-extrabold text-on-surface">
+                                  {division}
+                                </p>
+                                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                  <label className="block">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                                      Teams per group
+                                    </span>
+                                    <select
+                                      value={override.groupSize ?? ""}
+                                      onChange={(event) =>
+                                        setDivisionOverride(
+                                          division,
+                                          "groupSize",
+                                          event.target.value === ""
+                                            ? null
+                                            : Number(event.target.value),
+                                        )
+                                      }
+                                      className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                    >
+                                      <option value="">
+                                        Default ({settings.groupSize})
+                                      </option>
+                                      {[2, 3, 4, 5, 6, 7, 8].map((size) => (
+                                        <option key={size} value={size}>
+                                          {size} teams
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                  <label className="block">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                                      Knockout size
+                                    </span>
+                                    <select
+                                      value={override.knockoutSize ?? ""}
+                                      onChange={(event) =>
+                                        setDivisionOverride(
+                                          division,
+                                          "knockoutSize",
+                                          event.target.value === ""
+                                            ? null
+                                            : Number(event.target.value),
+                                        )
+                                      }
+                                      className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                    >
+                                      <option value="">
+                                        Default ({settings.qualifierCount})
+                                      </option>
+                                      <option value={8}>
+                                        8 teams (Quarter-finals)
+                                      </option>
+                                      <option value={16}>
+                                        16 teams (Round of 16)
+                                      </option>
+                                      <option value={24}>
+                                        24 teams (Round of 24)
+                                      </option>
+                                      <option value={32}>
+                                        32 teams (Round of 32)
+                                      </option>
+                                    </select>
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                     <label className="block">
