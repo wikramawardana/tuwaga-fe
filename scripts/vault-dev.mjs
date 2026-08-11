@@ -2,7 +2,8 @@
 
 /**
  * Load local development secrets from HashiCorp Vault before starting a
- * command. Values already present in the process environment take precedence.
+ * command. Vault is authoritative for application settings; only the local
+ * VAULT_* connection controls stay device-specific.
  */
 
 import { spawn } from "node:child_process";
@@ -107,7 +108,7 @@ async function loadVaultSecrets() {
 
   let loadedCount = 0;
   for (const [key, value] of Object.entries(secrets)) {
-    if (typeof value === "string" && !process.env[key]) {
+    if (typeof value === "string" && !key.startsWith("VAULT_")) {
       process.env[key] = value;
       loadedCount++;
     }
