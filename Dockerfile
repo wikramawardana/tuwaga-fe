@@ -31,7 +31,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # missing NEXT_PUBLIC_API_BASE_URL must fail the build rather than silently bake
 # a localhost URL that breaks every client in production.
 RUN test -n "$NEXT_PUBLIC_API_BASE_URL" || (echo "ERROR: NEXT_PUBLIC_API_BASE_URL build-arg is required" && exit 1)
-RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/tuwaga_auth" \
     APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3004}" \
     NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL}" \
     BETTER_AUTH_SECRET="dummy" \

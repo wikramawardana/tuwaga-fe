@@ -143,13 +143,7 @@ jobs:
       - name: Wait for startup
         run: sleep 60
 
-      - name: Check app health
-        env:
-          HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
+      - name: Check app and auth path
         run: |
-          if [ -z "${HEALTHCHECK_URL}" ]; then
-            echo "HEALTHCHECK_URL is not set; skipping public health check."
-            exit 0
-          fi
-
-          curl -fsSIL "${HEALTHCHECK_URL}"
+          curl -fsSIL https://tuwaga.wikra.my.id
+          curl -fsS https://tuwaga.wikra.my.id/api/auth/get-session

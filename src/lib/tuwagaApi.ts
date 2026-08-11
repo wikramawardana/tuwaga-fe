@@ -271,7 +271,7 @@ async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = await getAuthToken();
+  let token = await getAuthToken();
   const authRequired = requiresAuth(path);
 
   if (authRequired && !token) {
@@ -279,16 +279,26 @@ async function apiRequest<T>(
     throw new Error("No authentication token available.");
   }
 
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...options,
-    headers: {
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-    cache: "no-store",
-  });
+  const request = (authToken: string | null) =>
+    fetch(`${apiBaseUrl}${path}`, {
+      ...options,
+      headers: {
+        Accept: "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...options.headers,
+      },
+      cache: "no-store",
+    });
+
+  let response = await request(token);
+  if (response.status === 401 && token) {
+    clearAuthTokenCache();
+    token = await getAuthToken();
+    if (token) {
+      response = await request(token);
+    }
+  }
 
   const envelope = (await response
     .json()
@@ -555,23 +565,36 @@ export async function generateDraw(
 export async function uploadQualification(
   file: File,
 ): Promise<{ url: string }> {
-  const token = await getAuthToken();
+  let token = await getAuthToken();
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${apiBaseUrl}/upload`, {
-    method: "POST",
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: formData,
-  });
+  const request = (authToken: string | null) =>
+    fetch(`${apiBaseUrl}/upload`, {
+      method: "POST",
+      headers: {
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: formData,
+    });
+
+  let response = await request(token);
+  if (response.status === 401 && token) {
+    clearAuthTokenCache();
+    token = await getAuthToken();
+    if (token) {
+      response = await request(token);
+    }
+  }
 
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<{
     url: string;
   }> | null;
 
   if (!response.ok || envelope?.status === "error") {
+    if (response.status === 401) {
+      await forceSignOutAndRedirect();
+    }
     throw new Error(envelope?.message || `Upload failed: ${response.status}`);
   }
 

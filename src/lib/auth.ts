@@ -2,12 +2,15 @@ import dns from "node:dns";
 import { betterAuth } from "better-auth";
 import { admin, genericOAuth } from "better-auth/plugins";
 import { Pool } from "pg";
+import { requireIsolatedAuthDatabase } from "./auth-database";
 
 dns.setDefaultResultOrder("ipv4first");
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004";
 const authServiceUrl = process.env.AUTH_URL || "http://localhost:3000";
+const authInternalUrl = process.env.AUTH_INTERNAL_URL || authServiceUrl;
 const authClientSecret = process.env.AUTH_CLIENT_SECRET;
+const databaseUrl = requireIsolatedAuthDatabase(process.env.DATABASE_URL);
 
 if (!authClientSecret) {
   throw new Error("AUTH_CLIENT_SECRET is required");
@@ -18,15 +21,15 @@ export const auth = betterAuth({
   basePath: "/api/auth",
   secret: process.env.BETTER_AUTH_SECRET,
   database: new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl,
     connectionTimeoutMillis: 8000,
   }),
   advanced: {
     cookiePrefix: "tuwaga",
   },
   account: {
-    skipStateCookieCheck: true,
-    storeStateStrategy: "cookie",
+    skipStateCookieCheck: false,
+    storeStateStrategy: "database",
   },
   emailAndPassword: {
     enabled: false,
@@ -38,7 +41,10 @@ export const auth = betterAuth({
           providerId: "auth",
           clientId: process.env.AUTH_CLIENT_ID || "tuwaga",
           clientSecret: authClientSecret,
-          discoveryUrl: `${authServiceUrl}/api/auth/.well-known/openid-configuration`,
+          issuer: authServiceUrl,
+          authorizationUrl: `${authServiceUrl}/api/auth/oauth2/authorize`,
+          tokenUrl: `${authInternalUrl}/api/auth/oauth2/token`,
+          userInfoUrl: `${authInternalUrl}/api/auth/oauth2/userinfo`,
           scopes: ["openid", "profile", "email"],
           overrideUserInfo: true,
           mapProfileToUser: (profile: Record<string, unknown>) => {
@@ -62,8 +68,7 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24,
     updateAge: 60 * 60,
     cookieCache: {
-      enabled: true,
-      maxAge: 60 * 5,
+      enabled: false,
     },
   },
   trustedOrigins: [
