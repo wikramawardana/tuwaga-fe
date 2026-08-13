@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -13,16 +20,28 @@ import {
   divisionSkillLevel,
 } from "@/lib/matchDivisions";
 import {
+  buildOopWorkbook,
+  type DrawMatchResult,
+  downloadBlob,
+  matchToTeams,
+  padelCahOopTemplate,
+  parseDrawWorkbook,
+} from "@/lib/oopFile";
+import {
   type AdminCreateRegistrationInput,
   type Match as ApiMatch,
   type TeamStatus as ApiTeamStatus,
   adminCreateRegistration,
   deleteRegistration,
   generateDraw as generateDrawRequest,
+  getOop,
   getTournament,
+  importDraw as importDrawRequest,
   listMatches,
   listRegistrations,
   type MatchStatus,
+  type OopPlan,
+  type OopSettings,
   type Phase,
   type RegistrationTeam,
   type Tournament,
@@ -45,6 +64,7 @@ type Team = {
   registeredAt: string;
   status: TeamStatus;
   group: string;
+  seed: number | null;
 };
 
 type Match = {
@@ -143,6 +163,7 @@ function toAdminTournament(tournament: Tournament): AdminTournament {
       groupSize: tournament.settings.groupSize,
       qualifierCount: tournament.settings.qualifierCount,
       divisionSettings: tournament.settings.divisionSettings ?? {},
+      oop: tournament.settings.oop,
       status: tournament.status,
       categories: tournament.settings.categories ?? [],
       name: tournament.name,
@@ -164,6 +185,22 @@ function getTeamName(teams: Team[], teamId: string | null) {
   return team.partner ? `${team.player} / ${team.partner}` : team.player;
 }
 
+// Same palette as the exported workbook: women purple, men blue, misc green.
+function oopCategoryClasses(category: string): string {
+  const value = category.toLowerCase();
+  if (
+    value.includes("women") ||
+    value.includes("ladies") ||
+    value.includes("female")
+  ) {
+    return "bg-[#B4A7D6] text-black";
+  }
+  if (value.includes("men") || value.includes("male")) {
+    return "bg-[#CFE2F3] text-black";
+  }
+  return "bg-[#C6E0B4] text-black";
+}
+
 function toTeam(team: RegistrationTeam): Team {
   return {
     id: team.id,
@@ -180,6 +217,7 @@ function toTeam(team: RegistrationTeam): Team {
     }),
     status: team.status === "rejected" ? "pending" : team.status,
     group: team.group ?? "",
+    seed: team.seed ?? null,
   };
 }
 
@@ -357,6 +395,18 @@ export default function TournamentControlRoom({
     paid: false,
     status: "pending" as TeamStatus,
   });
+  // Full API shapes kept alongside the view models: the OOP export needs the
+  // raw tournament settings and team seeds, which the admin view drops.
+  const [rawTournament, setRawTournament] = useState<Tournament | null>(null);
+  const [rawTeams, setRawTeams] = useState<RegistrationTeam[]>([]);
+  const [oopPlan, setOopPlan] = useState<OopPlan | null>(null);
+  const [importPreview, setImportPreview] = useState<DrawMatchResult | null>(
+    null,
+  );
+  const [importFileName, setImportFileName] = useState("");
+  const [importBusy, setImportBusy] = useState(false);
+  const [exportingOop, setExportingOop] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -364,20 +414,24 @@ export default function TournamentControlRoom({
     async function loadTournamentRuntime() {
       setLoading(true);
       try {
-        const [remoteTournament, remoteTeams, remoteMatches] =
+        const [remoteTournament, remoteTeams, remoteMatches, remoteOop] =
           await Promise.all([
             getTournament(tournamentId),
             listRegistrations(tournamentId),
             listMatches(tournamentId),
+            getOop(tournamentId).catch(() => null),
           ]);
 
         if (!active) return;
         const adminTournament = toAdminTournament(remoteTournament);
         setTournament(adminTournament);
+        setRawTournament(remoteTournament);
+        setRawTeams(remoteTeams);
         setTeams(remoteTeams.map(toTeam));
         const nextMatches = remoteMatches.map(toMatch);
         setMatches(nextMatches);
         setSettings(adminTournament.settings);
+        setOopPlan(remoteOop);
         setSelectedMatchId(nextMatches[0]?.id ?? "");
         setMessage("Tournament data loaded from the backend.");
       } catch (err) {
@@ -736,8 +790,10 @@ export default function TournamentControlRoom({
       const saved = await updateSettings(tournamentId, payload);
       // Refetch so header fields (name, venue, dates, description) stay in
       // sync with what the backend stored.
-      const fresh = toAdminTournament(await getTournament(tournamentId));
+      const remote = await getTournament(tournamentId);
+      const fresh = toAdminTournament(remote);
       setTournament(fresh);
+      setRawTournament(remote);
       setSettings({
         ...fresh.settings,
         maxPlayers: saved.maxPlayers,
@@ -749,6 +805,7 @@ export default function TournamentControlRoom({
         groupSize: saved.groupSize,
         qualifierCount: saved.qualifierCount,
         divisionSettings: saved.divisionSettings ?? {},
+        oop: saved.oop,
         categories: saved.categories,
       });
       setMessage(
@@ -814,19 +871,148 @@ export default function TournamentControlRoom({
     });
   };
 
-  const generateDraw = async (phase: "group" | "knockout" | "all" = "all") => {
+  const setDivisionBronze = (division: string, enabled: boolean) => {
+    setSettings((current) => {
+      const overrides = { ...(current.divisionSettings ?? {}) };
+      const entry = { ...(overrides[division] ?? {}) };
+      if (enabled) {
+        entry.bronzeMatch = true;
+      } else {
+        delete entry.bronzeMatch;
+      }
+      if (Object.keys(entry).length === 0) {
+        delete overrides[division];
+      } else {
+        overrides[division] = entry;
+      }
+      return { ...current, divisionSettings: overrides };
+    });
+  };
+
+  const updateOopSettings = (updater: (oop: OopSettings) => OopSettings) => {
+    setSettings((current) => ({
+      ...current,
+      oop: updater(
+        current.oop ?? {
+          startTime: "09:00",
+          slotsPerSession: 6,
+          categoryOrder: [],
+          sessions: [],
+          knockoutOrder: [],
+        },
+      ),
+    }));
+  };
+
+  // True once an official draw file has been imported: every eligible team
+  // carries a seed number, and regenerating must keep those groups.
+  const hasImportedDraw = useMemo(() => {
+    const eligible = teams.filter(
+      (team) => team.status === "approved" && team.paid,
+    );
+    return eligible.length > 0 && eligible.every((team) => team.seed != null);
+  }, [teams]);
+
+  const refreshDrawRuntime = useCallback(async () => {
+    const [remoteTeams, remoteMatches, remoteOop] = await Promise.all([
+      listRegistrations(tournamentId),
+      listMatches(tournamentId),
+      getOop(tournamentId).catch(() => null),
+    ]);
+    setRawTeams(remoteTeams);
+    setTeams(remoteTeams.map(toTeam));
+    const nextMatches = remoteMatches.map(toMatch);
+    setMatches(nextMatches);
+    setOopPlan(remoteOop);
+    setSelectedMatchId(nextMatches[0]?.id ?? "");
+  }, [tournamentId]);
+
+  const generateDraw = async (
+    phase: "group" | "knockout" | "all" = "all",
+    options: { useExistingGroups?: boolean } = {},
+  ) => {
     setConfirmDraw(false);
     try {
-      const draw = await generateDrawRequest(tournamentId, phase);
-      const nextMatches = draw.matches.map(toMatch);
-      setMatches(nextMatches);
-      setSelectedMatchId(nextMatches[0]?.id ?? "");
+      const draw = await generateDrawRequest(tournamentId, phase, options);
+      await refreshDrawRuntime();
       setActiveTab("schedule");
       setMessage(draw.message);
     } catch (err) {
       setMessage(
         err instanceof Error ? err.message : "Failed to generate draw.",
       );
+    }
+  };
+
+  const exportOopFile = async () => {
+    if (!rawTournament || !oopPlan || oopPlan.sessions.length === 0) {
+      setMessage("Generate the draw before exporting the order of play.");
+      return;
+    }
+    setExportingOop(true);
+    try {
+      const blob = await buildOopWorkbook({
+        tournament: rawTournament,
+        teams: rawTeams,
+        plan: oopPlan,
+      });
+      downloadBlob(blob, `OOP ${rawTournament.name.toUpperCase()}.xlsx`);
+      setMessage("Order of play exported as an .xlsx workbook.");
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to export the OOP file.",
+      );
+    } finally {
+      setExportingOop(false);
+    }
+  };
+
+  const openImportPicker = () => importInputRef.current?.click();
+
+  const handleImportFile = async (file: File | null) => {
+    if (!file) return;
+    try {
+      const parsed = await parseDrawWorkbook(file);
+      if (parsed.rows.length === 0) {
+        setMessage(
+          "No draw rows found. Expected sheets with No. / Player 1 / Player 2 / GROUP columns starting at row 12.",
+        );
+        return;
+      }
+      const result = matchToTeams(parsed, rawTeams);
+      setImportFileName(file.name);
+      setImportPreview(result);
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to read the workbook.",
+      );
+    }
+  };
+
+  const confirmImportDraw = async () => {
+    if (!importPreview || importPreview.assignments.length === 0) return;
+    setImportBusy(true);
+    try {
+      await importDrawRequest(
+        tournamentId,
+        importPreview.assignments.map((assignment) => ({
+          teamId: assignment.teamId,
+          group: assignment.group,
+          seed: assignment.seed,
+        })),
+      );
+      setImportPreview(null);
+      setImportFileName("");
+      await generateDraw("all", { useExistingGroups: true });
+      setMessage(
+        "Official draw imported: groups and seeds applied, matches regenerated.",
+      );
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Failed to import the draw.",
+      );
+    } finally {
+      setImportBusy(false);
     }
   };
 
@@ -931,28 +1117,64 @@ export default function TournamentControlRoom({
             </div>
             <div className="flex flex-wrap gap-2">
               {activeTab === "registrations" && (
-                <button
-                  type="button"
-                  onClick={() => setInsertOpen(true)}
-                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    person_add
-                  </span>
-                  Insert players
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={openImportPicker}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      upload_file
+                    </span>
+                    Import draw (.xlsx)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInsertOpen(true)}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      person_add
+                    </span>
+                    Insert players
+                  </button>
+                  <input
+                    ref={importInputRef}
+                    type="file"
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      event.target.value = "";
+                      void handleImportFile(file);
+                    }}
+                  />
+                </>
               )}
               {activeTab === "schedule" && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDraw(true)}
-                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    shuffle
-                  </span>
-                  Generate draw
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void exportOopFile()}
+                    disabled={exportingOop}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      download
+                    </span>
+                    {exportingOop ? "Exporting..." : "Export OOP (.xlsx)"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDraw(true)}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      shuffle
+                    </span>
+                    Generate draw
+                  </button>
+                </>
               )}
               {activeTab === "setup" && (
                 <button
@@ -1131,7 +1353,9 @@ export default function TournamentControlRoom({
                                   : "—"}
                               </span>
                               <span className="mt-1 block text-[11px] text-on-surface-variant">
-                                Assigned by draw
+                                {team.seed != null
+                                  ? `Seed ${team.seed} (official draw)`
+                                  : "Assigned by draw"}
                               </span>
                             </td>
                             <td className="px-5 py-5">
@@ -1458,7 +1682,8 @@ export default function TournamentControlRoom({
                         Order of Play (OOP)
                       </h2>
                       <p className="text-sm text-on-surface-variant">
-                        Scheduled matches ordered by time across all courts.
+                        {oopPlan?.title ??
+                          "Session-based schedule across all courts."}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1470,67 +1695,156 @@ export default function TournamentControlRoom({
                       </span>
                     </div>
                   </div>
-                  <div className="mt-5 overflow-x-auto">
-                    <table className="w-full min-w-[700px] border-collapse text-left">
-                      <thead>
-                        <tr className="border-b border-outline-variant/20 bg-surface-container-low text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-                          <th className="px-4 py-3">Time</th>
-                          <th className="px-4 py-3">Court</th>
-                          <th className="px-4 py-3">Division</th>
-                          <th className="px-4 py-3">Match</th>
-                          <th className="px-4 py-3">Round</th>
-                          <th className="px-4 py-3">Score</th>
-                          <th className="px-4 py-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-outline-variant/20">
-                        {[...matches]
-                          .sort((a, b) => a.time.localeCompare(b.time))
-                          .map((match) => (
-                            <tr
-                              key={match.id}
-                              className="align-middle transition-colors hover:bg-surface-container-low/50 cursor-pointer"
-                              onClick={() => {
-                                setSelectedMatchId(match.id);
-                                setActiveTab("matches");
+
+                  {!oopPlan || oopPlan.sessions.length === 0 ? (
+                    <div className="mt-5 rounded-lg bg-surface-container-low p-6 text-sm font-semibold text-on-surface-variant">
+                      No order of play yet. Generate the draw (or import an
+                      official draw file from the Registrations tab) to build
+                      the session schedule.
+                    </div>
+                  ) : (
+                    <div className="mt-5 space-y-8">
+                      {oopPlan.sessions.map((session, sessionIndex) => (
+                        <div
+                          key={`${session.timeLabel}-${sessionIndex}`}
+                          className="overflow-hidden rounded-lg border border-outline-variant/25"
+                        >
+                          <div className="flex flex-wrap items-center gap-3 bg-[#E69138] px-4 py-2.5">
+                            <span className="material-symbols-outlined text-lg text-white">
+                              schedule
+                            </span>
+                            <p className="text-sm font-extrabold uppercase tracking-wide text-white">
+                              {session.timeLabel}
+                            </p>
+                            <p className="ml-auto text-xs font-bold text-white/80">
+                              {session.slots.length}{" "}
+                              {session.slots.length === 1 ? "slot" : "slots"}
+                            </p>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <div
+                              className="grid min-w-[760px]"
+                              style={{
+                                gridTemplateColumns: `56px repeat(${oopPlan.courts}, minmax(165px, 1fr))`,
                               }}
                             >
-                              <td className="px-4 py-4 text-sm font-bold text-on-surface">
-                                {match.time}
-                              </td>
-                              <td className="px-4 py-4 text-sm font-semibold text-on-surface-variant">
-                                {match.courtId ? `Court ${match.courtId}` : "—"}
-                              </td>
-                              <td className="px-4 py-4 text-xs font-bold text-primary">
-                                {match.category || "Open Division"}
-                              </td>
-                              <td className="px-4 py-4">
-                                <p className="text-sm font-bold text-on-surface">
-                                  {getTeamName(teams, match.teamAId)}
-                                </p>
-                                <p className="text-xs text-on-surface-variant">
-                                  vs
-                                </p>
-                                <p className="text-sm font-bold text-on-surface">
-                                  {getTeamName(teams, match.teamBId)}
-                                </p>
-                              </td>
-                              <td className="px-4 py-4 text-sm font-semibold text-on-surface-variant">
-                                {match.round}
-                              </td>
-                              <td className="px-4 py-4 text-sm font-bold text-primary">
-                                {match.score}
-                              </td>
-                              <td className="px-4 py-4">
-                                <StatusBadge
-                                  {...matchStatusMeta[match.status]}
-                                />
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              <div className="bg-surface-container-low px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                #
+                              </div>
+                              {Array.from(
+                                { length: oopPlan.courts },
+                                (_, courtIndex) => `Court ${courtIndex + 1}`,
+                              ).map((courtLabel) => (
+                                <div
+                                  key={courtLabel}
+                                  className="border-l border-outline-variant/15 bg-surface-container-low px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+                                >
+                                  {courtLabel}
+                                </div>
+                              ))}
+                              {session.slots.map((slot) => {
+                                const firstEntry =
+                                  slot.courts.find((entry) => entry != null) ??
+                                  null;
+                                const isEvent = firstEntry?.kind === "event";
+                                return (
+                                  <Fragment key={slot.number}>
+                                    <div className="flex items-center justify-center border-t border-outline-variant/15 bg-surface-container-low/60 px-2 py-3 text-sm font-extrabold text-on-surface">
+                                      {slot.number}
+                                    </div>
+                                    {isEvent && firstEntry ? (
+                                      <div
+                                        style={{ gridColumn: "2 / -1" }}
+                                        className="flex items-center justify-center border-t border-outline-variant/15 bg-[#FFD966] px-3 py-4 text-center text-sm font-extrabold uppercase tracking-wide text-black"
+                                      >
+                                        {firstEntry.title}
+                                      </div>
+                                    ) : (
+                                      slot.courts
+                                        .map((entry, courtIndex) => ({
+                                          entry,
+                                          courtLabel: `Court ${courtIndex + 1}`,
+                                        }))
+                                        .map(({ entry, courtLabel }) => (
+                                          <div
+                                            key={`${slot.number}-${courtLabel}`}
+                                            className="border-l border-t border-outline-variant/15 p-1.5"
+                                          >
+                                            {entry && entry.kind === "match" ? (
+                                              <div
+                                                className={`h-full rounded-md p-2 ${oopCategoryClasses(entry.category)}`}
+                                              >
+                                                <p className="text-[11px] font-extrabold leading-4">
+                                                  {entry.matchLabel}
+                                                </p>
+                                                <p className="text-[10px] font-bold opacity-70">
+                                                  {entry.stageLabel}
+                                                </p>
+                                                <div className="mt-1.5 space-y-1">
+                                                  {entry.matchIds.map(
+                                                    (matchId) => {
+                                                      const match =
+                                                        matches.find(
+                                                          (item) =>
+                                                            item.id === matchId,
+                                                        );
+                                                      if (!match) return null;
+                                                      return (
+                                                        <button
+                                                          key={matchId}
+                                                          type="button"
+                                                          onClick={() => {
+                                                            setSelectedMatchId(
+                                                              matchId,
+                                                            );
+                                                            setActiveTab(
+                                                              "matches",
+                                                            );
+                                                          }}
+                                                          className="block w-full rounded bg-white/55 px-1.5 py-1 text-left text-[10px] font-semibold leading-3.5 text-black transition-colors hover:bg-white"
+                                                        >
+                                                          {getTeamName(
+                                                            teams,
+                                                            match.teamAId,
+                                                          )}{" "}
+                                                          vs{" "}
+                                                          {getTeamName(
+                                                            teams,
+                                                            match.teamBId,
+                                                          )}
+                                                          <span className="opacity-60">
+                                                            {" "}
+                                                            ·{" "}
+                                                            {
+                                                              matchStatusMeta[
+                                                                match.status
+                                                              ].label
+                                                            }
+                                                            {match.score
+                                                              ? ` · ${match.score}`
+                                                              : ""}
+                                                          </span>
+                                                        </button>
+                                                      );
+                                                    },
+                                                  )}
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <div className="h-full min-h-9" />
+                                            )}
+                                          </div>
+                                        ))
+                                    )}
+                                  </Fragment>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1859,9 +2173,398 @@ export default function TournamentControlRoom({
                                     </select>
                                   </label>
                                 </div>
+                                <label className="mt-3 flex items-center gap-2.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={override.bronzeMatch === true}
+                                    onChange={(event) =>
+                                      setDivisionBronze(
+                                        division,
+                                        event.target.checked,
+                                      )
+                                    }
+                                    className="h-4 w-4 accent-primary"
+                                  />
+                                  <span className="text-sm font-semibold text-on-surface">
+                                    Bronze match (3rd place play-off)
+                                  </span>
+                                </label>
                               </div>
                             );
                           })}
+                        </div>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
+                      <h3 className="text-sm font-extrabold text-on-surface">
+                        Order of Play (OOP) sessions
+                      </h3>
+                      <p className="mt-1 text-xs text-on-surface-variant">
+                        Session times, special events and the knockout order
+                        used by the Draw &amp; Schedule tab and the .xlsx
+                        export. Save setup to apply.
+                      </p>
+                      {!settings.oop ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSettings((current) => ({
+                              ...current,
+                              oop: padelCahOopTemplate(current.categories),
+                            }))
+                          }
+                          className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            magic_button
+                          </span>
+                          Load PadelCah! session plan
+                        </button>
+                      ) : (
+                        <div className="mt-3 space-y-4">
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            <label className="block">
+                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                                First session start
+                              </span>
+                              <input
+                                value={settings.oop.startTime}
+                                onChange={(event) =>
+                                  updateOopSettings((oop) => ({
+                                    ...oop,
+                                    startTime: event.target.value,
+                                  }))
+                                }
+                                placeholder="09:00"
+                                className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                                Slots per session
+                              </span>
+                              <input
+                                type="number"
+                                min="1"
+                                max="12"
+                                value={settings.oop.slotsPerSession}
+                                onChange={(event) =>
+                                  updateOopSettings((oop) => ({
+                                    ...oop,
+                                    slotsPerSession: Math.max(
+                                      1,
+                                      Number(event.target.value) || 1,
+                                    ),
+                                  }))
+                                }
+                                className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                              />
+                            </label>
+                            <div className="block">
+                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                                Groups fill courts first
+                              </span>
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {settings.categories.map((division) => {
+                                  const active =
+                                    settings.oop?.categoryOrder.includes(
+                                      division,
+                                    ) ?? false;
+                                  return (
+                                    <button
+                                      key={division}
+                                      type="button"
+                                      onClick={() =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          categoryOrder: active
+                                            ? oop.categoryOrder.filter(
+                                                (item) => item !== division,
+                                              )
+                                            : [...oop.categoryOrder, division],
+                                        }))
+                                      }
+                                      className={`h-9 rounded-lg border px-2.5 text-xs font-bold transition-colors ${
+                                        active
+                                          ? "border-primary/30 bg-primary/10 text-primary"
+                                          : "border-outline-variant/50 bg-white text-on-surface-variant hover:border-primary/30"
+                                      }`}
+                                    >
+                                      {division}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            {settings.oop.sessions.map((session, index) => (
+                              <div
+                                key={`${session.time}-${index}`}
+                                className="grid items-end gap-2 rounded-lg border border-outline-variant/20 bg-white p-3 sm:grid-cols-[110px_auto_110px_1fr_auto]"
+                              >
+                                <label className="block">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                    Time
+                                  </span>
+                                  <input
+                                    value={session.time}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map((item, i) =>
+                                          i === index
+                                            ? {
+                                                ...item,
+                                                time: event.target.value,
+                                              }
+                                            : item,
+                                        ),
+                                      }))
+                                    }
+                                    placeholder="11:00"
+                                    className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none focus:border-primary"
+                                  />
+                                </label>
+                                <label className="flex h-10 items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={session.notBefore}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map((item, i) =>
+                                          i === index
+                                            ? {
+                                                ...item,
+                                                notBefore: event.target.checked,
+                                              }
+                                            : item,
+                                        ),
+                                      }))
+                                    }
+                                    className="h-4 w-4 accent-primary"
+                                  />
+                                  <span className="text-xs font-bold text-on-surface">
+                                    Not before
+                                  </span>
+                                </label>
+                                <label className="block">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                    Capacity
+                                  </span>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="12"
+                                    value={session.capacity ?? ""}
+                                    placeholder="Auto"
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map((item, i) =>
+                                          i === index
+                                            ? {
+                                                ...item,
+                                                capacity:
+                                                  event.target.value === ""
+                                                    ? null
+                                                    : Math.max(
+                                                        1,
+                                                        Number(
+                                                          event.target.value,
+                                                        ) || 1,
+                                                      ),
+                                              }
+                                            : item,
+                                        ),
+                                      }))
+                                    }
+                                    className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none focus:border-primary"
+                                  />
+                                </label>
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                  <label className="block">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                      Events before
+                                    </span>
+                                    <input
+                                      value={(session.eventsBefore ?? []).join(
+                                        ", ",
+                                      )}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, i) =>
+                                              i === index
+                                                ? {
+                                                    ...item,
+                                                    eventsBefore:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((s) => s.trim())
+                                                        .filter(Boolean),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="OPENING CEREMONY"
+                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                      Events mid (Title@slot)
+                                    </span>
+                                    <input
+                                      value={(session.eventsMid ?? [])
+                                        .map(
+                                          (item) =>
+                                            `${item.title}@${item.afterSlot}`,
+                                        )
+                                        .join(", ")}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, i) =>
+                                              i === index
+                                                ? {
+                                                    ...item,
+                                                    eventsMid:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((raw) => {
+                                                          const [title, slot] =
+                                                            raw
+                                                              .trim()
+                                                              .split("@");
+                                                          return {
+                                                            title: (
+                                                              title ?? ""
+                                                            ).trim(),
+                                                            afterSlot:
+                                                              Number(slot) || 1,
+                                                          };
+                                                        })
+                                                        .filter(
+                                                          (item) => item.title,
+                                                        ),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="GAMES@1"
+                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                                      Events after
+                                    </span>
+                                    <input
+                                      value={(session.eventsAfter ?? []).join(
+                                        ", ",
+                                      )}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, i) =>
+                                              i === index
+                                                ? {
+                                                    ...item,
+                                                    eventsAfter:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((s) => s.trim())
+                                                        .filter(Boolean),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="AWARDING"
+                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
+                                    />
+                                  </label>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateOopSettings((oop) => ({
+                                      ...oop,
+                                      sessions: oop.sessions.filter(
+                                        (_, i) => i !== index,
+                                      ),
+                                    }))
+                                  }
+                                  aria-label={`Remove session ${session.time}`}
+                                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant/50 text-on-surface-variant transition-colors hover:border-error/40 hover:text-error"
+                                >
+                                  <span className="material-symbols-outlined text-lg">
+                                    delete
+                                  </span>
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateOopSettings((oop) => ({
+                                  ...oop,
+                                  sessions: [
+                                    ...oop.sessions,
+                                    { time: "", notBefore: true },
+                                  ],
+                                }))
+                              }
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-dashed border-outline-variant/60 px-3 text-xs font-bold text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">
+                                add
+                              </span>
+                              Add session
+                            </button>
+                          </div>
+
+                          <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                              Knockout order
+                            </span>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {settings.oop.knockoutOrder.length === 0 ? (
+                                <span className="text-xs font-semibold text-on-surface-variant">
+                                  Empty — rounds are scheduled automatically in
+                                  division order.
+                                </span>
+                              ) : (
+                                settings.oop.knockoutOrder.map(
+                                  (entry, index) => (
+                                    <span
+                                      key={`${entry.category}-${index}`}
+                                      className="inline-flex items-center rounded-lg border border-outline-variant/40 bg-white px-2.5 py-1 text-[11px] font-bold text-on-surface"
+                                    >
+                                      {entry.category.replace(
+                                        /\s*[—–-]\s*/g,
+                                        " ",
+                                      )}
+                                      {" · "}
+                                      {typeof entry.stage === "number"
+                                        ? `Round ${entry.stage}`
+                                        : entry.stage === "3rd-place"
+                                          ? "3rd Place"
+                                          : entry.stage}
+                                    </span>
+                                  ),
+                                )
+                              )}
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -2533,8 +3236,9 @@ export default function TournamentControlRoom({
               Generate tournament draw?
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              This will rebuild group matches and knockout placeholders from
-              approved paid teams.
+              {hasImportedDraw
+                ? "An official draw is imported: groups and seeds are kept, and matches are rebuilt around them."
+                : "This will rebuild group matches and knockout placeholders from approved paid teams."}
             </p>
             <div className="mt-6 flex justify-end gap-2">
               <button
@@ -2546,17 +3250,125 @@ export default function TournamentControlRoom({
               </button>
               <button
                 type="button"
-                onClick={() => generateDraw("group")}
+                onClick={() =>
+                  generateDraw("group", {
+                    useExistingGroups: hasImportedDraw,
+                  })
+                }
                 className="h-10 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
               >
                 Groups only
               </button>
               <button
                 type="button"
-                onClick={() => generateDraw("all")}
+                onClick={() =>
+                  generateDraw("all", { useExistingGroups: hasImportedDraw })
+                }
                 className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
               >
                 Generate all
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {importPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="import-draw-title"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
+          >
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="material-symbols-outlined">upload_file</span>
+            </div>
+            <h2
+              id="import-draw-title"
+              className="text-xl font-extrabold text-on-surface"
+            >
+              Import official draw
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+              {importFileName}: matched{" "}
+              <span className="font-bold text-on-surface">
+                {importPreview.assignments.length}
+              </span>{" "}
+              of {rawTeams.length} registered teams against the workbook rows.
+            </p>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {Object.entries(importPreview.byCategory).map(
+                ([category, count]) => (
+                  <div
+                    key={category}
+                    className="rounded-lg border border-outline-variant/30 bg-surface-container-low px-3 py-2 text-sm font-bold text-on-surface"
+                  >
+                    {category}
+                    <span className="float-right text-primary">
+                      {count} teams
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
+
+            {importPreview.warnings.length > 0 && (
+              <div className="mt-4 rounded-lg border border-tertiary/30 bg-tertiary/10 p-3">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-tertiary">
+                  Warnings
+                </p>
+                <ul className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs font-semibold text-on-surface-variant">
+                  {importPreview.warnings.map((warning) => (
+                    <li key={warning}>• {warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {importPreview.unmatched.length > 0 && (
+              <div className="mt-4 rounded-lg border border-error/30 bg-error/10 p-3">
+                <p className="text-xs font-extrabold uppercase tracking-wider text-error">
+                  Unmatched rows — fix registration names before importing
+                </p>
+                <ul className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs font-semibold text-on-surface-variant">
+                  {importPreview.unmatched.map((row) => (
+                    <li key={`${row.sheetName}-${row.no}`}>
+                      • {row.sheetName} #{row.no}: {row.player1}
+                      {row.player2 ? ` / ${row.player2}` : ""} (Group{" "}
+                      {row.group || "?"})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setImportPreview(null);
+                  setImportFileName("");
+                }}
+                disabled={importBusy}
+                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmImportDraw()}
+                disabled={
+                  importBusy ||
+                  importPreview.assignments.length === 0 ||
+                  importPreview.unmatched.length > 0
+                }
+                className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {importBusy
+                  ? "Importing..."
+                  : "Import draw & regenerate matches"}
               </button>
             </div>
           </div>

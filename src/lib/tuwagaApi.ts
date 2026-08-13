@@ -9,6 +9,35 @@ export type Phase = "group" | "knockout";
 export type DivisionSettings = {
   groupSize?: number;
   knockoutSize?: number;
+  bronzeMatch?: boolean;
+};
+
+export type OopMidEvent = {
+  title: string;
+  afterSlot: number;
+};
+
+export type OopSession = {
+  time: string;
+  notBefore: boolean;
+  capacity?: number | null;
+  eventsBefore?: string[];
+  eventsAfter?: string[];
+  eventsMid?: OopMidEvent[];
+};
+
+export type OopKnockoutOrderEntry = {
+  category: string;
+  /** 1-based bracket round index, or a special stage like `"3rd-place"`. */
+  stage: number | string;
+};
+
+export type OopSettings = {
+  startTime: string;
+  slotsPerSession: number;
+  categoryOrder: string[];
+  sessions: OopSession[];
+  knockoutOrder: OopKnockoutOrderEntry[];
 };
 
 export type TournamentSettings = {
@@ -24,6 +53,7 @@ export type TournamentSettings = {
   divisionSettings?: Record<string, DivisionSettings>;
   status?: TournamentStatus;
   categories: string[];
+  oop?: OopSettings;
   name?: string;
   venue?: string;
   dateLabel?: string;
@@ -64,6 +94,7 @@ export type RegistrationTeam = {
   registeredAt: string;
   status: TeamStatus;
   group: string | null;
+  seed: number | null;
   qualificationUrl: string | null;
 };
 
@@ -88,6 +119,34 @@ export type Match = {
   status: MatchStatus;
   winnerTeamId: string | null;
   updatedAt: string;
+};
+
+export type OopSlotEntry =
+  | {
+      kind: "match";
+      category: string;
+      categoryLabel: string;
+      matchLabel: string;
+      stageLabel: string;
+      phase: Phase;
+      matchIds: string[];
+    }
+  | { kind: "event"; title: string; span: "allCourts" | "court1" };
+
+export type OopSlot = {
+  number: number;
+  courts: Array<OopSlotEntry | null>;
+};
+
+export type OopPlanSession = {
+  timeLabel: string;
+  slots: OopSlot[];
+};
+
+export type OopPlan = {
+  title: string;
+  courts: number;
+  sessions: OopPlanSession[];
 };
 
 export type LiveResponse = {
@@ -547,6 +606,7 @@ export async function updateSettings(
 export async function generateDraw(
   tournamentId: string,
   phase: "group" | "knockout" | "all" = "all",
+  options: { useExistingGroups?: boolean } = {},
 ) {
   return apiRequest<{ message: string; matches: Match[] }>(
     `/admin/tournaments/${tournamentId}/generate-draw`,
@@ -557,7 +617,25 @@ export async function generateDraw(
         phase,
         includeOnlyPaidApprovedTeams: true,
         overwriteExistingMatches: true,
+        useExistingGroups: options.useExistingGroups ?? false,
       }),
+    },
+  );
+}
+
+export async function getOop(tournamentId: string) {
+  return apiRequest<OopPlan>(`/tournaments/${tournamentId}/oop`);
+}
+
+export async function importDraw(
+  tournamentId: string,
+  assignments: Array<{ teamId: string; group: string; seed: number | null }>,
+) {
+  return apiRequest<{ updated: number }>(
+    `/admin/tournaments/${tournamentId}/import-draw`,
+    {
+      method: "POST",
+      body: JSON.stringify({ assignments }),
     },
   );
 }
