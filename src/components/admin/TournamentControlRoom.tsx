@@ -1584,13 +1584,20 @@ export default function TournamentControlRoom({
                             <th className="py-2 text-center">P</th>
                             <th className="py-2 text-center">W</th>
                             <th className="py-2 text-center">L</th>
-                            <th className="py-2 text-center" title="Score Difference (Games Won - Games Lost)">SD</th>
+                            <th
+                              className="py-2 text-center"
+                              title="Score Difference (Games Won - Games Lost)"
+                            >
+                              SD
+                            </th>
                             <th className="py-2 text-center">Pts</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant/20">
                           {rows
-                            .sort((a, b) => b.points - a.points || b.diff - a.diff)
+                            .sort(
+                              (a, b) => b.points - a.points || b.diff - a.diff,
+                            )
                             .map((team) => (
                               <tr key={team.id}>
                                 <td className="py-3 font-bold text-on-surface">

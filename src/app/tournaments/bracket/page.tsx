@@ -129,7 +129,12 @@ export default function TournamentBracketPage() {
                         <th className="px-3 py-3 text-center">P</th>
                         <th className="px-3 py-3 text-center">W</th>
                         <th className="px-3 py-3 text-center">L</th>
-                        <th className="px-3 py-3 text-center" title="Score Difference (Games Won - Games Lost)">SD</th>
+                        <th
+                          className="px-3 py-3 text-center"
+                          title="Score Difference (Games Won - Games Lost)"
+                        >
+                          SD
+                        </th>
                         <th className="px-3 py-3 text-center">Pts</th>
                         <th className="px-5 py-3 text-right">Rank</th>
                       </tr>
