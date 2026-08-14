@@ -129,6 +129,7 @@ export default function TournamentBracketPage() {
                         <th className="px-3 py-3 text-center">P</th>
                         <th className="px-3 py-3 text-center">W</th>
                         <th className="px-3 py-3 text-center">L</th>
+                        <th className="px-3 py-3 text-center" title="Score Difference (Games Won - Games Lost)">SD</th>
                         <th className="px-3 py-3 text-center">Pts</th>
                         <th className="px-5 py-3 text-right">Rank</th>
                       </tr>
@@ -153,6 +154,9 @@ export default function TournamentBracketPage() {
                           <td className="px-3 py-4 text-center">{team.wins}</td>
                           <td className="px-3 py-4 text-center">
                             {team.losses}
+                          </td>
+                          <td className="px-3 py-4 text-center font-bold text-on-surface-variant">
+                            {team.diff > 0 ? `+${team.diff}` : team.diff}
                           </td>
                           <td className="px-3 py-4 text-center font-bold text-primary">
                             {team.points}

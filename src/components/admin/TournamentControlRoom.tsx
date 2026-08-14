@@ -513,15 +513,41 @@ export default function TournamentControlRoom({
     return result;
   }, [teamFilter, categoryFilter, teams]);
 
+  const oopOrderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!oopPlan) return map;
+    let idx = 0;
+    for (const session of oopPlan.sessions) {
+      for (const slot of session.slots) {
+        for (const court of slot.courts) {
+          if (court && court.kind === "match") {
+            for (const matchId of court.matchIds) {
+              if (!map.has(matchId)) {
+                map.set(matchId, idx++);
+              }
+            }
+          }
+        }
+      }
+    }
+    return map;
+  }, [oopPlan]);
+
   const filteredMatches = useMemo(
     () =>
-      matches.filter(
-        (match) =>
-          (matchCategoryFilter === "all" ||
-            match.category === matchCategoryFilter) &&
-          (matchPhaseFilter === "all" || match.phase === matchPhaseFilter),
-      ),
-    [matchCategoryFilter, matchPhaseFilter, matches],
+      matches
+        .filter(
+          (match) =>
+            (matchCategoryFilter === "all" ||
+              match.category === matchCategoryFilter) &&
+            (matchPhaseFilter === "all" || match.phase === matchPhaseFilter),
+        )
+        .sort((a, b) => {
+          const orderA = oopOrderMap.get(a.id) ?? 99999;
+          const orderB = oopOrderMap.get(b.id) ?? 99999;
+          return orderA - orderB;
+        }),
+    [matchCategoryFilter, matchPhaseFilter, matches, oopOrderMap],
   );
 
   const groupStandings = useMemo(() => {
@@ -530,6 +556,7 @@ export default function TournamentControlRoom({
       wins: number;
       losses: number;
       points: number;
+      diff: number;
     };
     const standings: Record<string, StandingRow[]> = {};
 
@@ -554,14 +581,24 @@ export default function TournamentControlRoom({
               wins: 0,
               losses: 0,
               points: 0,
+              diff: 0,
             });
           }
         });
 
         if (match.status !== "completed") return;
+        let diffA = 0;
+        (match.scoreSets || []).forEach((set) => {
+          diffA += (set.teamA || 0) - (set.teamB || 0);
+        });
         rows.forEach((row) => {
           if (row.id === match.teamAId || row.id === match.teamBId) {
             row.played += 1;
+            if (row.id === match.teamAId) {
+              row.diff += diffA;
+            } else if (row.id === match.teamBId) {
+              row.diff -= diffA;
+            }
             if (row.id === match.winnerTeamId) {
               row.wins += 1;
               row.points += 3;
@@ -1547,12 +1584,13 @@ export default function TournamentControlRoom({
                             <th className="py-2 text-center">P</th>
                             <th className="py-2 text-center">W</th>
                             <th className="py-2 text-center">L</th>
+                            <th className="py-2 text-center" title="Score Difference (Games Won - Games Lost)">SD</th>
                             <th className="py-2 text-center">Pts</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-outline-variant/20">
                           {rows
-                            .sort((a, b) => b.points - a.points)
+                            .sort((a, b) => b.points - a.points || b.diff - a.diff)
                             .map((team) => (
                               <tr key={team.id}>
                                 <td className="py-3 font-bold text-on-surface">
@@ -1568,6 +1606,9 @@ export default function TournamentControlRoom({
                                 </td>
                                 <td className="py-3 text-center">
                                   {team.losses}
+                                </td>
+                                <td className="py-3 text-center font-bold text-on-surface-variant">
+                                  {team.diff > 0 ? `+${team.diff}` : team.diff}
                                 </td>
                                 <td className="py-3 text-center font-bold text-primary">
                                   {team.points}
