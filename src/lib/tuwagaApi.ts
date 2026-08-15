@@ -203,6 +203,8 @@ export type StandingsResponse = {
       played: number;
       wins: number;
       losses: number;
+      gamesWon?: number;
+      gamesLost?: number;
       points: number;
       diff: number;
       groupRank: number;

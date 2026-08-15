@@ -555,10 +555,45 @@ export default function TournamentControlRoom({
       played: number;
       wins: number;
       losses: number;
+      gamesWon: number;
+      gamesLost: number;
       points: number;
       diff: number;
     };
     const standings: Record<string, StandingRow[]> = {};
+
+    const parseMatchScores = (
+      match: Match,
+    ): { gamesA: number; gamesB: number } => {
+      if (match.scoreSets && match.scoreSets.length > 0) {
+        let gamesA = 0;
+        let gamesB = 0;
+        match.scoreSets.forEach((s) => {
+          gamesA += s.teamA || 0;
+          gamesB += s.teamB || 0;
+        });
+        return { gamesA, gamesB };
+      }
+      let gamesA = 0;
+      let gamesB = 0;
+      const tokens = (match.score || "").split(/[,;\s]+/);
+      tokens.forEach((token) => {
+        const parts = token.includes("-")
+          ? token.split("-")
+          : token.includes(":")
+            ? token.split(":")
+            : [];
+        if (parts.length === 2) {
+          const a = Number.parseInt(parts[0].trim(), 10);
+          const b = Number.parseInt(parts[1].trim(), 10);
+          if (!Number.isNaN(a) && !Number.isNaN(b)) {
+            gamesA += a;
+            gamesB += b;
+          }
+        }
+      });
+      return { gamesA, gamesB };
+    };
 
     matches
       .filter(
@@ -580,6 +615,8 @@ export default function TournamentControlRoom({
               played: 0,
               wins: 0,
               losses: 0,
+              gamesWon: 0,
+              gamesLost: 0,
               points: 0,
               diff: 0,
             });
@@ -587,18 +624,18 @@ export default function TournamentControlRoom({
         });
 
         if (match.status !== "completed") return;
-        let diffA = 0;
-        (match.scoreSets || []).forEach((set) => {
-          diffA += (set.teamA || 0) - (set.teamB || 0);
-        });
+        const { gamesA, gamesB } = parseMatchScores(match);
         rows.forEach((row) => {
           if (row.id === match.teamAId || row.id === match.teamBId) {
             row.played += 1;
             if (row.id === match.teamAId) {
-              row.diff += diffA;
+              row.gamesWon += gamesA;
+              row.gamesLost += gamesB;
             } else if (row.id === match.teamBId) {
-              row.diff -= diffA;
+              row.gamesWon += gamesB;
+              row.gamesLost += gamesA;
             }
+            row.diff = row.gamesWon - row.gamesLost;
             if (row.id === match.winnerTeamId) {
               row.wins += 1;
               row.points += 3;
@@ -1584,6 +1621,12 @@ export default function TournamentControlRoom({
                             <th className="py-2 text-center">P</th>
                             <th className="py-2 text-center">W</th>
                             <th className="py-2 text-center">L</th>
+                            <th className="py-2 text-center" title="Games Won">
+                              GW
+                            </th>
+                            <th className="py-2 text-center" title="Games Lost">
+                              GL
+                            </th>
                             <th
                               className="py-2 text-center"
                               title="Score Difference (Games Won - Games Lost)"
@@ -1613,6 +1656,12 @@ export default function TournamentControlRoom({
                                 </td>
                                 <td className="py-3 text-center">
                                   {team.losses}
+                                </td>
+                                <td className="py-3 text-center font-medium text-on-surface-variant">
+                                  {team.gamesWon}
+                                </td>
+                                <td className="py-3 text-center font-medium text-on-surface-variant">
+                                  {team.gamesLost}
                                 </td>
                                 <td className="py-3 text-center font-bold text-on-surface-variant">
                                   {team.diff > 0 ? `+${team.diff}` : team.diff}
