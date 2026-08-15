@@ -140,7 +140,7 @@ export default function TournamentBracketPage() {
                         </th>
                         <th
                           className="px-3 py-3 text-center"
-                          title="Score Difference (Games Won - Games Lost)"
+                          title="Score Difference (Total Games Scored)"
                         >
                           SD
                         </th>

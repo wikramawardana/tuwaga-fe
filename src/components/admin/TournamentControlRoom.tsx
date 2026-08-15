@@ -635,7 +635,7 @@ export default function TournamentControlRoom({
               row.gamesWon += gamesB;
               row.gamesLost += gamesA;
             }
-            row.diff = row.gamesWon - row.gamesLost;
+            row.diff = row.gamesWon;
             if (row.id === match.winnerTeamId) {
               row.wins += 1;
               row.points += 1;
@@ -1629,7 +1629,7 @@ export default function TournamentControlRoom({
                             </th>
                             <th
                               className="py-2 text-center"
-                              title="Score Difference (Games Won - Games Lost)"
+                              title="Score Difference (Total Games Scored)"
                             >
                               SD
                             </th>
