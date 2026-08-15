@@ -638,7 +638,7 @@ export default function TournamentControlRoom({
             row.diff = row.gamesWon - row.gamesLost;
             if (row.id === match.winnerTeamId) {
               row.wins += 1;
-              row.points += 3;
+              row.points += 1;
             } else {
               row.losses += 1;
             }
