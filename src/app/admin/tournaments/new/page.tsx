@@ -116,18 +116,16 @@ export default function NewTournamentPage() {
     <>
       <Navbar active="admin" />
 
-      <main className="min-h-screen bg-[#f6f8fc] pt-16">
-        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
-          <div className="admin-orb absolute -right-28 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
-          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
+      <main className="neo-admin min-h-screen pt-16">
+        <section className="neo-hero">
           <div className="relative mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-14">
-            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
-              Guided tournament setup
+            <span className="neo-sticker -rotate-1">
+              Guided setup · Start here
             </span>
-            <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] md:text-5xl">
+            <h1 className="neo-title mt-6 text-4xl font-black md:text-6xl">
               Create a new command center
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100/70 md:text-base">
+            <p className="mt-5 max-w-2xl border-l-4 border-cyan-300 pl-4 text-sm font-semibold leading-7 text-white md:text-base">
               Set the tournament identity, operating capacity and match
               divisions. You can refine every rule later from the setup panel.
             </p>
@@ -145,7 +143,7 @@ export default function NewTournamentPage() {
           )}
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="admin-rise rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+            <div className="neo-panel neo-corner-mark admin-rise relative bg-white p-5 sm:p-6">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                   <span className="material-symbols-outlined">badge</span>
@@ -227,7 +225,7 @@ export default function NewTournamentPage() {
               </div>
             </div>
 
-            <aside className="admin-rise sticky top-20 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+            <aside className="neo-panel admin-rise sticky top-20 bg-white p-5 sm:p-6">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
                   <span className="material-symbols-outlined">

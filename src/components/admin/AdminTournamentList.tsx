@@ -12,12 +12,11 @@ import {
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
 const badgeToneStyles: Record<BadgeTone, string> = {
-  blue: "border-primary/20 bg-primary/8 text-primary",
-  green: "border-secondary/20 bg-secondary/10 text-secondary",
-  magenta: "border-tertiary/20 bg-tertiary/10 text-tertiary",
-  red: "border-error/20 bg-error/10 text-error",
-  neutral:
-    "border-outline-variant/50 bg-surface-container-low text-on-surface-variant",
+  blue: "border-[#07142f] bg-blue-100 text-blue-800",
+  green: "border-[#07142f] bg-emerald-200 text-emerald-950",
+  magenta: "border-[#07142f] bg-fuchsia-200 text-fuchsia-950",
+  red: "border-[#07142f] bg-rose-200 text-rose-950",
+  neutral: "border-[#07142f] bg-slate-200 text-slate-950",
 };
 
 const statusMeta = {
@@ -41,7 +40,7 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-bold ${badgeToneStyles[tone]}`}
+      className={`inline-flex h-7 items-center gap-1.5 rounded border-2 px-2.5 text-xs font-black uppercase shadow-[2px_2px_0_#07142f] ${badgeToneStyles[tone]}`}
     >
       <span className="material-symbols-outlined text-[15px]">{icon}</span>
       {label}
@@ -82,8 +81,8 @@ function TournamentCard({
   onRequestDelete: (tournament: AdminTournament) => void;
 }) {
   return (
-    <article className="admin-rise group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_14px_40px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_22px_60px_rgba(37,99,235,0.12)]">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 opacity-70 transition-opacity group-hover:opacity-100" />
+    <article className="neo-panel admin-rise group relative overflow-hidden bg-white p-5 transition-all duration-200 hover:-translate-y-1">
+      <div className="absolute inset-x-0 top-0 h-2 border-b-2 border-[#07142f] bg-cyan-300" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -101,7 +100,7 @@ function TournamentCard({
         {tournament.description}
       </p>
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-xl bg-blue-50/70 p-3">
+        <div className="rounded border-2 border-[#07142f] bg-blue-100 p-3">
           <p className="text-lg font-black text-blue-800">
             {tournament.settings.maxPlayers}
           </p>
@@ -109,7 +108,7 @@ function TournamentCard({
             Max
           </p>
         </div>
-        <div className="rounded-xl bg-blue-50/70 p-3">
+        <div className="rounded border-2 border-[#07142f] bg-cyan-100 p-3">
           <p className="text-lg font-black text-blue-800">
             {tournament.settings.courts}
           </p>
@@ -117,7 +116,7 @@ function TournamentCard({
             Courts
           </p>
         </div>
-        <div className="rounded-xl bg-blue-50/70 p-3">
+        <div className="rounded border-2 border-[#07142f] bg-yellow-100 p-3">
           <p className="text-lg font-black text-blue-800">
             {tournament.settings.matchDuration}
           </p>
@@ -129,7 +128,7 @@ function TournamentCard({
       <div className="mt-5 flex items-center justify-between gap-3">
         <Link
           href={`/admin/tournaments/${tournament.id}`}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black uppercase text-white hover:bg-blue-700"
         >
           Open control room
           <span className="material-symbols-outlined text-lg">
@@ -215,10 +214,8 @@ export default function AdminTournamentList() {
     <section className="mx-auto max-w-[1400px] px-6 py-8 md:px-10 md:py-10">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
-            Your workspace
-          </p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+          <p className="neo-sticker rotate-1">Your workspace</p>
+          <h2 className="neo-title mt-4 text-3xl font-black text-slate-950">
             Tournament command centers
           </h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -227,7 +224,7 @@ export default function AdminTournamentList() {
         </div>
         <Link
           href="/admin/tournaments/new"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
         >
           <span className="material-symbols-outlined text-lg">add</span>
           New tournament
@@ -273,7 +270,7 @@ export default function AdminTournamentList() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-tournament-title"
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
+            className="w-full max-w-md bg-white p-6"
           >
             <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-error/10 text-error">
               <span className="material-symbols-outlined">delete</span>

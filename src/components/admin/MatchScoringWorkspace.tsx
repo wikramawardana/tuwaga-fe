@@ -33,7 +33,7 @@ function scoreLabel(sets: SetScore[]) {
 
 function MatchScoringSkeleton() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#06163b] px-6 text-white">
+    <div className="neo-admin flex min-h-screen items-center justify-center !bg-[#246bfe] !bg-none px-6 text-white">
       <div className="text-center">
         <span className="material-symbols-outlined admin-spin text-5xl text-blue-400">
           progress_activity
@@ -217,7 +217,7 @@ export default function MatchScoringWorkspace({
 
   if (!match) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#06163b] px-6 text-white">
+      <main className="neo-admin flex min-h-screen items-center justify-center !bg-[#246bfe] !bg-none px-6 text-white">
         <div className="max-w-md text-center">
           <span className="material-symbols-outlined text-6xl text-blue-300">
             search_off
@@ -236,8 +236,8 @@ export default function MatchScoringWorkspace({
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#06163b]/95 text-white shadow-xl shadow-blue-950/10 backdrop-blur-xl">
+    <main className="neo-admin min-h-screen text-slate-950">
+      <header className="sticky top-0 z-40 border-b-4 border-[#07142f] bg-[#246bfe] text-white shadow-[0_6px_0_#07142f]">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <button
@@ -413,8 +413,8 @@ export default function MatchScoringWorkspace({
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-            <div className="bg-gradient-to-r from-[#071c4d] via-blue-900 to-[#071c4d] px-5 py-5 text-center text-white">
+          <section className="neo-panel overflow-hidden bg-white">
+            <div className="border-b-4 border-[#07142f] bg-[#246bfe] px-5 py-5 text-center text-white">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-200">
                 {match.category}
               </p>

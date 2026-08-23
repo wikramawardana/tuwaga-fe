@@ -99,48 +99,145 @@ function LoginContent() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-6 pt-24 text-on-surface">
-      <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[420px] flex-col items-center justify-center">
-        <div className="w-full rounded-lg border border-outline-variant/30 bg-white p-8 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
-          <Image
-            src="/tuwaga-logo.png"
-            alt="TUWAGA"
-            width={132}
-            height={36}
-            className="mx-auto h-9 w-auto"
-            priority
-          />
+    <main className="neo-login relative min-h-screen overflow-hidden px-4 py-5 text-[#07142f] sm:px-6 lg:p-8">
+      <div className="neo-dot-field pointer-events-none absolute -left-12 -top-12 h-48 w-48 rotate-6 opacity-30" />
+      <div className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rotate-12 border-4 border-[#07142f] bg-[#55dfff]" />
 
-          <div className="mt-8 text-center">
-            <h1 className="text-2xl font-extrabold tracking-tight">
-              Admin sign in
+      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden border-4 border-[#07142f] bg-white shadow-[10px_10px_0_#07142f] lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="relative hidden overflow-hidden border-r-4 border-[#07142f] bg-[#246bfe] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+          <div className="neo-dot-field absolute -right-12 top-24 h-56 w-56 rotate-12 border-4 border-[#07142f] bg-[#55dfff] opacity-90" />
+          <div className="absolute -right-10 bottom-16 h-40 w-40 rounded-full border-4 border-[#07142f] bg-[#ffe45c]" />
+
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="border-3 border-[#07142f] bg-white px-5 py-3 shadow-[5px_5px_0_#07142f]">
+              <Image
+                src="/tuwaga-logo.png"
+                alt="TUWAGA"
+                width={132}
+                height={36}
+                priority
+              />
+            </div>
+            <span className="neo-sticker rotate-2">Admin only</span>
+          </div>
+
+          <div className="relative z-10 max-w-3xl py-12">
+            <p className="mb-6 inline-flex border-2 border-[#07142f] bg-[#55dfff] px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#07142f] shadow-[4px_4px_0_#07142f]">
+              Tournament OS / 2026
+            </p>
+            <h1 className="text-6xl font-black uppercase leading-[0.82] tracking-[-0.075em] xl:text-8xl">
+              Run the
+              <span className="my-3 block w-fit -rotate-1 border-4 border-[#07142f] bg-[#ffe45c] px-3 py-2 text-[#07142f] shadow-[7px_7px_0_#07142f]">
+                whole
+              </span>
+              tournament.
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              Continue with Google to manage tournaments and scoring.
+            <p className="mt-8 max-w-lg border-l-4 border-[#ffe45c] pl-5 text-lg font-bold leading-7">
+              Draws, schedules, courts, scoring, and results. One focused
+              workspace for a sharp tournament crew.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSignIn}
-            disabled={isLoading}
-            className="mt-8 inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-outline-variant/40 bg-white px-5 text-sm font-bold text-on-surface shadow-[0_6px_20px_rgba(15,23,42,0.08)] transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-70"
-          >
-            {isLoading ? (
-              "Redirecting..."
-            ) : (
-              <>
-                <GoogleIcon className="h-5 w-5" />
-                <span>Continue with Google</span>
-              </>
-            )}
-          </button>
+          <div className="relative z-10 grid grid-cols-3 gap-3">
+            {[
+              ["01", "Build OOP"],
+              ["02", "Run courts"],
+              ["03", "Publish live"],
+            ].map(([number, label], index) => (
+              <div
+                key={number}
+                className={`border-3 border-[#07142f] p-4 text-[#07142f] shadow-[4px_4px_0_#07142f] ${index === 1 ? "bg-[#55dfff]" : "bg-white"}`}
+              >
+                <p className="text-2xl font-black">{number}</p>
+                <p className="mt-1 text-xs font-black uppercase tracking-wider">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {accessError && (
-            <div className="mt-5 rounded-lg border border-error/20 bg-error-container px-4 py-3 text-sm font-semibold text-on-error-container">
-              {accessError}
+        <div className="relative flex min-w-0 items-center justify-center bg-[#f5f7ff] p-5 sm:p-10 xl:p-16">
+          <div className="min-w-0 w-full max-w-[470px]">
+            <div className="mb-10 flex items-center justify-between lg:hidden">
+              <Image
+                src="/tuwaga-logo.png"
+                alt="TUWAGA"
+                width={132}
+                height={36}
+                priority
+              />
+              <span className="neo-sticker rotate-2">Admin</span>
             </div>
-          )}
+
+            <div className="neo-corner-mark relative border-4 border-[#07142f] bg-white p-6 shadow-[8px_8px_0_#07142f] sm:p-9">
+              <span className="inline-flex items-center gap-2 border-2 border-[#07142f] bg-[#55dfff] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] shadow-[3px_3px_0_#07142f]">
+                <span className="h-2 w-2 rounded-full bg-[#07142f]" />
+                Secure crew entrance
+              </span>
+
+              <h2 className="neo-title mt-7 text-4xl font-black sm:text-5xl">
+                Ready to run the show?
+              </h2>
+              <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-slate-600">
+                Sign in with your authorized Google account to open the Tuwaga
+                admin command center.
+              </p>
+
+              <hr className="neo-rule my-7" />
+
+              <button
+                type="button"
+                onClick={handleSignIn}
+                disabled={isLoading}
+                className="neo-button inline-flex h-14 min-w-0 w-full items-center justify-center gap-2 bg-[#246bfe] px-3 text-xs font-black uppercase tracking-wide text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60 sm:gap-3 sm:px-5 sm:text-sm"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="material-symbols-outlined admin-spin text-xl">
+                      progress_activity
+                    </span>
+                    Connecting…
+                  </>
+                ) : (
+                  <>
+                    <span className="flex h-8 w-8 items-center justify-center border-2 border-[#07142f] bg-white">
+                      <GoogleIcon className="h-5 w-5" />
+                    </span>
+                    <span>Sign in with Google</span>
+                    <span className="material-symbols-outlined hidden text-xl sm:inline">
+                      arrow_forward
+                    </span>
+                  </>
+                )}
+              </button>
+
+              {accessError && (
+                <div
+                  role="alert"
+                  className="mt-5 bg-rose-200 px-4 py-3 text-sm font-black text-rose-950"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-xl">
+                      warning
+                    </span>
+                    <span>{accessError}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-6 flex items-center gap-3 text-xs font-bold text-slate-500">
+                <span className="material-symbols-outlined text-lg text-[#246bfe]">
+                  verified_user
+                </span>
+                Access is limited to approved tournament administrators.
+              </div>
+            </div>
+
+            <p className="mt-8 text-center text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+              Tuwaga Admin System · Keep every court moving
+            </p>
+          </div>
         </div>
       </section>
     </main>

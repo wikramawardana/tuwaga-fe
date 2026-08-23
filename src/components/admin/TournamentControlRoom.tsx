@@ -868,10 +868,8 @@ export default function TournamentControlRoom({
   return (
     <>
       <Navbar active="admin" />
-      <main className="min-h-screen bg-[#f6f8fc] pt-16 text-slate-950">
-        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
-          <div className="admin-orb absolute -right-24 -top-36 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
-          <div className="admin-orb admin-orb-delay absolute -bottom-52 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
+      <main className="neo-admin min-h-screen pt-16 text-slate-950">
+        <section className="neo-hero">
           <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
             <PageBreadcrumb
               parentLabel="Admin"
@@ -881,8 +879,8 @@ export default function TournamentControlRoom({
             <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
-                    Tournament command center
+                  <span className="neo-sticker -rotate-1">
+                    Tournament control room
                   </span>
                   <span
                     className={cx(
@@ -893,10 +891,10 @@ export default function TournamentControlRoom({
                     {settings.status}
                   </span>
                 </div>
-                <h1 className="mt-4 text-3xl font-black tracking-[-0.035em] sm:text-4xl lg:text-5xl">
+                <h1 className="neo-title mt-5 text-4xl font-black sm:text-5xl lg:text-6xl">
                   {tournament?.name ?? "Loading tournament"}
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100/75 sm:text-base">
+                <p className="mt-4 max-w-2xl border-l-4 border-cyan-300 pl-4 text-sm font-semibold leading-6 text-white sm:text-base">
                   {tournament?.venue || "Venue not set"} ·{" "}
                   {tournament?.dateLabel || "Date not set"}. Run the full
                   tournament from one calm, shared operations surface.
