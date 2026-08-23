@@ -302,6 +302,8 @@ export default function TournamentControlRoom({
   const [submittingTeam, setSubmittingTeam] = useState(false);
   const [formError, setFormError] = useState("");
   const [oopPlan, setOopPlan] = useState<OopPlan | null>(null);
+  const [selectedOopSession, setSelectedOopSession] = useState(0);
+  const [oopCompact, setOopCompact] = useState(true);
   const [importPreview, setImportPreview] = useState<DrawMatchResult | null>(
     null,
   );
@@ -379,6 +381,29 @@ export default function TournamentControlRoom({
       completed: matches.filter((match) => match.status === "completed").length,
     };
   }, [matches, teams]);
+
+  const oopSessionSummaries = useMemo(
+    () =>
+      (oopPlan?.sessions ?? []).map((session) => {
+        let matchCount = 0;
+        let eventCount = 0;
+        for (const slot of session.slots) {
+          for (const entry of slot.courts) {
+            if (entry?.kind === "match") matchCount += entry.matchIds.length;
+            if (entry?.kind === "event") eventCount += 1;
+          }
+        }
+        return { matchCount, eventCount };
+      }),
+    [oopPlan],
+  );
+
+  const activeOopSession = oopPlan?.sessions[selectedOopSession] ?? null;
+
+  useEffect(() => {
+    const finalIndex = Math.max(0, (oopPlan?.sessions.length ?? 1) - 1);
+    setSelectedOopSession((current) => Math.min(current, finalIndex));
+  }, [oopPlan]);
 
   const filteredTeams = useMemo(() => {
     const query = teamSearch.trim().toLowerCase();
@@ -2195,145 +2220,290 @@ export default function TournamentControlRoom({
                     </div>
                   </div>
 
-                  {oopPlan && oopPlan.sessions.length > 0 && (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                      <div className="flex flex-wrap items-end justify-between gap-3">
-                        <div>
-                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
-                            Order of Play
-                          </p>
-                          <h3 className="mt-1 text-xl font-black text-slate-950">
-                            {oopPlan.title}
-                          </h3>
-                          <p className="mt-1 text-sm text-slate-500">
-                            Official running order across {oopPlan.courts}{" "}
-                            courts. Match cards below follow this same sequence.
-                          </p>
+                  {oopPlan &&
+                    oopPlan.sessions.length > 0 &&
+                    activeOopSession && (
+                      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                          <div>
+                            <p className="neo-sticker rotate-1">
+                              Order of Play
+                            </p>
+                            <h3 className="mt-4 text-2xl font-black text-slate-950">
+                              {oopPlan.title}
+                            </h3>
+                            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                              Focus on one session at a time. Switch to detailed
+                              view only when you need teams and live match
+                              state.
+                            </p>
+                          </div>
+                          <div className="flex items-center self-start rounded-lg border-2 border-[#07142f] bg-slate-100 p-1 shadow-[3px_3px_0_#07142f]">
+                            <button
+                              type="button"
+                              aria-pressed={oopCompact}
+                              onClick={() => setOopCompact(true)}
+                              className={cx(
+                                "h-9 rounded px-3 text-xs font-black uppercase transition",
+                                oopCompact
+                                  ? "bg-blue-600 text-white"
+                                  : "text-slate-500 hover:bg-white",
+                              )}
+                            >
+                              Compact
+                            </button>
+                            <button
+                              type="button"
+                              aria-pressed={!oopCompact}
+                              onClick={() => setOopCompact(false)}
+                              className={cx(
+                                "h-9 rounded px-3 text-xs font-black uppercase transition",
+                                !oopCompact
+                                  ? "bg-blue-600 text-white"
+                                  : "text-slate-500 hover:bg-white",
+                              )}
+                            >
+                              Detailed
+                            </button>
+                          </div>
                         </div>
-                        <span className="rounded-xl bg-blue-50 px-3 py-2 text-xs font-extrabold text-blue-700">
-                          {matches.length} scheduled matches
-                        </span>
-                      </div>
-                      <div className="mt-5 space-y-5">
-                        {oopPlan.sessions.map((session, sessionIndex) => (
+
+                        <div className="mt-6 border-y-2 border-[#07142f] bg-blue-50 px-2 py-3">
                           <div
-                            key={`${session.timeLabel}-${sessionIndex}`}
-                            className="overflow-hidden rounded-2xl border border-slate-200"
+                            className="flex gap-3 overflow-x-auto pb-1"
+                            role="tablist"
+                            aria-label="Order of Play sessions"
                           >
-                            <div className="flex items-center gap-2 bg-blue-700 px-4 py-3 text-white">
+                            {oopPlan.sessions.map((session, sessionIndex) => {
+                              const summary = oopSessionSummaries[sessionIndex];
+                              const selected =
+                                selectedOopSession === sessionIndex;
+                              return (
+                                <button
+                                  key={`${session.timeLabel}-${sessionIndex}`}
+                                  type="button"
+                                  role="tab"
+                                  aria-selected={selected}
+                                  onClick={() =>
+                                    setSelectedOopSession(sessionIndex)
+                                  }
+                                  className={cx(
+                                    "min-w-[170px] shrink-0 rounded-xl px-4 py-3 text-left",
+                                    selected
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-white text-slate-950 hover:bg-cyan-100",
+                                  )}
+                                >
+                                  <span className="block text-[10px] font-black uppercase tracking-[0.16em] opacity-70">
+                                    Session {sessionIndex + 1}
+                                  </span>
+                                  <span className="mt-1 block text-base font-black">
+                                    {session.timeLabel}
+                                  </span>
+                                  <span className="mt-2 block text-[11px] font-bold opacity-75">
+                                    {summary?.matchCount ?? 0} matches ·{" "}
+                                    {session.slots.length} runs
+                                    {(summary?.eventCount ?? 0) > 0
+                                      ? ` · ${String(summary?.eventCount)} events`
+                                      : ""}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="mt-5 overflow-hidden rounded-lg border-2 border-[#07142f]">
+                          <div className="flex flex-wrap items-center gap-3 border-b-2 border-[#07142f] bg-[#071c4d] px-4 py-3 text-white">
+                            <span className="flex h-9 w-9 items-center justify-center rounded border-2 border-white/30 bg-blue-600">
                               <span className="material-symbols-outlined text-lg">
                                 schedule
                               </span>
-                              <p className="text-sm font-black uppercase tracking-wider">
-                                {session.timeLabel}
+                            </span>
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">
+                                Now viewing
                               </p>
-                              <span className="ml-auto text-xs font-bold text-blue-100">
-                                {session.slots.length} slots
+                              <p className="text-base font-black uppercase tracking-wide">
+                                {activeOopSession.timeLabel}
+                              </p>
+                            </div>
+                            <div className="ml-auto flex flex-wrap gap-2 text-[10px] font-black uppercase">
+                              <span className="border border-white/30 bg-white/10 px-2 py-1">
+                                {oopSessionSummaries[selectedOopSession]
+                                  ?.matchCount ?? 0}{" "}
+                                matches
+                              </span>
+                              <span className="border border-white/30 bg-white/10 px-2 py-1">
+                                {oopPlan.courts} courts
                               </span>
                             </div>
-                            <div className="overflow-x-auto">
-                              <div
-                                className="grid min-w-[760px]"
-                                style={{
-                                  gridTemplateColumns: `56px repeat(${oopPlan.courts}, minmax(170px, 1fr))`,
-                                }}
-                              >
-                                <div className="bg-slate-50 px-2 py-2 text-center text-[10px] font-black uppercase text-slate-400">
-                                  #
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <div
+                              className="grid"
+                              style={{
+                                gridTemplateColumns: `64px repeat(${oopPlan.courts}, minmax(${oopCompact ? "138px" : "210px"}, 1fr))`,
+                                minWidth: `${String(64 + oopPlan.courts * (oopCompact ? 138 : 210))}px`,
+                              }}
+                            >
+                              <div className="sticky left-0 z-20 flex items-center justify-center border-b-2 border-[#07142f] bg-yellow-200 px-2 py-3 text-[10px] font-black uppercase text-slate-950">
+                                Run
+                              </div>
+                              {Array.from(
+                                { length: oopPlan.courts },
+                                (_, index) => index + 1,
+                              ).map((court) => (
+                                <div
+                                  key={court}
+                                  className="border-b-2 border-l-2 border-[#07142f] bg-cyan-100 px-2 py-3 text-center text-[11px] font-black uppercase text-slate-950"
+                                >
+                                  Court {court}
                                 </div>
-                                {Array.from(
-                                  { length: oopPlan.courts },
-                                  (_, index) => index + 1,
-                                ).map((court) => (
-                                  <div
-                                    key={court}
-                                    className="border-l border-slate-200 bg-slate-50 px-2 py-2 text-center text-[10px] font-black uppercase text-slate-500"
-                                  >
-                                    Court {court}
-                                  </div>
-                                ))}
-                                {session.slots.map((slot) => {
-                                  const firstEntry =
-                                    slot.courts.find(Boolean) ?? null;
-                                  if (firstEntry?.kind === "event") {
-                                    return (
-                                      <Fragment key={slot.number}>
-                                        <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-black text-slate-500">
-                                          {slot.number}
-                                        </div>
-                                        <div
-                                          style={{ gridColumn: "2 / -1" }}
-                                          className="flex items-center justify-center border-l border-t border-amber-200 bg-amber-100 px-4 py-4 text-sm font-black uppercase tracking-wider text-amber-950"
-                                        >
-                                          {firstEntry.title}
-                                        </div>
-                                      </Fragment>
-                                    );
-                                  }
+                              ))}
+
+                              {activeOopSession.slots.map((slot) => {
+                                const firstEntry =
+                                  slot.courts.find(Boolean) ?? null;
+                                if (firstEntry?.kind === "event") {
                                   return (
                                     <Fragment key={slot.number}>
-                                      <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-black text-slate-500">
-                                        {slot.number}
+                                      <div className="sticky left-0 z-10 flex items-center justify-center border-t-2 border-[#07142f] bg-yellow-100 text-xs font-black text-slate-950">
+                                        {String(slot.number).padStart(2, "0")}
                                       </div>
-                                      {slot.courts.map((entry, courtIndex) => (
-                                        <div
-                                          key={`${slot.number}-${courtIndex}`}
-                                          className="min-h-28 border-l border-t border-slate-200 p-1.5"
-                                        >
-                                          {entry?.kind === "match" ? (
-                                            <div
-                                              className={cx(
-                                                "h-full rounded-xl p-3",
-                                                oopCategoryClasses(
-                                                  entry.category,
-                                                ),
-                                              )}
-                                            >
-                                              <p className="text-xs font-black">
-                                                {entry.matchLabel}
-                                              </p>
-                                              <p className="mt-0.5 text-[10px] font-bold opacity-65">
-                                                {entry.stageLabel}
-                                              </p>
-                                              <div className="mt-2 space-y-1">
-                                                {entry.matchIds.map((id) => {
-                                                  const item = matches.find(
-                                                    (candidate) =>
-                                                      candidate.id === id,
-                                                  );
-                                                  return (
-                                                    <Link
-                                                      key={id}
-                                                      href={`/admin/tournaments/${tournamentId}/matches/${id}`}
-                                                      target="_blank"
-                                                      className="flex items-center justify-between rounded-lg bg-white/70 px-2 py-1 text-[10px] font-extrabold transition hover:bg-white"
-                                                    >
-                                                      <span>{id}</span>
-                                                      <span className="material-symbols-outlined text-xs">
-                                                        open_in_new
-                                                      </span>
-                                                      {item?.status ===
-                                                        "live" && (
-                                                        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-rose-500" />
-                                                      )}
-                                                    </Link>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          ) : null}
-                                        </div>
-                                      ))}
+                                      <div
+                                        style={{ gridColumn: "2 / -1" }}
+                                        className="flex items-center justify-center gap-2 border-l-2 border-t-2 border-[#07142f] bg-amber-200 px-4 py-4 text-sm font-black uppercase tracking-wider text-amber-950"
+                                      >
+                                        <span className="material-symbols-outlined">
+                                          campaign
+                                        </span>
+                                        {firstEntry.title}
+                                      </div>
                                     </Fragment>
                                   );
-                                })}
-                              </div>
+                                }
+
+                                return (
+                                  <Fragment key={slot.number}>
+                                    <div className="sticky left-0 z-10 flex items-center justify-center border-t-2 border-[#07142f] bg-yellow-100 text-xs font-black text-slate-950">
+                                      {String(slot.number).padStart(2, "0")}
+                                    </div>
+                                    {slot.courts.map((entry, courtIndex) => (
+                                      <div
+                                        key={`${slot.number}-${courtIndex}`}
+                                        className={cx(
+                                          "border-l-2 border-t-2 border-[#07142f] bg-white p-2",
+                                          oopCompact ? "min-h-20" : "min-h-32",
+                                        )}
+                                      >
+                                        {entry?.kind === "match" ? (
+                                          <div
+                                            className={cx(
+                                              "h-full rounded border-2 border-[#07142f] p-2 shadow-[2px_2px_0_#07142f]",
+                                              oopCategoryClasses(
+                                                entry.category,
+                                              ),
+                                            )}
+                                          >
+                                            <div className="flex items-start justify-between gap-2">
+                                              <div className="min-w-0">
+                                                <p className="truncate text-[11px] font-black">
+                                                  {entry.matchLabel}
+                                                </p>
+                                                <p className="mt-0.5 truncate text-[9px] font-bold uppercase opacity-65">
+                                                  {entry.stageLabel}
+                                                </p>
+                                              </div>
+                                              <span className="shrink-0 text-[9px] font-black opacity-50">
+                                                {entry.matchIds.length}×
+                                              </span>
+                                            </div>
+                                            <div className="mt-2 space-y-1.5">
+                                              {entry.matchIds.map((id) => {
+                                                const item = matches.find(
+                                                  (candidate) =>
+                                                    candidate.id === id,
+                                                );
+                                                return (
+                                                  <Link
+                                                    key={id}
+                                                    href={`/admin/tournaments/${tournamentId}/matches/${id}`}
+                                                    target="_blank"
+                                                    className="block rounded border border-[#07142f]/30 bg-white/80 px-2 py-1.5 text-[10px] font-extrabold transition hover:bg-white"
+                                                  >
+                                                    <span className="flex items-center gap-1.5">
+                                                      <span
+                                                        className={cx(
+                                                          "h-2 w-2 shrink-0 rounded-full",
+                                                          item?.status ===
+                                                            "live"
+                                                            ? "admin-live-dot bg-rose-500"
+                                                            : item?.status ===
+                                                                "completed"
+                                                              ? "bg-emerald-500"
+                                                              : "bg-blue-500",
+                                                        )}
+                                                      />
+                                                      <span className="truncate">
+                                                        {id}
+                                                      </span>
+                                                      <span className="material-symbols-outlined ml-auto text-xs">
+                                                        open_in_new
+                                                      </span>
+                                                    </span>
+                                                    {!oopCompact && item && (
+                                                      <span className="mt-1 block truncate border-t border-[#07142f]/15 pt-1 text-[9px] font-bold opacity-70">
+                                                        {getTeamName(
+                                                          teams,
+                                                          item.teamAId,
+                                                        )}{" "}
+                                                        vs{" "}
+                                                        {getTeamName(
+                                                          teams,
+                                                          item.teamBId,
+                                                        )}
+                                                      </span>
+                                                    )}
+                                                  </Link>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="flex h-full min-h-14 items-center justify-center border-2 border-dashed border-slate-200 text-[10px] font-bold uppercase text-slate-300">
+                                            Open
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </Fragment>
+                                );
+                              })}
                             </div>
                           </div>
-                        ))}
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                            Scheduled
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="admin-live-dot h-2.5 w-2.5 rounded-full bg-rose-500" />
+                            Live
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                            Completed
+                          </span>
+                          <span className="ml-auto hidden text-slate-400 sm:block">
+                            Swipe horizontally to see every court
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {matches.length === 0 && drawPreview.length > 0 && (
                     <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
@@ -2388,6 +2558,24 @@ export default function TournamentControlRoom({
                       </div>
                     </div>
                   )}
+
+                  <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="neo-sticker neo-sticker-cyan">
+                        Match control
+                      </p>
+                      <h3 className="mt-4 text-2xl font-black text-slate-950">
+                        Find and operate a match
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        The focused list below follows the official OOP
+                        sequence.
+                      </p>
+                    </div>
+                    <span className="self-start border-2 border-[#07142f] bg-white px-3 py-2 text-xs font-black uppercase shadow-[3px_3px_0_#07142f] sm:self-auto">
+                      {filteredMatches.length} visible
+                    </span>
+                  </div>
 
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_170px_170px_220px]">
