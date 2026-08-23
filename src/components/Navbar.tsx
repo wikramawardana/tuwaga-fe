@@ -36,26 +36,28 @@ export default function Navbar({
 
   return (
     <header
-      className={`${sticky ? "sticky" : "fixed"} top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-outline-variant/20 shadow-[0px_4px_20px_rgba(0,0,0,0.03)]`}
+      className={`${sticky ? "sticky" : "fixed"} top-0 z-50 w-full border-b-[3px] border-[#07142f] bg-[#f5f7ff]/95 shadow-[0_5px_0_#07142f] backdrop-blur-xl`}
     >
-      <nav className="max-w-[1200px] mx-auto px-6 md:px-10 flex items-center justify-between h-16">
-        <Link href="/" className="inline-flex items-center">
+      <nav className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 md:px-10">
+        <Link
+          href="/"
+          className="inline-flex shrink-0 items-center border-2 border-[#07142f] bg-white px-3 py-2 shadow-[3px_3px_0_#07142f] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#07142f]"
+        >
           <Image
             src="/tuwaga-logo.png"
             alt="TUWAGA"
             width={104}
             height={28}
-            className="h-7 w-auto"
             priority
           />
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <Link
             href="/"
-            className={`inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors ${
+            className={`hidden h-10 items-center justify-center border-2 border-[#07142f] px-4 text-xs font-black uppercase shadow-[3px_3px_0_#07142f] transition sm:inline-flex ${
               active === "home"
-                ? "bg-primary/8 text-primary"
-                : "text-on-surface hover:bg-surface-container-low"
+                ? "bg-[#55dfff] text-[#07142f]"
+                : "bg-white text-[#07142f] hover:bg-blue-100"
             }`}
           >
             Home
@@ -63,15 +65,15 @@ export default function Navbar({
           {actions.map((action) => {
             const className =
               action.variant === "primary"
-                ? "bg-primary text-on-primary hover:bg-primary/90"
-                : "text-on-surface hover:bg-surface-container-low";
+                ? "bg-[#246bfe] text-white hover:bg-blue-700"
+                : "bg-[#ffe45c] text-[#07142f] hover:bg-yellow-300";
 
             if (action.href) {
               return (
                 <Link
                   key={action.label}
                   href={action.href}
-                  className={`inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors ${className}`}
+                  className={`inline-flex h-10 items-center justify-center border-2 border-[#07142f] px-3 text-xs font-black uppercase shadow-[3px_3px_0_#07142f] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#07142f] sm:px-4 ${className}`}
                 >
                   {action.label}
                 </Link>
@@ -82,7 +84,7 @@ export default function Navbar({
               <button
                 key={action.label}
                 type="button"
-                className={`h-10 rounded-lg px-4 text-sm font-semibold transition-colors cursor-pointer ${className}`}
+                className={`h-10 cursor-pointer border-2 border-[#07142f] px-3 text-xs font-black uppercase shadow-[3px_3px_0_#07142f] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#07142f] sm:px-4 ${className}`}
               >
                 {action.label}
               </button>
@@ -93,10 +95,12 @@ export default function Navbar({
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-70"
+              className="inline-flex h-10 items-center justify-center gap-2 border-2 border-[#07142f] bg-white px-3 text-xs font-black uppercase text-[#07142f] shadow-[3px_3px_0_#07142f] transition hover:bg-rose-100 disabled:cursor-wait disabled:opacity-70 sm:px-4"
             >
               <span className="material-symbols-outlined text-lg">logout</span>
-              {isSigningOut ? "Signing out..." : "Sign out"}
+              <span className="hidden sm:inline">
+                {isSigningOut ? "Signing out..." : "Sign out"}
+              </span>
             </button>
           )}
         </div>

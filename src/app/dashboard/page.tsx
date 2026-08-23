@@ -1,23 +1,12 @@
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import PublicFeaturePage from "@/components/PublicFeaturePage";
 
 export default function DashboardPage() {
   return (
-    <>
-      <Navbar />
-      <main className="pt-24 min-h-[calc(100vh-200px)] flex flex-col items-center justify-center bg-surface-container-lowest px-4">
-        <h1 className="text-4xl font-bold text-primary mb-4">Dashboard</h1>
-        <p className="text-on-surface-variant mb-8 text-center max-w-lg text-lg">
-          Welcome to your player dashboard. Here you will be able to track your
-          statistics, upcoming matches, and performance.
-        </p>
-        <Link
-          href="/"
-          className="bg-primary text-on-primary px-8 py-3 rounded-xl font-medium hover:brightness-110 transition-all shadow-lg"
-        >
-          Back to Home
-        </Link>
-      </main>
-    </>
+    <PublicFeaturePage
+      eyebrow="Player dashboard"
+      title="Your game, tracked."
+      description="Personal statistics, upcoming matches, and performance history are being built. Live tournament results remain available today."
+      icon="monitoring"
+    />
   );
 }

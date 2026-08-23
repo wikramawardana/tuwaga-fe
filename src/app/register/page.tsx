@@ -90,6 +90,7 @@ function TournamentSummary({
             alt="Jakarta arena tournament venue"
             fill
             className="object-cover"
+            loading="eager"
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-on-surface/80 to-transparent" />

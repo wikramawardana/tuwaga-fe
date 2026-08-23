@@ -27,7 +27,7 @@ function SetScoreRow({
       {sets.map((set) => (
         <span
           key={`${set.teamA}-${set.teamB}`}
-          className={`inline-flex h-8 min-w-12 items-center justify-center rounded-md px-2 text-sm font-extrabold tabular-nums ${
+          className={`inline-flex h-8 min-w-12 items-center justify-center border-2 border-[#07142f] px-2 text-sm font-black tabular-nums shadow-[2px_2px_0_#07142f] ${
             set[teamIndex] > set[teamIndex === "teamA" ? "teamB" : "teamA"]
               ? "bg-secondary/10 text-secondary"
               : "bg-surface-container text-on-surface-variant"
@@ -54,7 +54,10 @@ export default function ScoreCard({
   const sets = scoreSets ?? [];
 
   return (
-    <article className="rounded-xl border border-outline-variant/30 bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:p-6">
+    <article className="public-panel relative overflow-hidden bg-white p-4 sm:p-6">
+      {isLive && (
+        <div className="admin-live-sweep absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 via-yellow-300 to-rose-500" />
+      )}
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

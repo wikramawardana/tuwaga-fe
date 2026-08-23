@@ -366,7 +366,8 @@ html {
 
 /* Neo-brutalist admin and authentication system */
 .neo-admin,
-.neo-login {
+.neo-login,
+.neo-public {
   --neo-ink: #07142f;
   --neo-blue: #246bfe;
   --neo-cyan: #55dfff;
@@ -379,6 +380,188 @@ html {
     linear-gradient(rgb(7 20 47 / 0.055) 1px, transparent 1px),
     linear-gradient(90deg, rgb(7 20 47 / 0.055) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+.neo-public {
+  min-height: 100vh;
+}
+
+.public-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 4px solid var(--neo-ink);
+  background: var(--neo-blue);
+  color: white;
+  box-shadow: 0 7px 0 var(--neo-ink);
+}
+
+.public-hero::before {
+  content: "";
+  position: absolute;
+  top: -80px;
+  right: -20px;
+  width: 260px;
+  height: 260px;
+  border: 4px solid var(--neo-ink);
+  background: var(--neo-cyan);
+  transform: rotate(13deg);
+}
+
+.public-hero::after {
+  content: "PLAY";
+  position: absolute;
+  right: 5%;
+  bottom: -1.25rem;
+  color: rgb(7 20 47 / 0.18);
+  font-size: clamp(5rem, 15vw, 12rem);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  line-height: 0.8;
+}
+
+.public-hero > * {
+  position: relative;
+  z-index: 2;
+}
+
+.public-hero nav,
+.public-hero nav a,
+.public-hero nav span {
+  color: white;
+}
+
+.public-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 2px solid var(--neo-ink);
+  border-radius: 4px;
+  background: var(--neo-yellow);
+  padding: 0.45rem 0.75rem;
+  color: var(--neo-ink);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 var(--neo-ink);
+  transform: rotate(-1deg);
+}
+
+.public-title {
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+
+.public-hero .public-title {
+  text-shadow: 4px 4px 0 var(--neo-ink);
+}
+
+.public-panel,
+.neo-public .rounded-xl.bg-white,
+.neo-public .rounded-lg.bg-white,
+.neo-public .rounded-xl.bg-surface-container-lowest,
+.neo-public .rounded-lg.bg-surface-container-lowest {
+  border: 3px solid var(--neo-ink);
+  border-radius: 7px;
+  box-shadow: 6px 6px 0 var(--neo-ink);
+}
+
+.neo-public
+  :is(
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea
+  ) {
+  border: 2px solid var(--neo-ink);
+  border-radius: 5px;
+  box-shadow: 3px 3px 0 rgb(7 20 47 / 0.2);
+}
+
+.neo-public
+  :is(
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea
+  ):focus {
+  border-color: var(--neo-ink);
+  box-shadow: 4px 4px 0 var(--neo-blue);
+  outline: none;
+  transform: translate(-1px, -1px);
+}
+
+.neo-public button.rounded-lg,
+.neo-public button.rounded-xl,
+.neo-public a.rounded-lg,
+.neo-public a.rounded-xl,
+.public-button {
+  border: 2px solid var(--neo-ink);
+  border-radius: 5px;
+  box-shadow: 3px 3px 0 var(--neo-ink);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.neo-public button.rounded-lg:hover,
+.neo-public button.rounded-xl:hover,
+.neo-public a.rounded-lg:hover,
+.neo-public a.rounded-xl:hover,
+.public-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--neo-ink);
+}
+
+.neo-public button.rounded-lg:active,
+.neo-public button.rounded-xl:active,
+.neo-public a.rounded-lg:active,
+.neo-public a.rounded-xl:active,
+.public-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--neo-ink);
+}
+
+.neo-public button:disabled,
+.neo-public a[aria-disabled="true"] {
+  box-shadow: none;
+  transform: none;
+}
+
+.public-image-frame {
+  border: 4px solid var(--neo-ink);
+  border-radius: 8px;
+  box-shadow: 10px 10px 0 var(--neo-ink);
+  transform: rotate(1deg);
+}
+
+.public-stat {
+  border: 2px solid var(--neo-ink);
+  border-radius: 5px;
+  background: white;
+  box-shadow: 4px 4px 0 var(--neo-ink);
+}
+
+.neo-public table thead {
+  border-bottom: 2px solid var(--neo-ink);
+  background: var(--neo-cyan);
+  color: var(--neo-ink);
+}
+
+.neo-public table tbody tr + tr {
+  border-top: 2px solid rgb(7 20 47 / 0.18);
+}
+
+.neo-public .bg-error-container {
+  border: 3px solid var(--neo-ink);
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 var(--neo-ink);
+}
+
+.public-dots {
+  background-image: radial-gradient(var(--neo-ink) 1.5px, transparent 1.5px);
+  background-size: 15px 15px;
 }
 
 .neo-hero {

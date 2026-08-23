@@ -122,37 +122,54 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      <main className="pt-16">
+      <main className="neo-public pt-16">
         {/* ── Hero ────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-white">
+        <section className="public-hero">
           <div
             ref={(el) => addParallaxRef(el, 0)}
             data-speed="0.04"
-            className="parallax-layer pointer-events-none absolute inset-x-0 top-0 h-full opacity-70"
+            className="parallax-layer public-dots pointer-events-none absolute inset-x-0 top-0 h-full opacity-20"
           >
-            <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(26,86,219,0.06)_0,rgba(26,86,219,0)_36%),linear-gradient(90deg,rgba(209,213,219,0.35)_1px,transparent_1px),linear-gradient(0deg,rgba(209,213,219,0.28)_1px,transparent_1px)] bg-[size:auto,72px_72px,72px_72px]" />
+            <div className="absolute -bottom-20 left-[42%] h-56 w-56 -rotate-12 border-4 border-[#07142f] bg-[#ffe45c]" />
           </div>
-          <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-20 md:py-28">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+            <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
               {/* Left — Copy */}
               <div className="relative z-10">
-                <div className="hero-reveal hero-reveal-1 inline-flex items-center gap-2 bg-primary/[0.06] text-primary px-4 py-1.5 rounded-full mb-6 motion-chip">
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                  <span className="text-xs font-semibold tracking-wide uppercase">
-                    Tournament operations MVP
-                  </span>
+                <div className="public-kicker hero-reveal hero-reveal-1 mb-7 motion-chip">
+                  <span className="h-2 w-2 rounded-full bg-[#07142f]" />
+                  Indonesia&apos;s tournament playground
                 </div>
 
-                <h1 className="hero-reveal hero-reveal-2 text-4xl md:text-[52px] font-extrabold leading-[1.1] tracking-tight text-on-surface mb-6">
-                  Live scoring.
-                  <br />
-                  <span className="text-primary">Brackets. Referees.</span>
+                <h1 className="public-title hero-reveal hero-reveal-2 mb-7 text-5xl uppercase text-white md:text-7xl xl:text-8xl">
+                  Your match.
+                  <span className="mt-2 block w-fit -rotate-1 border-4 border-[#07142f] bg-[#55dfff] px-3 py-2 text-[#07142f] shadow-[7px_7px_0_#07142f]">
+                    Live now.
+                  </span>
                 </h1>
 
-                <p className="hero-reveal hero-reveal-3 text-base md:text-lg leading-relaxed text-on-surface-variant max-w-md mb-8">
-                  TUWAGA helps organizers run match scoring, bracket updates,
-                  and referee workflows from one sport-ready platform.
+                <p className="hero-reveal hero-reveal-3 mb-8 max-w-xl border-l-4 border-[#ffe45c] pl-5 text-base font-bold leading-relaxed text-white md:text-lg">
+                  Follow scores, see who plays next, track the bracket, and
+                  register your team from one loud, clear tournament hub.
                 </p>
+                <div className="hero-reveal hero-reveal-3 flex flex-wrap gap-3">
+                  <Link
+                    href="/tournaments/live"
+                    className="public-button inline-flex h-12 items-center gap-2 bg-[#ffe45c] px-5 text-sm font-black uppercase text-[#07142f]"
+                  >
+                    <span className="material-symbols-outlined">sensors</span>
+                    Watch live
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="public-button inline-flex h-12 items-center gap-2 bg-white px-5 text-sm font-black uppercase text-[#07142f]"
+                  >
+                    Register team
+                    <span className="material-symbols-outlined">
+                      arrow_forward
+                    </span>
+                  </Link>
+                </div>
               </div>
 
               {/* Right — Hero image */}
@@ -161,7 +178,7 @@ export default function HomePage() {
                 data-speed="-0.075"
                 className="parallax-layer relative z-10"
               >
-                <div className="hero-image-reveal relative overflow-hidden rounded-2xl shadow-[0px_24px_80px_rgba(17,24,39,0.16)] animate-hero-card">
+                <div className="public-image-frame hero-image-reveal relative overflow-hidden animate-hero-card">
                   <Image
                     src="/tuwaga-hero.png"
                     alt="TUWAGA live tournament operations platform"
@@ -172,23 +189,21 @@ export default function HomePage() {
                     priority
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-secondary/10" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/15 via-transparent to-cyan-300/10" />
                 </div>
-                <div className="motion-float motion-pop-in absolute -left-4 top-8 hidden rounded-xl border border-outline-variant/40 bg-white/90 px-4 py-3 shadow-[0px_14px_40px_rgba(17,24,39,0.12)] backdrop-blur md:block">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                <div className="motion-float motion-pop-in absolute -left-5 top-8 hidden rotate-[-3deg] border-3 border-[#07142f] bg-white px-4 py-3 text-[#07142f] shadow-[5px_5px_0_#07142f] md:block">
+                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
                     Live court
                   </p>
-                  <p className="mt-1 text-xl font-extrabold text-primary">
+                  <p className="mt-1 text-2xl font-black text-blue-700">
                     24 - 21
                   </p>
                 </div>
-                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-outline-variant/40 bg-white/90 px-4 py-3 shadow-[0px_14px_40px_rgba(17,24,39,0.12)] backdrop-blur md:block">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
+                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rotate-2 border-3 border-[#07142f] bg-[#ffe45c] px-4 py-3 text-[#07142f] shadow-[5px_5px_0_#07142f] md:block">
+                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-600">
                     Bracket
                   </p>
-                  <p className="mt-1 text-sm font-extrabold text-on-surface">
-                    Final ready
-                  </p>
+                  <p className="mt-1 text-sm font-black">Final ready</p>
                 </div>
               </div>
             </div>
@@ -196,17 +211,12 @@ export default function HomePage() {
         </section>
 
         {/* ── Current Tournament ─────────────────────────────────── */}
-        <section
-          ref={(el) => addRef(el, 0)}
-          className="py-20 md:py-28 bg-background"
-        >
-          <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+        <section ref={(el) => addRef(el, 0)} className="py-20 md:py-28">
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <div className="mb-10">
               <div>
-                <p className="text-primary text-xs font-bold tracking-widest uppercase mb-2">
-                  Tournaments
-                </p>
-                <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-on-surface">
+                <p className="public-kicker mb-4">Tournaments</p>
+                <h2 className="public-title text-4xl text-slate-950 md:text-5xl">
                   Available tournament rooms
                 </h2>
                 <p className="text-base leading-relaxed text-on-surface-variant mt-3 max-w-2xl">
@@ -217,7 +227,7 @@ export default function HomePage() {
             </div>
 
             {tournaments.length === 0 ? (
-              <div className="rounded-xl border border-outline-variant/30 bg-white p-8 text-sm font-semibold text-on-surface-variant shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+              <div className="public-panel bg-white p-8 text-sm font-bold text-slate-600">
                 No tournament loaded from the backend yet.
               </div>
             ) : (
@@ -227,9 +237,9 @@ export default function HomePage() {
                     key={tournament.id}
                     ref={(el) => addParallaxRef(el, 2 + index)}
                     data-speed="-0.035"
-                    className="parallax-layer overflow-hidden rounded-xl border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)] motion-card"
+                    className="public-panel parallax-layer overflow-hidden bg-white motion-card"
                   >
-                    <div className="relative min-h-56 overflow-hidden">
+                    <div className="relative min-h-56 overflow-hidden border-b-3 border-[#07142f]">
                       <Image
                         src={tournament.heroImageUrl ?? "/arena.png"}
                         alt={tournament.name}
@@ -238,7 +248,7 @@ export default function HomePage() {
                         unoptimized
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                      <span className="absolute left-4 top-4 rounded-md bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-on-primary">
+                      <span className="absolute left-4 top-4 border-2 border-[#07142f] bg-[#55dfff] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#07142f] shadow-[3px_3px_0_#07142f]">
                         {tournament.status}
                       </span>
                     </div>
@@ -261,7 +271,7 @@ export default function HomePage() {
                       </p>
 
                       <div className="mb-6 grid grid-cols-1 gap-3">
-                        <div className="rounded-lg bg-surface-container-low p-4">
+                        <div className="public-stat bg-blue-50 p-4">
                           <span className="material-symbols-outlined mb-2 text-secondary">
                             verified
                           </span>
@@ -277,7 +287,7 @@ export default function HomePage() {
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                           href="/tournaments/live"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
                         >
                           <span className="material-symbols-outlined text-lg">
                             scoreboard
@@ -286,7 +296,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           href="/tournaments/bracket"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-200 px-5 text-sm font-black uppercase text-[#07142f] hover:bg-cyan-300"
                         >
                           <span className="material-symbols-outlined text-lg">
                             account_tree
@@ -295,7 +305,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           href="/register"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-yellow-200 px-5 text-sm font-black uppercase text-[#07142f] hover:bg-yellow-300"
                         >
                           <span className="material-symbols-outlined text-lg">
                             how_to_reg
@@ -314,14 +324,12 @@ export default function HomePage() {
         {/* ── Platform Workflow ──────────────────────────────────── */}
         <section
           ref={(el) => addRef(el, 1)}
-          className="py-20 md:py-28 bg-white border-y border-outline-variant/20"
+          className="border-y-4 border-[#07142f] bg-[#ffe45c] py-20 md:py-28"
         >
-          <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <p className="text-primary text-xs font-bold tracking-widest uppercase mb-2">
-                How it works
-              </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-on-surface mb-4">
+              <p className="public-kicker mb-4 bg-cyan-200">How it works</p>
+              <h2 className="public-title mb-4 text-4xl text-slate-950 md:text-5xl">
                 Built for tournament operations
               </h2>
               <p className="text-base leading-relaxed text-on-surface-variant">
@@ -335,15 +343,15 @@ export default function HomePage() {
               {steps.map((s) => (
                 <div
                   key={s.step}
-                  className="relative bg-background rounded-xl p-8 border border-outline-variant/20 hover:border-primary/20 hover:shadow-md transition-all duration-300 group text-center motion-card"
+                  className="public-panel group relative bg-white p-8 text-center transition-all duration-200 hover:-translate-y-1 motion-card"
                 >
                   <div className="relative inline-flex items-center justify-center mb-6">
-                    <div className="w-16 h-16 bg-primary/[0.06] rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                    <div className="flex h-16 w-16 items-center justify-center rounded border-3 border-[#07142f] bg-cyan-100 transition-colors group-hover:bg-cyan-200">
                       <span className="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform duration-300">
                         {s.icon}
                       </span>
                     </div>
-                    <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-primary text-on-primary rounded-md flex items-center justify-center text-[10px] font-extrabold">
+                    <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center border-2 border-[#07142f] bg-blue-600 text-[10px] font-black text-white shadow-[2px_2px_0_#07142f]">
                       {s.step}
                     </span>
                   </div>

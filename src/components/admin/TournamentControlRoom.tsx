@@ -176,6 +176,14 @@ function oopCategoryClasses(category: string) {
   return "bg-emerald-100 text-emerald-950";
 }
 
+function adminOopTimeLabel(value: string) {
+  const isFlexible = /^not before\s+/i.test(value);
+  const time = value
+    .replace(/^not before\s+/i, "")
+    .replace(/(\d{1,2})\.(\d{2})$/, "$1:$2");
+  return isFlexible ? `Earliest start · ${time}` : time;
+}
+
 function SectionTitle({
   eyebrow,
   title,
@@ -2298,7 +2306,7 @@ export default function TournamentControlRoom({
                                     Session {sessionIndex + 1}
                                   </span>
                                   <span className="mt-1 block text-base font-black">
-                                    {session.timeLabel}
+                                    {adminOopTimeLabel(session.timeLabel)}
                                   </span>
                                   <span className="mt-2 block text-[11px] font-bold opacity-75">
                                     {summary?.matchCount ?? 0} matches ·{" "}
@@ -2325,7 +2333,7 @@ export default function TournamentControlRoom({
                                 Now viewing
                               </p>
                               <p className="text-base font-black uppercase tracking-wide">
-                                {activeOopSession.timeLabel}
+                                {adminOopTimeLabel(activeOopSession.timeLabel)}
                               </p>
                             </div>
                             <div className="ml-auto flex flex-wrap gap-2 text-[10px] font-black uppercase">
