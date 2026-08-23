@@ -82,42 +82,43 @@ function TournamentCard({
   onRequestDelete: (tournament: AdminTournament) => void;
 }) {
   return (
-    <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0px_18px_50px_rgba(17,24,39,0.1)]">
+    <article className="admin-rise group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_14px_40px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_22px_60px_rgba(37,99,235,0.12)]">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 opacity-70 transition-opacity group-hover:opacity-100" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xl font-extrabold text-on-surface">
+            <p className="text-xl font-black tracking-tight text-slate-950">
               {tournament.name}
             </p>
           </div>
-          <p className="mt-1 text-sm font-semibold text-on-surface-variant">
-            {tournament.venue} - {tournament.date}
+          <p className="mt-1 text-sm font-semibold text-slate-500">
+            {tournament.venue} · {tournament.date}
           </p>
         </div>
         <StatusBadge {...statusMeta[tournament.status]} />
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-on-surface-variant">
+      <p className="mt-4 min-h-12 text-sm leading-relaxed text-slate-500">
         {tournament.description}
       </p>
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-surface-container-low p-3">
-          <p className="text-lg font-extrabold text-on-surface">
+        <div className="rounded-xl bg-blue-50/70 p-3">
+          <p className="text-lg font-black text-blue-800">
             {tournament.settings.maxPlayers}
           </p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
             Max
           </p>
         </div>
-        <div className="rounded-lg bg-surface-container-low p-3">
-          <p className="text-lg font-extrabold text-on-surface">
+        <div className="rounded-xl bg-blue-50/70 p-3">
+          <p className="text-lg font-black text-blue-800">
             {tournament.settings.courts}
           </p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
             Courts
           </p>
         </div>
-        <div className="rounded-lg bg-surface-container-low p-3">
-          <p className="text-lg font-extrabold text-on-surface">
+        <div className="rounded-xl bg-blue-50/70 p-3">
+          <p className="text-lg font-black text-blue-800">
             {tournament.settings.matchDuration}
           </p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
@@ -128,7 +129,7 @@ function TournamentCard({
       <div className="mt-5 flex items-center justify-between gap-3">
         <Link
           href={`/admin/tournaments/${tournament.id}`}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           Open control room
           <span className="material-symbols-outlined text-lg">
@@ -152,7 +153,7 @@ function TournamentCard({
       <Link href={`/admin/tournaments/${tournament.id}`} className="sr-only">
         Open control room
       </Link>
-    </div>
+    </article>
   );
 }
 
@@ -211,26 +212,29 @@ export default function AdminTournamentList() {
   };
 
   return (
-    <section className="mx-auto max-w-[1200px] px-6 py-8 md:px-10">
-      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <section className="mx-auto max-w-[1400px] px-6 py-8 md:px-10 md:py-10">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-on-surface">
-            Tournament rooms
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+            Your workspace
+          </p>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+            Tournament command centers
           </h2>
-          <p className="text-sm text-on-surface-variant">
-            Open an existing tournament or create a new control room draft.
+          <p className="mt-1 text-sm text-slate-500">
+            Resume operations or start a new tournament from a guided setup.
           </p>
         </div>
         <Link
           href="/admin/tournaments/new"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           <span className="material-symbols-outlined text-lg">add</span>
           New tournament
         </Link>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
         {loading &&
           ["loading-a", "loading-b", "loading-c"].map((key) => (
             <div

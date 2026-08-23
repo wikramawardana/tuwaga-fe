@@ -116,23 +116,25 @@ export default function NewTournamentPage() {
     <>
       <Navbar active="admin" />
 
-      <main className="min-h-screen bg-background pt-16">
-        <section className="border-b border-outline-variant/20 bg-white">
-          <div className="mx-auto max-w-[960px] px-6 py-10 md:px-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">
-              Admin
-            </p>
-            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
-              Create tournament
+      <main className="min-h-screen bg-[#f6f8fc] pt-16">
+        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
+          <div className="admin-orb absolute -right-28 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
+          <div className="relative mx-auto max-w-[1200px] px-6 py-12 md:px-10 md:py-14">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
+              Guided tournament setup
+            </span>
+            <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] md:text-5xl">
+              Create a new command center
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-on-surface-variant md:text-base">
-              Start a new tournament control room with registration capacity,
-              court allocation, and match rules.
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100/70 md:text-base">
+              Set the tournament identity, operating capacity and match
+              divisions. You can refine every rule later from the setup panel.
             </p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[960px] px-6 py-8 md:px-10">
+        <section className="mx-auto max-w-[1200px] px-6 py-8 md:px-10 md:py-10">
           {error && (
             <div className="mb-5 rounded-lg border border-error/20 bg-error-container p-4 text-sm font-semibold text-on-error-container">
               <div className="flex items-start gap-3">
@@ -142,11 +144,21 @@ export default function NewTournamentPage() {
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-              <h2 className="text-lg font-extrabold text-on-surface">
-                Tournament details
-              </h2>
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="admin-rise rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                  <span className="material-symbols-outlined">badge</span>
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-slate-950">
+                    Tournament details
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Identity and event timing
+                  </p>
+                </div>
+              </div>
               <div className="mt-5 grid gap-4">
                 <label className="block">
                   <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -215,10 +227,22 @@ export default function NewTournamentPage() {
               </div>
             </div>
 
-            <aside className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-              <h2 className="text-lg font-extrabold text-on-surface">
-                Match setup
-              </h2>
+            <aside className="admin-rise sticky top-20 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                  <span className="material-symbols-outlined">
+                    manufacturing
+                  </span>
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-slate-950">
+                    Match setup
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Capacity and draw defaults
+                  </p>
+                </div>
+              </div>
               <div className="mt-5 space-y-4">
                 <label className="block">
                   <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -410,9 +434,13 @@ export default function NewTournamentPage() {
                   type="button"
                   onClick={createTournament}
                   disabled={submitting}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
                 >
-                  <span className="material-symbols-outlined text-lg">add</span>
+                  <span
+                    className={`material-symbols-outlined text-lg ${submitting ? "admin-spin" : ""}`}
+                  >
+                    {submitting ? "progress_activity" : "add"}
+                  </span>
                   {submitting ? "Creating..." : "Create control room"}
                 </button>
               </div>

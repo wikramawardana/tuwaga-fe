@@ -149,6 +149,25 @@ export type OopPlan = {
   sessions: OopPlanSession[];
 };
 
+type MatchWire = Omit<Match, "scoreSets"> & {
+  scoreSets?: Array<{
+    teamA?: number;
+    teamB?: number;
+    team_a?: number;
+    team_b?: number;
+  }>;
+};
+
+function normalizeMatch(match: MatchWire): Match {
+  return {
+    ...match,
+    scoreSets: (match.scoreSets ?? []).map((set) => ({
+      teamA: set.teamA ?? set.team_a ?? 0,
+      teamB: set.teamB ?? set.team_b ?? 0,
+    })),
+  };
+}
+
 export type LiveResponse = {
   activeMatches: Array<{
     id: string;
@@ -471,10 +490,10 @@ export async function deleteRegistration(tournamentId: string, teamId: string) {
 }
 
 export async function listMatches(tournamentId: string) {
-  const data = await apiRequest<{ matches: Match[] }>(
+  const data = await apiRequest<{ matches: MatchWire[] }>(
     `/tournaments/${tournamentId}/matches`,
   );
-  return data.matches;
+  return data.matches.map(normalizeMatch);
 }
 
 export async function getLive(tournamentId: string) {
@@ -581,14 +600,25 @@ export async function updateMatch(
     >
   >,
 ) {
-  const data = await apiRequest<{ match: Match }>(
+  const payload = {
+    ...input,
+    ...(input.scoreSets
+      ? {
+          scoreSets: input.scoreSets.map((set) => ({
+            team_a: set.teamA,
+            team_b: set.teamB,
+          })),
+        }
+      : {}),
+  };
+  const data = await apiRequest<{ match: MatchWire }>(
     `/admin/tournaments/${tournamentId}/matches/${matchId}`,
     {
       method: "PATCH",
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
     },
   );
-  return data.match;
+  return normalizeMatch(data.match);
 }
 
 export async function updateSettings(

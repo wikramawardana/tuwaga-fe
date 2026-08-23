@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Fragment,
   useCallback,
@@ -12,7 +13,6 @@ import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
-import type { AdminTournament } from "@/lib/adminTournaments";
 import {
   createDivisionLabel,
   DIVISION_SKILL_LEVELS,
@@ -29,9 +29,8 @@ import {
 } from "@/lib/oopFile";
 import {
   type AdminCreateRegistrationInput,
-  type Match as ApiMatch,
-  type TeamStatus as ApiTeamStatus,
   adminCreateRegistration,
+  type DivisionSettings,
   deleteRegistration,
   generateDraw as generateDrawRequest,
   getOop,
@@ -39,52 +38,34 @@ import {
   importDraw as importDrawRequest,
   listMatches,
   listRegistrations,
+  type Match,
   type MatchStatus,
   type OopPlan,
   type OopSettings,
   type Phase,
   type RegistrationTeam,
+  type TeamStatus,
   type Tournament,
-  updateMatch as updateMatchRequest,
+  type TournamentSettings,
+  type TournamentStatus,
+  updateMatch,
   updateRegistration,
   updateSettings,
 } from "@/lib/tuwagaApi";
 
-type TeamStatus = Exclude<ApiTeamStatus, "rejected">;
-type AdminTab = "setup" | "registrations" | "schedule" | "matches" | "results";
-type TeamFilter = "all" | TeamStatus;
-
-type Team = {
-  id: string;
-  player: string;
-  partner: string;
-  category: string;
-  city: string;
-  paid: boolean;
-  registeredAt: string;
-  status: TeamStatus;
-  group: string;
-  seed: number | null;
+type AdminSection = "setup" | "registrations" | "operations" | "results";
+type RegistrationFilter = "all" | Exclude<TeamStatus, "rejected">;
+type EditableSettings = TournamentSettings & {
+  status: TournamentStatus;
+  name: string;
+  venue: string;
+  dateLabel: string;
+  startsAt: string;
+  endsAt: string;
+  description: string;
 };
 
-type Match = {
-  id: string;
-  category: string;
-  phase: Phase;
-  group: string | null;
-  round: string;
-  courtId: number | null;
-  time: string;
-  teamAId: string | null;
-  teamBId: string | null;
-  score: string;
-  scoreSets: Array<{ teamA: number; teamB: number }>;
-  referee: string;
-  status: MatchStatus;
-  winnerTeamId: string | null;
-};
-
-const defaultSettings: AdminTournament["settings"] = {
+const emptySettings: EditableSettings = {
   maxPlayers: 64,
   waitlistLimit: 12,
   courts: 4,
@@ -93,6 +74,7 @@ const defaultSettings: AdminTournament["settings"] = {
   format: "Group stage + knockout",
   groupSize: 4,
   qualifierCount: 16,
+  knockoutSeedMode: "standings",
   divisionSettings: {},
   status: "setup",
   categories: [],
@@ -104,194 +86,122 @@ const defaultSettings: AdminTournament["settings"] = {
   description: "",
 };
 
-function loadingTournament(tournamentId: string): AdminTournament {
-  return {
-    id: tournamentId,
-    name: "Loading tournament",
-    venue: "",
-    date: "",
-    status: "setup",
-    description: "Loading tournament data from the backend.",
-    settings: defaultSettings,
-  };
+const sectionItems: Array<{
+  id: AdminSection;
+  step: string;
+  label: string;
+  description: string;
+  icon: string;
+}> = [
+  {
+    id: "setup",
+    step: "01",
+    label: "Tournament setup",
+    description: "Identity, format and divisions",
+    icon: "tune",
+  },
+  {
+    id: "registrations",
+    step: "02",
+    label: "Teams",
+    description: "Review readiness and payment",
+    icon: "groups",
+  },
+  {
+    id: "operations",
+    step: "03",
+    label: "Match operations",
+    description: "Draw, schedule and scoring",
+    icon: "space_dashboard",
+  },
+  {
+    id: "results",
+    step: "04",
+    label: "Results",
+    description: "Standings and completed matches",
+    icon: "emoji_events",
+  },
+];
+
+const statusStyle: Record<TournamentStatus, string> = {
+  setup: "border-slate-200 bg-slate-100 text-slate-700",
+  registration: "border-blue-200 bg-blue-50 text-blue-700",
+  live: "border-rose-200 bg-rose-50 text-rose-700",
+  completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
+};
+
+const matchStatusStyle: Record<MatchStatus, string> = {
+  scheduled: "border-blue-200 bg-blue-50 text-blue-700",
+  live: "border-rose-200 bg-rose-50 text-rose-700",
+  completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
+};
+
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
 }
 
-type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
-
-const teamStatusMeta: Record<
-  TeamStatus,
-  { label: string; icon: string; tone: BadgeTone }
-> = {
-  approved: { label: "Approved", icon: "verified", tone: "green" },
-  pending: { label: "Review", icon: "pending_actions", tone: "blue" },
-  waitlist: { label: "Waitlist", icon: "hourglass_top", tone: "magenta" },
-};
-
-const matchStatusMeta: Record<
-  MatchStatus,
-  { label: string; icon: string; tone: BadgeTone }
-> = {
-  live: { label: "Live", icon: "sensors", tone: "red" },
-  scheduled: { label: "Scheduled", icon: "event", tone: "blue" },
-  completed: { label: "Completed", icon: "check_circle", tone: "neutral" },
-};
-
-const badgeToneStyles: Record<BadgeTone, string> = {
-  blue: "border-primary/20 bg-primary/8 text-primary",
-  green: "border-secondary/20 bg-secondary/10 text-secondary",
-  magenta: "border-tertiary/20 bg-tertiary/10 text-tertiary",
-  red: "border-error/20 bg-error/10 text-error",
-  neutral:
-    "border-outline-variant/50 bg-surface-container-low text-on-surface-variant",
-};
-
-function toAdminTournament(tournament: Tournament): AdminTournament {
-  return {
-    id: tournament.id,
-    name: tournament.name,
-    venue: tournament.venue,
-    date: tournament.dateLabel,
-    status: tournament.status,
-    description: tournament.description,
-    settings: {
-      maxPlayers: tournament.settings.maxPlayers,
-      waitlistLimit: tournament.settings.waitlistLimit,
-      courts: tournament.settings.courts,
-      matchDuration: tournament.settings.matchDuration,
-      teamSize: tournament.settings.teamSize,
-      format: tournament.settings.format,
-      groupSize: tournament.settings.groupSize,
-      qualifierCount: tournament.settings.qualifierCount,
-      divisionSettings: tournament.settings.divisionSettings ?? {},
-      oop: tournament.settings.oop,
-      status: tournament.status,
-      categories: tournament.settings.categories ?? [],
-      name: tournament.name,
-      venue: tournament.venue,
-      dateLabel: tournament.dateLabel,
-      startsAt: tournament.startsAt ?? "",
-      endsAt: tournament.endsAt ?? "",
-      description: tournament.description,
-    },
-  };
-}
-
-function getTeamName(teams: Team[], teamId: string | null) {
-  if (!teamId) return "TBD";
-
-  const team = teams.find((item) => item.id === teamId);
-  if (!team) return "TBD";
-
+function teamName(team: RegistrationTeam) {
   return team.partner ? `${team.player} / ${team.partner}` : team.player;
 }
 
-// Same palette as the exported workbook: women purple, men blue, misc green.
-function oopCategoryClasses(category: string): string {
-  const value = category.toLowerCase();
-  if (
-    value.includes("women") ||
-    value.includes("ladies") ||
-    value.includes("female")
-  ) {
-    return "bg-[#B4A7D6] text-black";
-  }
-  if (value.includes("men") || value.includes("male")) {
-    return "bg-[#CFE2F3] text-black";
-  }
-  return "bg-[#C6E0B4] text-black";
+function getTeamName(teams: RegistrationTeam[], id: string | null) {
+  if (!id) return "Waiting for team";
+  const team = teams.find((item) => item.id === id);
+  return team ? teamName(team) : "Waiting for team";
 }
 
-function toTeam(team: RegistrationTeam): Team {
-  return {
-    id: team.id,
-    player: team.player,
-    partner: team.partner ?? "",
-    category: team.category,
-    city: team.city,
-    paid: team.paid,
-    registeredAt: new Date(team.registeredAt).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    status: team.status === "rejected" ? "pending" : team.status,
-    group: team.group ?? "",
-    seed: team.seed ?? null,
-  };
-}
-
-function toMatch(match: ApiMatch): Match {
-  const rawSets = match.scoreSets ?? [];
-  return {
-    id: match.id,
-    category: match.category ?? "",
-    phase: match.phase,
-    group: match.group,
-    round: match.round,
-    courtId: match.courtId,
-    time: match.time,
-    teamAId: match.teamAId,
-    teamBId: match.teamBId,
-    score: match.score,
-    scoreSets: rawSets.map((s: Record<string, number>) => ({
-      teamA: s.team_a ?? s.teamA ?? 0,
-      teamB: s.team_b ?? s.teamB ?? 0,
-    })),
-    referee: match.referee,
-    status: match.status,
-    winnerTeamId: match.winnerTeamId,
-  };
-}
-
-function computeScoreString(
-  sets: Array<{ teamA: number; teamB: number }>,
-): string {
-  return sets.map((s) => `${s.teamA}-${s.teamB}`).join(", ");
-}
-
-/** Mirror of the backend grouping: full groups, a lone leftover joins the previous group. */
-function countGroups(teamCount: number, groupSize: number): number {
-  if (teamCount < 2) return 0;
-  const size = Math.max(2, groupSize);
-  const groups = Math.ceil(teamCount / size);
-  return groups > 1 && teamCount % size === 1 ? groups - 1 : groups;
-}
-
-/** Mirror of the qualification rule: group winners first, then best runner-ups. */
-function qualifierBreakdown(
-  teamCount: number,
-  groups: number,
-  qualifierCount: number,
-): string {
-  const winners = Math.min(groups, qualifierCount);
-  const runnerUps = Math.min(groups, Math.max(0, qualifierCount - winners));
-  const advancing = Math.min(teamCount, winners + runnerUps);
-  const shownWinners = Math.min(winners, advancing);
-  const shownRunners = advancing - shownWinners;
-  const parts = [`${shownWinners} group winners`];
-  if (shownRunners > 0) {
-    parts.push(`${shownRunners} runner-ups`);
-  }
-  return `${advancing} advance (${parts.join(" + ")})`;
-}
-
-/** Effective group size for a division: its override, else the default. */
-function divisionGroupSize(
-  settings: AdminTournament["settings"],
-  division: string,
-): number {
+function effectiveGroupSize(settings: EditableSettings, division: string) {
   return settings.divisionSettings?.[division]?.groupSize ?? settings.groupSize;
 }
 
-/** Effective knockout size for a division: its override, else the default. */
-function divisionKnockoutSize(
-  settings: AdminTournament["settings"],
-  division: string,
-): number {
+function effectiveKnockoutSize(settings: EditableSettings, division: string) {
   return (
     settings.divisionSettings?.[division]?.knockoutSize ??
     settings.qualifierCount
+  );
+}
+
+function countGroups(teamCount: number, groupSize: number) {
+  if (teamCount < 2) return 0;
+  const groups = Math.ceil(teamCount / Math.max(2, groupSize));
+  return groups > 1 && teamCount % Math.max(2, groupSize) === 1
+    ? groups - 1
+    : groups;
+}
+
+function oopCategoryClasses(category: string) {
+  const value = category.toLowerCase();
+  if (value.includes("women")) return "bg-violet-100 text-violet-950";
+  if (value.includes("men")) return "bg-blue-100 text-blue-950";
+  return "bg-emerald-100 text-emerald-950";
+}
+
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-blue-600">
+          {eyebrow}
+        </p>
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          {description}
+        </p>
+      </div>
+      {action}
+    </div>
   );
 }
 
@@ -300,52 +210,64 @@ function MetricCard({
   label,
   value,
   detail,
+  accent = "blue",
 }: {
   icon: string;
   label: string;
-  value: string;
+  value: string | number;
   detail: string;
+  accent?: "blue" | "rose" | "emerald" | "amber";
 }) {
+  const tones = {
+    blue: "bg-blue-600 text-white shadow-blue-200",
+    rose: "bg-rose-500 text-white shadow-rose-200",
+    emerald: "bg-emerald-500 text-white shadow-emerald-200",
+    amber: "bg-amber-400 text-slate-950 shadow-amber-200",
+  };
   return (
-    <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-      <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <span className="material-symbols-outlined">{icon}</span>
-      </span>
-      <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-        {label}
-      </p>
-      <p className="mt-1 text-3xl font-extrabold text-on-surface">{value}</p>
-      <p className="mt-1 text-sm text-on-surface-variant">{detail}</p>
+    <div className="admin-rise group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_14px_40px_rgba(15,23,42,0.05)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_18px_50px_rgba(37,99,235,0.1)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+            {label}
+          </p>
+          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+            {value}
+          </p>
+          <p className="mt-1 text-xs font-medium text-slate-500">{detail}</p>
+        </div>
+        <span
+          className={cx(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-lg transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110",
+            tones[accent],
+          )}
+        >
+          <span className="material-symbols-outlined text-[22px]">{icon}</span>
+        </span>
+      </div>
     </div>
   );
 }
 
-function StatusBadge({
-  label,
+function EmptyState({
   icon,
-  tone,
+  title,
+  description,
 }: {
-  label: string;
   icon: string;
-  tone: BadgeTone;
+  title: string;
+  description: string;
 }) {
   return (
-    <span
-      className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold ${badgeToneStyles[tone]}`}
-    >
-      <span className="material-symbols-outlined text-[15px]">{icon}</span>
-      {label}
-    </span>
-  );
-}
-
-function PaymentBadge({ paid }: { paid: boolean }) {
-  return (
-    <StatusBadge
-      icon={paid ? "payments" : "receipt_long"}
-      label={paid ? "Paid" : "Unpaid"}
-      tone={paid ? "green" : "red"}
-    />
+    <div className="rounded-2xl border border-dashed border-blue-200 bg-gradient-to-br from-blue-50/80 to-white px-6 py-14 text-center">
+      <span className="admin-float mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+        <span className="material-symbols-outlined text-3xl">{icon}</span>
+      </span>
+      <h3 className="mt-5 text-lg font-black text-slate-950">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+        {description}
+      </p>
+    </div>
   );
 }
 
@@ -354,35 +276,39 @@ export default function TournamentControlRoom({
 }: {
   tournamentId: string;
 }) {
-  const [tournament, setTournament] = useState<AdminTournament>(() =>
-    loadingTournament(tournamentId),
-  );
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [settings, setSettings] = useState<EditableSettings>(emptySettings);
+  const [teams, setTeams] = useState<RegistrationTeam[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [settings, setSettings] = useState(defaultSettings);
-  const [message, setMessage] = useState("Loading tournament data.");
-  const [activeTab, setActiveTab] = useState<AdminTab>("setup");
-  const [teamFilter, setTeamFilter] = useState<TeamFilter>("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [matchCategoryFilter, setMatchCategoryFilter] = useState("all");
-  const [matchPhaseFilter, setMatchPhaseFilter] = useState<"all" | Phase>(
-    "all",
-  );
-  const [newDivisionName, setNewDivisionName] = useState("");
+  const [activeSection, setActiveSection] = useState<AdminSection>("setup");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("Loading tournament command center…");
+  const [teamSearch, setTeamSearch] = useState("");
+  const [teamFilter, setTeamFilter] = useState<RegistrationFilter>("all");
+  const [teamDivision, setTeamDivision] = useState("all");
+  const [matchSearch, setMatchSearch] = useState("");
+  const [matchStatus, setMatchStatus] = useState<"all" | MatchStatus>("all");
+  const [matchPhase, setMatchPhase] = useState<"all" | Phase>("all");
+  const [matchDivision, setMatchDivision] = useState("all");
+  const [newDivision, setNewDivision] = useState("");
   const [newDivisionLevel, setNewDivisionLevel] =
     useState<DivisionSkillLevel>("intermediate");
-  const [selectedMatchId, setSelectedMatchId] = useState("");
-  const [confirmDraw, setConfirmDraw] = useState(false);
-  const [removeTarget, setRemoveTarget] = useState<Team | null>(null);
-  const [removingTeamId, setRemovingTeamId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [insertOpen, setInsertOpen] = useState(false);
-  const [insertError, setInsertError] = useState("");
-  const [insertSubmitting, setInsertSubmitting] = useState(false);
-  const [showWinnerPicker, setShowWinnerPicker] = useState(false);
-  const [draftSets, setDraftSets] = useState<
-    Array<{ teamA: number; teamB: number }>
-  >([]);
+  const [drawDialog, setDrawDialog] = useState(false);
+  const [insertDialog, setInsertDialog] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<RegistrationTeam | null>(
+    null,
+  );
+  const [submittingTeam, setSubmittingTeam] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [oopPlan, setOopPlan] = useState<OopPlan | null>(null);
+  const [importPreview, setImportPreview] = useState<DrawMatchResult | null>(
+    null,
+  );
+  const [importFileName, setImportFileName] = useState("");
+  const [importBusy, setImportBusy] = useState(false);
+  const [exportingOop, setExportingOop] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [insertForm, setInsertForm] = useState({
     playerFullName: "",
     playerEmail: "",
@@ -393,245 +319,211 @@ export default function TournamentControlRoom({
     partnerEmail: "",
     category: "",
     paid: false,
-    status: "pending" as TeamStatus,
+    status: "pending" as Exclude<TeamStatus, "rejected">,
   });
-  // Full API shapes kept alongside the view models: the OOP export needs the
-  // raw tournament settings and team seeds, which the admin view drops.
-  const [rawTournament, setRawTournament] = useState<Tournament | null>(null);
-  const [rawTeams, setRawTeams] = useState<RegistrationTeam[]>([]);
-  const [oopPlan, setOopPlan] = useState<OopPlan | null>(null);
-  const [importPreview, setImportPreview] = useState<DrawMatchResult | null>(
-    null,
-  );
-  const [importFileName, setImportFileName] = useState("");
-  const [importBusy, setImportBusy] = useState(false);
-  const [exportingOop, setExportingOop] = useState(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let active = true;
-
-    async function loadTournamentRuntime() {
+    async function load() {
       setLoading(true);
       try {
-        const [remoteTournament, remoteTeams, remoteMatches, remoteOop] =
+        const [nextTournament, nextTeams, nextMatches, nextOop] =
           await Promise.all([
             getTournament(tournamentId),
             listRegistrations(tournamentId),
             listMatches(tournamentId),
             getOop(tournamentId).catch(() => null),
           ]);
-
         if (!active) return;
-        const adminTournament = toAdminTournament(remoteTournament);
-        setTournament(adminTournament);
-        setRawTournament(remoteTournament);
-        setRawTeams(remoteTeams);
-        setTeams(remoteTeams.map(toTeam));
-        const nextMatches = remoteMatches.map(toMatch);
+        setTournament(nextTournament);
+        setTeams(nextTeams);
         setMatches(nextMatches);
-        setSettings(adminTournament.settings);
-        setOopPlan(remoteOop);
-        setSelectedMatchId(nextMatches[0]?.id ?? "");
-        setMessage("Tournament data loaded from the backend.");
-      } catch (err) {
-        if (!active) return;
+        setOopPlan(nextOop);
+        setSettings({
+          ...nextTournament.settings,
+          status: nextTournament.status,
+          name: nextTournament.name,
+          venue: nextTournament.venue,
+          dateLabel: nextTournament.dateLabel,
+          startsAt: nextTournament.startsAt ?? "",
+          endsAt: nextTournament.endsAt ?? "",
+          description: nextTournament.description,
+        });
+        setMessage("Command center synced with the latest tournament data.");
+      } catch (error) {
         setMessage(
-          err instanceof Error
-            ? err.message
-            : "Failed to load tournament data from the backend.",
+          error instanceof Error ? error.message : "Unable to load tournament.",
         );
       } finally {
         if (active) setLoading(false);
       }
     }
-
-    loadTournamentRuntime();
-
+    load();
     return () => {
       active = false;
     };
   }, [tournamentId]);
 
-  const selectedMatch =
-    matches.find((match) => match.id === selectedMatchId) ?? matches[0] ?? null;
-
   const totals = useMemo(() => {
-    const approved = teams.filter((team) => team.status === "approved");
-    const pending = teams.filter((team) => team.status === "pending");
-    const paid = teams.filter((team) => team.paid);
-    const live = matches.filter((match) => match.status === "live");
-
-    return {
-      approved: approved.length,
-      pending: pending.length,
-      paid: paid.length,
-      live: live.length,
-      capacity: Math.round((approved.length / settings.maxPlayers) * 100),
-    };
-  }, [matches, settings.maxPlayers, teams]);
-
-  // Projection shown in Setup: mirrors what "Generate draw" will produce for
-  // the teams that are approved and paid right now.
-  const drawPreview = useMemo(() => {
+    const approved = teams.filter((team) => team.status === "approved").length;
+    const paid = teams.filter((team) => team.paid).length;
     const eligible = teams.filter(
       (team) => team.status === "approved" && team.paid,
-    );
-    const byDivision = new Map<string, number>();
-    for (const team of eligible) {
-      const division = team.category.trim() || "Open Division";
-      byDivision.set(division, (byDivision.get(division) ?? 0) + 1);
-    }
-    return [...byDivision.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([division, teamCount]) => {
-        const groupSize = divisionGroupSize(settings, division);
-        const knockoutSize = divisionKnockoutSize(settings, division);
-        const groups = countGroups(teamCount, groupSize);
-        return {
-          division,
-          teamCount,
-          groupSize,
-          knockoutSize,
-          groups,
-          advancement:
-            groups > 0
-              ? qualifierBreakdown(teamCount, groups, knockoutSize)
-              : "Needs at least two teams to draw",
-        };
-      });
-  }, [settings, teams]);
+    ).length;
+    return {
+      approved,
+      paid,
+      eligible,
+      live: matches.filter((match) => match.status === "live").length,
+      scheduled: matches.filter((match) => match.status === "scheduled").length,
+      completed: matches.filter((match) => match.status === "completed").length,
+    };
+  }, [matches, teams]);
 
   const filteredTeams = useMemo(() => {
-    let result = teams;
-    if (teamFilter !== "all") {
-      result = result.filter((team) => team.status === teamFilter);
-    }
-    if (categoryFilter !== "all") {
-      result = result.filter((team) => team.category === categoryFilter);
-    }
-    return result;
-  }, [teamFilter, categoryFilter, teams]);
+    const query = teamSearch.trim().toLowerCase();
+    return teams.filter((team) => {
+      const searchable = [team.id, team.player, team.partner, team.city]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return (
+        (!query || searchable.includes(query)) &&
+        (teamFilter === "all" || team.status === teamFilter) &&
+        (teamDivision === "all" || team.category === teamDivision)
+      );
+    });
+  }, [teamDivision, teamFilter, teamSearch, teams]);
 
   const oopOrderMap = useMemo(() => {
-    const map = new Map<string, number>();
-    if (!oopPlan) return map;
-    let idx = 0;
-    for (const session of oopPlan.sessions) {
+    const order = new Map<string, number>();
+    let index = 0;
+    for (const session of oopPlan?.sessions ?? []) {
       for (const slot of session.slots) {
-        for (const court of slot.courts) {
-          if (court && court.kind === "match") {
-            for (const matchId of court.matchIds) {
-              if (!map.has(matchId)) {
-                map.set(matchId, idx++);
-              }
-            }
+        for (const entry of slot.courts) {
+          if (entry?.kind !== "match") continue;
+          for (const id of entry.matchIds) {
+            if (!order.has(id)) order.set(id, index++);
           }
         }
       }
     }
-    return map;
+    return order;
   }, [oopPlan]);
 
-  const filteredMatches = useMemo(
-    () =>
-      matches
-        .filter(
-          (match) =>
-            (matchCategoryFilter === "all" ||
-              match.category === matchCategoryFilter) &&
-            (matchPhaseFilter === "all" || match.phase === matchPhaseFilter),
-        )
-        .sort((a, b) => {
-          const orderA = oopOrderMap.get(a.id) ?? 99999;
-          const orderB = oopOrderMap.get(b.id) ?? 99999;
-          return orderA - orderB;
-        }),
-    [matchCategoryFilter, matchPhaseFilter, matches, oopOrderMap],
-  );
+  const filteredMatches = useMemo(() => {
+    const query = matchSearch.trim().toLowerCase();
+    return matches
+      .filter((match) => {
+        const searchable = [
+          match.id,
+          match.round,
+          match.category,
+          getTeamName(teams, match.teamAId),
+          getTeamName(teams, match.teamBId),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return (
+          (!query || searchable.includes(query)) &&
+          (matchStatus === "all" || match.status === matchStatus) &&
+          (matchPhase === "all" || match.phase === matchPhase) &&
+          (matchDivision === "all" || match.category === matchDivision)
+        );
+      })
+      .sort(
+        (a, b) =>
+          (oopOrderMap.get(a.id) ?? 99999) - (oopOrderMap.get(b.id) ?? 99999),
+      );
+  }, [
+    matchDivision,
+    matchPhase,
+    matchSearch,
+    matchStatus,
+    matches,
+    oopOrderMap,
+    teams,
+  ]);
+
+  const drawPreview = useMemo(() => {
+    const byDivision = new Map<string, number>();
+    teams
+      .filter((team) => team.status === "approved" && team.paid)
+      .forEach((team) => {
+        byDivision.set(team.category, (byDivision.get(team.category) ?? 0) + 1);
+      });
+    return settings.categories.map((division) => {
+      const teamCount = byDivision.get(division) ?? 0;
+      const groupSize = effectiveGroupSize(settings, division);
+      return {
+        division,
+        teamCount,
+        groupSize,
+        groups: countGroups(teamCount, groupSize),
+        knockoutSize: effectiveKnockoutSize(settings, division),
+      };
+    });
+  }, [settings, teams]);
 
   const groupStandings = useMemo(() => {
-    type StandingRow = Team & {
+    type Row = {
+      id: string;
+      name: string;
       played: number;
       wins: number;
       losses: number;
       gamesWon: number;
       gamesLost: number;
-      points: number;
       diff: number;
+      points: number;
     };
-    const standings: Record<string, StandingRow[]> = {};
-
-    const parseMatchScores = (
-      match: Match,
-    ): { gamesA: number; gamesB: number } => {
-      if (match.scoreSets && match.scoreSets.length > 0) {
-        let gamesA = 0;
-        let gamesB = 0;
-        match.scoreSets.forEach((s) => {
-          gamesA += s.teamA || 0;
-          gamesB += s.teamB || 0;
-        });
-        return { gamesA, gamesB };
-      }
-      let gamesA = 0;
-      let gamesB = 0;
-      const tokens = (match.score || "").split(/[,;\s]+/);
-      tokens.forEach((token) => {
-        const parts = token.includes("-")
-          ? token.split("-")
-          : token.includes(":")
-            ? token.split(":")
-            : [];
-        if (parts.length === 2) {
-          const a = Number.parseInt(parts[0].trim(), 10);
-          const b = Number.parseInt(parts[1].trim(), 10);
-          if (!Number.isNaN(a) && !Number.isNaN(b)) {
-            gamesA += a;
-            gamesB += b;
-          }
-        }
-      });
-      return { gamesA, gamesB };
-    };
-
+    const groups = new Map<string, Row[]>();
     matches
-      .filter(
-        (match) =>
-          match.phase === "group" &&
-          (matchCategoryFilter === "all" ||
-            match.category === matchCategoryFilter),
-      )
+      .filter((match) => match.phase === "group")
       .forEach((match) => {
-        const group =
-          match.group ?? `${match.category || "Open Division"} · Group`;
-        standings[group] = standings[group] ?? [];
-        const rows = standings[group];
-        [match.teamAId, match.teamBId].forEach((teamId) => {
-          const team = teams.find((item) => item.id === teamId);
-          if (team && !rows.some((row) => row.id === team.id)) {
-            rows.push({
-              ...team,
-              played: 0,
-              wins: 0,
-              losses: 0,
-              gamesWon: 0,
-              gamesLost: 0,
-              points: 0,
-              diff: 0,
-            });
-          }
+        const group = match.group ?? `${match.category} · Group`;
+        const key = `${match.category} · ${group}`;
+        const rows = groups.get(key) ?? [];
+        [match.teamAId, match.teamBId].forEach((id) => {
+          if (!id || rows.some((row) => row.id === id)) return;
+          rows.push({
+            id,
+            name: getTeamName(teams, id),
+            played: 0,
+            wins: 0,
+            losses: 0,
+            gamesWon: 0,
+            gamesLost: 0,
+            diff: 0,
+            points: 0,
+          });
         });
-
-        if (match.status !== "completed") return;
-        const { gamesA, gamesB } = parseMatchScores(match);
-        rows.forEach((row) => {
-          if (row.id === match.teamAId || row.id === match.teamBId) {
+        if (match.status === "completed") {
+          const parsedSets = match.scoreSets.length
+            ? match.scoreSets
+            : (match.score ?? "")
+                .split(/[,;\s]+/)
+                .map((token) => token.split(token.includes(":") ? ":" : "-"))
+                .filter((parts) => parts.length === 2)
+                .map(([teamA, teamB]) => ({
+                  teamA: Number.parseInt(teamA, 10) || 0,
+                  teamB: Number.parseInt(teamB, 10) || 0,
+                }));
+          const gamesA = parsedSets.reduce(
+            (total, set) => total + set.teamA,
+            0,
+          );
+          const gamesB = parsedSets.reduce(
+            (total, set) => total + set.teamB,
+            0,
+          );
+          rows.forEach((row) => {
+            if (row.id !== match.teamAId && row.id !== match.teamBId) return;
             row.played += 1;
             if (row.id === match.teamAId) {
               row.gamesWon += gamesA;
               row.gamesLost += gamesB;
-            } else if (row.id === match.teamBId) {
+            } else {
               row.gamesWon += gamesB;
               row.gamesLost += gamesA;
             }
@@ -642,328 +534,105 @@ export default function TournamentControlRoom({
             } else {
               row.losses += 1;
             }
-          }
-        });
+          });
+        }
+        groups.set(key, rows);
       });
-
-    return Object.entries(standings).sort(([groupA], [groupB]) =>
-      groupA.localeCompare(groupB),
-    );
-  }, [matchCategoryFilter, matches, teams]);
-
-  const setTeamPatch = (teamId: string, patch: Partial<Team>) => {
-    setTeams((current) =>
-      current.map((team) =>
-        team.id === teamId ? { ...team, ...patch } : team,
+    return [...groups.entries()].map(([group, rows]) => ({
+      group,
+      rows: rows.sort(
+        (a, b) =>
+          b.points - a.points ||
+          b.diff - a.diff ||
+          b.wins - a.wins ||
+          a.name.localeCompare(b.name),
       ),
-    );
-  };
+    }));
+  }, [matches, teams]);
 
-  const updateTeam = async (teamId: string, patch: Partial<Team>) => {
-    const previous = teams;
-    setTeamPatch(teamId, patch);
-    try {
-      const updated = await updateRegistration(tournamentId, teamId, {
-        paid: patch.paid,
-        status: patch.status,
-        group: patch.group,
-      });
-      setTeamPatch(teamId, toTeam(updated));
-      setMessage(`Team ${teamId} saved.`);
-    } catch (err) {
-      setTeams(previous);
-      setMessage(err instanceof Error ? err.message : "Failed to update team.");
-    }
-  };
-
-  const updateTeamStatus = async (teamId: string, status: TeamStatus) => {
-    await updateTeam(teamId, { status });
-  };
-
-  const markPaid = async (teamId: string) => {
-    await updateTeam(teamId, { paid: true });
-  };
-
-  const removeTeam = async () => {
-    if (!removeTarget) return;
-
-    const teamId = removeTarget.id;
-    const teamName = removeTarget.partner
-      ? `${removeTarget.player} / ${removeTarget.partner}`
-      : removeTarget.player;
-    setRemovingTeamId(teamId);
-    try {
-      await deleteRegistration(tournamentId, teamId);
-      setTeams((current) => current.filter((item) => item.id !== teamId));
-      setRemoveTarget(null);
-      setMessage(`Registration for ${teamName} removed.`);
-    } catch (err) {
-      setMessage(
-        err instanceof Error ? err.message : "Failed to remove registration.",
-      );
-    } finally {
-      setRemovingTeamId(null);
-    }
-  };
-
-  const runTeamAction = async (teamId: string, action: string) => {
-    if (action === "mark-paid") {
-      await markPaid(teamId);
-      return;
-    }
-
-    if (action === "approve") {
-      await updateTeamStatus(teamId, "approved");
-      return;
-    }
-
-    if (action === "waitlist") {
-      await updateTeamStatus(teamId, "waitlist");
-      return;
-    }
-
-    if (action === "remove") {
-      const team = teams.find((item) => item.id === teamId);
-      if (team) setRemoveTarget(team);
-    }
-  };
-
-  const setMatchPatch = useCallback(
-    (matchId: string, patch: Partial<Match>) => {
-      setMatches((current) =>
-        current.map((match) =>
-          match.id === matchId ? { ...match, ...patch } : match,
-        ),
-      );
-    },
-    [],
-  );
-
-  const updateMatch = useCallback(
-    async (matchId: string, patch: Partial<Match>) => {
-      const previous = matches;
-      setMatchPatch(matchId, patch);
-      const apiPatch: Record<string, unknown> = { ...patch };
-      if (patch.scoreSets) {
-        apiPatch.scoreSets = patch.scoreSets.map((s) => ({
-          team_a: s.teamA,
-          team_b: s.teamB,
-        }));
-      }
-      try {
-        const updated = await updateMatchRequest(
-          tournamentId,
-          matchId,
-          apiPatch as Partial<Match>,
-        );
-        setMatchPatch(matchId, toMatch(updated));
-        setMessage(`Match ${matchId} saved.`);
-      } catch (err) {
-        setMatches(previous);
-        setMessage(
-          err instanceof Error ? err.message : "Failed to update match.",
-        );
-      }
-    },
-    [matches, tournamentId, setMatchPatch],
-  );
-
-  const lastSyncedMatchId = useRef<string | null>(null);
-
-  useEffect(() => {
-    const matchId = selectedMatch?.id ?? null;
-    if (matchId !== lastSyncedMatchId.current) {
-      lastSyncedMatchId.current = matchId;
-      setDraftSets(selectedMatch?.scoreSets ?? []);
-      setShowWinnerPicker(false);
-    }
-  }, [selectedMatch]);
-
-  useEffect(() => {
-    if (!selectedMatch || selectedMatch.status !== "live") return;
-    const timer = setTimeout(() => {
-      updateMatch(selectedMatch.id, {
-        scoreSets: draftSets,
-        score: computeScoreString(draftSets),
-      });
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [draftSets, selectedMatch, updateMatch]);
-
-  const updateDraftSet = (
-    index: number,
-    side: "teamA" | "teamB",
-    value: number,
-  ) => {
-    setDraftSets((current) =>
-      current.map((s, i) =>
-        i === index
-          ? { ...s, [side]: Math.max(0, Math.min(99, value || 0)) }
-          : s,
-      ),
-    );
-  };
-
-  const addDraftSet = () => {
-    setDraftSets((c) => [...c, { teamA: 0, teamB: 0 }]);
-  };
-
-  const removeDraftSet = (index: number) => {
-    setDraftSets((c) => c.filter((_, i) => i !== index));
-  };
-
-  const finishMatch = async (winnerTeamId: string) => {
-    if (!selectedMatch) return;
-    setShowWinnerPicker(false);
-
-    const finalSets = draftSets;
-    const finalScore = computeScoreString(finalSets);
-    const completedPatch = {
-      winnerTeamId,
-      status: "completed" as MatchStatus,
-      scoreSets: finalSets,
-      score: finalScore,
-    };
-
-    // Optimistic update — immediately show completed
-    setMatchPatch(selectedMatch.id, completedPatch);
-    lastSyncedMatchId.current = null; // prevent sync effect from resetting
-
-    try {
-      const apiPatch: Record<string, unknown> = { ...completedPatch };
-      apiPatch.scoreSets = finalSets.map((s) => ({
-        team_a: s.teamA,
-        team_b: s.teamB,
-      }));
-      await updateMatchRequest(
-        tournamentId,
-        selectedMatch.id,
-        apiPatch as Partial<Match>,
-      );
-      setMessage(`Match ${selectedMatch.id} completed.`);
-    } catch (err) {
-      setMatches((current) =>
-        current.map((m) =>
-          m.id === selectedMatch.id
-            ? { ...m, status: "live" as MatchStatus }
-            : m,
-        ),
-      );
-      setMessage(
-        err instanceof Error ? err.message : "Failed to finish match.",
-      );
-    }
-  };
-
-  const saveSettings = async () => {
+  async function saveSettings() {
+    setSaving(true);
     try {
       const payload = { ...settings };
       if (payload.startsAt && payload.endsAt) {
         payload.dateLabel = formatDateRange(payload.startsAt, payload.endsAt);
       }
-      const saved = await updateSettings(tournamentId, payload);
-      // Refetch so header fields (name, venue, dates, description) stay in
-      // sync with what the backend stored.
-      const remote = await getTournament(tournamentId);
-      const fresh = toAdminTournament(remote);
-      setTournament(fresh);
-      setRawTournament(remote);
+      await updateSettings(tournamentId, payload);
+      const refreshed = await getTournament(tournamentId);
+      setTournament(refreshed);
       setSettings({
-        ...fresh.settings,
-        maxPlayers: saved.maxPlayers,
-        waitlistLimit: saved.waitlistLimit,
-        courts: saved.courts,
-        matchDuration: saved.matchDuration,
-        teamSize: saved.teamSize,
-        format: saved.format,
-        groupSize: saved.groupSize,
-        qualifierCount: saved.qualifierCount,
-        divisionSettings: saved.divisionSettings ?? {},
-        oop: saved.oop,
-        categories: saved.categories,
+        ...refreshed.settings,
+        status: refreshed.status,
+        name: refreshed.name,
+        venue: refreshed.venue,
+        dateLabel: refreshed.dateLabel,
+        startsAt: refreshed.startsAt ?? "",
+        endsAt: refreshed.endsAt ?? "",
+        description: refreshed.description,
       });
       setMessage(
-        `${fresh.name} settings saved: ${saved.maxPlayers} max players, ${saved.courts} courts, ${saved.format}, status: ${settings.status ?? "unchanged"}.`,
+        "Tournament settings saved and published to the command center.",
       );
-    } catch (err) {
+    } catch (error) {
       setMessage(
-        err instanceof Error ? err.message : "Failed to save settings.",
+        error instanceof Error ? error.message : "Unable to save settings.",
       );
+    } finally {
+      setSaving(false);
     }
-  };
+  }
 
-  const addDivision = () => {
-    const division = createDivisionLabel(newDivisionName, newDivisionLevel);
-    if (!division || settings.categories.includes(division)) return;
+  function addDivision() {
+    const label = createDivisionLabel(newDivision, newDivisionLevel);
+    if (!label || settings.categories.includes(label)) return;
     setSettings((current) => ({
       ...current,
-      categories: [...current.categories, division],
+      categories: [...current.categories, label],
     }));
-    setNewDivisionName("");
-  };
+    setNewDivision("");
+  }
 
-  const removeDivision = (division: string) => {
-    const isInUse =
+  function removeDivision(division: string) {
+    const used =
       teams.some((team) => team.category === division) ||
       matches.some((match) => match.category === division);
-    if (isInUse) {
+    if (used) {
       setMessage(
-        `${division} cannot be removed because registrations or matches already use it.`,
+        "Move existing registrations and matches before removing " +
+          division +
+          ".",
       );
       return;
     }
     setSettings((current) => {
-      const overrides = { ...(current.divisionSettings ?? {}) };
-      delete overrides[division];
+      const divisionSettings = { ...(current.divisionSettings ?? {}) };
+      delete divisionSettings[division];
       return {
         ...current,
         categories: current.categories.filter((item) => item !== division),
-        divisionSettings: overrides,
+        divisionSettings,
       };
     });
-  };
+  }
 
-  const setDivisionOverride = (
+  function setDivisionOverride(
     division: string,
-    field: "groupSize" | "knockoutSize",
-    value: number | null,
-  ) => {
-    setSettings((current) => {
-      const overrides = { ...(current.divisionSettings ?? {}) };
-      const entry = { ...(overrides[division] ?? {}) };
-      if (value === null) {
-        delete entry[field];
-      } else {
-        entry[field] = value;
-      }
-      if (Object.keys(entry).length === 0) {
-        delete overrides[division];
-      } else {
-        overrides[division] = entry;
-      }
-      return { ...current, divisionSettings: overrides };
-    });
-  };
+    field: keyof DivisionSettings,
+    value: number | boolean | undefined,
+  ) {
+    setSettings((current) => ({
+      ...current,
+      divisionSettings: {
+        ...(current.divisionSettings ?? {}),
+        [division]: {
+          ...(current.divisionSettings?.[division] ?? {}),
+          [field]: value,
+        },
+      },
+    }));
+  }
 
-  const setDivisionBronze = (division: string, enabled: boolean) => {
-    setSettings((current) => {
-      const overrides = { ...(current.divisionSettings ?? {}) };
-      const entry = { ...(overrides[division] ?? {}) };
-      if (enabled) {
-        entry.bronzeMatch = true;
-      } else {
-        delete entry.bronzeMatch;
-      }
-      if (Object.keys(entry).length === 0) {
-        delete overrides[division];
-      } else {
-        overrides[division] = entry;
-      }
-      return { ...current, divisionSettings: overrides };
-    });
-  };
-
-  const updateOopSettings = (updater: (oop: OopSettings) => OopSettings) => {
+  function updateOopSettings(updater: (oop: OopSettings) => OopSettings) {
     setSettings((current) => ({
       ...current,
       oop: updater(
@@ -976,95 +645,114 @@ export default function TournamentControlRoom({
         },
       ),
     }));
-  };
+  }
 
-  // True once an official draw file has been imported: every eligible team
-  // carries a seed number, and regenerating must keep those groups.
-  const hasImportedDraw = useMemo(() => {
-    const eligible = teams.filter(
-      (team) => team.status === "approved" && team.paid,
-    );
-    return eligible.length > 0 && eligible.every((team) => team.seed != null);
-  }, [teams]);
-
-  const refreshDrawRuntime = useCallback(async () => {
-    const [remoteTeams, remoteMatches, remoteOop] = await Promise.all([
+  const refreshOperations = useCallback(async () => {
+    const [nextTeams, nextMatches, nextOop] = await Promise.all([
       listRegistrations(tournamentId),
       listMatches(tournamentId),
       getOop(tournamentId).catch(() => null),
     ]);
-    setRawTeams(remoteTeams);
-    setTeams(remoteTeams.map(toTeam));
-    const nextMatches = remoteMatches.map(toMatch);
+    setTeams(nextTeams);
     setMatches(nextMatches);
-    setOopPlan(remoteOop);
-    setSelectedMatchId(nextMatches[0]?.id ?? "");
+    setOopPlan(nextOop);
   }, [tournamentId]);
 
-  const generateDraw = async (
-    phase: "group" | "knockout" | "all" = "all",
-    options: { useExistingGroups?: boolean } = {},
-  ) => {
-    setConfirmDraw(false);
+  async function patchTeam(
+    team: RegistrationTeam,
+    patch: Partial<Pick<RegistrationTeam, "paid" | "status" | "group">>,
+  ) {
+    const previous = teams;
+    setTeams((current) =>
+      current.map((item) =>
+        item.id === team.id ? { ...item, ...patch } : item,
+      ),
+    );
     try {
-      const draw = await generateDrawRequest(tournamentId, phase, options);
-      await refreshDrawRuntime();
-      setActiveTab("schedule");
-      setMessage(draw.message);
-    } catch (err) {
+      const updated = await updateRegistration(tournamentId, team.id, patch);
+      setTeams((current) =>
+        current.map((item) => (item.id === team.id ? updated : item)),
+      );
+      setMessage(`${teamName(updated)} is updated.`);
+    } catch (error) {
+      setTeams(previous);
       setMessage(
-        err instanceof Error ? err.message : "Failed to generate draw.",
+        error instanceof Error ? error.message : "Unable to update team.",
       );
     }
-  };
+  }
 
-  const exportOopFile = async () => {
-    if (!rawTournament || !oopPlan || oopPlan.sessions.length === 0) {
+  async function removeTeam() {
+    if (!removeTarget) return;
+    try {
+      await deleteRegistration(tournamentId, removeTarget.id);
+      setTeams((current) =>
+        current.filter((team) => team.id !== removeTarget.id),
+      );
+      setMessage(`${teamName(removeTarget)} was removed from the tournament.`);
+      setRemoveTarget(null);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to remove team.",
+      );
+    }
+  }
+
+  async function generateDraw(
+    phase: "group" | "knockout" | "all",
+    options: { useExistingGroups?: boolean } = {},
+  ) {
+    setDrawDialog(false);
+    try {
+      const response = await generateDrawRequest(tournamentId, phase, options);
+      await refreshOperations();
+      setActiveSection("operations");
+      setMessage(response.message);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to generate draw.",
+      );
+    }
+  }
+
+  async function exportOopFile() {
+    if (!tournament || !oopPlan || oopPlan.sessions.length === 0) {
       setMessage("Generate the draw before exporting the order of play.");
       return;
     }
     setExportingOop(true);
     try {
-      const blob = await buildOopWorkbook({
-        tournament: rawTournament,
-        teams: rawTeams,
-        plan: oopPlan,
-      });
-      downloadBlob(blob, `OOP ${rawTournament.name.toUpperCase()}.xlsx`);
-      setMessage("Order of play exported as an .xlsx workbook.");
-    } catch (err) {
+      const blob = await buildOopWorkbook({ tournament, teams, plan: oopPlan });
+      downloadBlob(blob, `OOP ${tournament.name.toUpperCase()}.xlsx`);
+      setMessage("Order of play exported as an XLSX workbook.");
+    } catch (error) {
       setMessage(
-        err instanceof Error ? err.message : "Failed to export the OOP file.",
+        error instanceof Error ? error.message : "Unable to export OOP.",
       );
     } finally {
       setExportingOop(false);
     }
-  };
+  }
 
-  const openImportPicker = () => importInputRef.current?.click();
-
-  const handleImportFile = async (file: File | null) => {
+  async function handleImportFile(file: File | null) {
     if (!file) return;
     try {
       const parsed = await parseDrawWorkbook(file);
       if (parsed.rows.length === 0) {
-        setMessage(
-          "No draw rows found. Expected sheets with No. / Player 1 / Player 2 / GROUP columns starting at row 12.",
-        );
+        setMessage("No draw rows were found in the selected workbook.");
         return;
       }
-      const result = matchToTeams(parsed, rawTeams);
       setImportFileName(file.name);
-      setImportPreview(result);
-    } catch (err) {
+      setImportPreview(matchToTeams(parsed, teams));
+    } catch (error) {
       setMessage(
-        err instanceof Error ? err.message : "Failed to read the workbook.",
+        error instanceof Error ? error.message : "Unable to read workbook.",
       );
     }
-  };
+  }
 
-  const confirmImportDraw = async () => {
-    if (!importPreview || importPreview.assignments.length === 0) return;
+  async function confirmImportDraw() {
+    if (!importPreview?.assignments.length) return;
     setImportBusy(true);
     try {
       await importDrawRequest(
@@ -1078,66 +766,77 @@ export default function TournamentControlRoom({
       setImportPreview(null);
       setImportFileName("");
       await generateDraw("all", { useExistingGroups: true });
+      setMessage("Official draw imported and the OOP was regenerated.");
+    } catch (error) {
       setMessage(
-        "Official draw imported: groups and seeds applied, matches regenerated.",
-      );
-    } catch (err) {
-      setMessage(
-        err instanceof Error ? err.message : "Failed to import the draw.",
+        error instanceof Error ? error.message : "Unable to import draw.",
       );
     } finally {
       setImportBusy(false);
     }
-  };
+  }
 
-  const submitInsertPlayers = async () => {
-    setInsertError("");
+  async function quickMatchUpdate(match: Match, patch: Partial<Match>) {
+    const previous = matches;
+    setMatches((current) =>
+      current.map((item) =>
+        item.id === match.id ? { ...item, ...patch } : item,
+      ),
+    );
+    try {
+      const updated = await updateMatch(tournamentId, match.id, patch);
+      setMatches((current) =>
+        current.map((item) => (item.id === match.id ? updated : item)),
+      );
+      setMessage(`Match ${match.id} updated.`);
+    } catch (error) {
+      setMatches(previous);
+      setMessage(
+        error instanceof Error ? error.message : "Unable to update match.",
+      );
+    }
+  }
+
+  async function submitTeam() {
+    setFormError("");
     if (
       !insertForm.playerFullName.trim() ||
       !insertForm.playerEmail.trim() ||
-      !insertForm.playerPhone.trim()
+      !insertForm.playerPhone.trim() ||
+      !insertForm.partnerFullName.trim() ||
+      !insertForm.partnerEmail.trim() ||
+      !insertForm.category
     ) {
-      setInsertError("Player name, email, and phone are required.");
+      setFormError(
+        "Complete the required player, partner and division fields.",
+      );
       return;
     }
-
-    if (!insertForm.partnerFullName.trim() || !insertForm.partnerEmail.trim()) {
-      setInsertError("Partner name and email are required for pair entry.");
-      return;
-    }
-    if (!insertForm.category) {
-      setInsertError("Select a match division.");
-      return;
-    }
-
-    setInsertSubmitting(true);
+    setSubmittingTeam(true);
     try {
-      const divisionLevel = divisionSkillLevel(insertForm.category);
+      const skillLevel = divisionSkillLevel(insertForm.category);
       const input: AdminCreateRegistrationInput = {
         player: {
           fullName: insertForm.playerFullName.trim(),
           email: insertForm.playerEmail.trim(),
           phone: insertForm.playerPhone.trim(),
           nationality: insertForm.playerNationality,
-          skillLevel: divisionLevel,
+          skillLevel,
           city: insertForm.playerCity.trim() || null,
         },
         partner: {
           fullName: insertForm.partnerFullName.trim(),
           email: insertForm.partnerEmail.trim(),
-          skillLevel: divisionLevel,
+          skillLevel,
         },
-        category: insertForm.category || undefined,
+        category: insertForm.category,
         paid: insertForm.paid,
         status: insertForm.status,
       };
-
       const created = await adminCreateRegistration(tournamentId, input);
-      setTeams((current) => [...current, toTeam(created)]);
-      setMessage(
-        `Team "${created.player}${created.partner ? ` / ${created.partner}` : ""}" added successfully.`,
-      );
-      setInsertOpen(false);
+      setTeams((current) => [...current, created]);
+      setInsertDialog(false);
+      setMessage(`${teamName(created)} was added successfully.`);
       setInsertForm({
         playerFullName: "",
         playerEmail: "",
@@ -1150,1620 +849,543 @@ export default function TournamentControlRoom({
         paid: false,
         status: "pending",
       });
-    } catch (err) {
-      setInsertError(
-        err instanceof Error ? err.message : "Failed to insert players.",
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "Unable to add team.",
       );
     } finally {
-      setInsertSubmitting(false);
+      setSubmittingTeam(false);
     }
-  };
+  }
 
-  const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
-    { id: "setup", label: "1. Setup", icon: "tune" },
-    { id: "registrations", label: "2. Registrations", icon: "how_to_reg" },
-    { id: "schedule", label: "3. Draw & Schedule", icon: "account_tree" },
-    { id: "matches", label: "4. Matches", icon: "sports_tennis" },
-    { id: "results", label: "5. Results", icon: "emoji_events" },
-  ];
+  const completedMatches = matches.filter(
+    (match) => match.status === "completed",
+  );
+  const progress = matches.length
+    ? Math.round((totals.completed / matches.length) * 100)
+    : 0;
 
   return (
     <>
       <Navbar active="admin" />
-
-      <main className="min-h-screen bg-background pt-16">
-        <section className="border-b border-outline-variant/20 bg-white">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-6 py-8 md:px-10 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <PageBreadcrumb
-                parentLabel="Admin"
-                parentHref="/admin"
-                current={tournament.name}
-              />
-              <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
-                Tournament control room
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-on-surface-variant md:text-base">
-                {tournament.description} Follow setup, registrations, draw and
-                schedule, match operations, then results for {tournament.venue},{" "}
-                {tournament.date}.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {activeTab === "registrations" && (
-                <>
-                  <button
-                    type="button"
-                    onClick={openImportPicker}
-                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
+      <main className="min-h-screen bg-[#f6f8fc] pt-16 text-slate-950">
+        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
+          <div className="admin-orb absolute -right-24 -top-36 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="admin-orb admin-orb-delay absolute -bottom-52 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
+          <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+            <PageBreadcrumb
+              parentLabel="Admin"
+              parentHref="/admin"
+              current={tournament?.name ?? "Tournament"}
+            />
+            <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
+                    Tournament command center
+                  </span>
+                  <span
+                    className={cx(
+                      "rounded-full border px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em]",
+                      statusStyle[settings.status],
+                    )}
                   >
-                    <span className="material-symbols-outlined text-lg">
-                      upload_file
-                    </span>
-                    Import draw (.xlsx)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInsertOpen(true)}
-                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      person_add
-                    </span>
-                    Insert players
-                  </button>
-                  <input
-                    ref={importInputRef}
-                    type="file"
-                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] ?? null;
-                      event.target.value = "";
-                      void handleImportFile(file);
-                    }}
-                  />
-                </>
-              )}
-              {activeTab === "schedule" && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void exportOopFile()}
-                    disabled={exportingOop}
-                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      download
-                    </span>
-                    {exportingOop ? "Exporting..." : "Export OOP (.xlsx)"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDraw(true)}
-                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-                  >
-                    <span className="material-symbols-outlined text-lg">
-                      shuffle
-                    </span>
-                    Generate draw
-                  </button>
-                </>
-              )}
-              {activeTab === "setup" && (
-                <button
-                  type="button"
-                  onClick={saveSettings}
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-4 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                    {settings.status}
+                  </span>
+                </div>
+                <h1 className="mt-4 text-3xl font-black tracking-[-0.035em] sm:text-4xl lg:text-5xl">
+                  {tournament?.name ?? "Loading tournament"}
+                </h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100/75 sm:text-base">
+                  {tournament?.venue || "Venue not set"} ·{" "}
+                  {tournament?.dateLabel || "Date not set"}. Run the full
+                  tournament from one calm, shared operations surface.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/tournaments/live"
+                  target="_blank"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15"
                 >
                   <span className="material-symbols-outlined text-lg">
-                    save
+                    sensors
                   </span>
-                  Save setup
-                </button>
-              )}
+                  Public live
+                  <span className="material-symbols-outlined text-sm">
+                    open_in_new
+                  </span>
+                </Link>
+                <Link
+                  href="/tournaments/bracket"
+                  target="_blank"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-bold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-400"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    account_tree
+                  </span>
+                  Public bracket
+                  <span className="material-symbols-outlined text-sm">
+                    open_in_new
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="mx-auto max-w-[1440px] px-6 py-6 md:px-10">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto max-w-[1520px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               icon="groups"
               label="Approved teams"
-              value={`${totals.approved}/${settings.maxPlayers}`}
-              detail={`${totals.capacity}% of configured capacity`}
+              value={totals.approved}
+              detail={`${totals.eligible} draw-ready`}
             />
             <MetricCard
-              icon="pending_actions"
-              label="Needs review"
-              value={String(totals.pending)}
-              detail="Pending team registrations"
-            />
-            <MetricCard
-              icon="payments"
-              label="Payment cleared"
-              value={String(totals.paid)}
-              detail="Paid teams ready for draw"
-            />
-            <MetricCard
-              icon="sports_tennis"
+              icon="sensors"
               label="Live courts"
-              value={String(totals.live)}
+              value={totals.live}
               detail={`${settings.courts} courts configured`}
+              accent="rose"
+            />
+            <MetricCard
+              icon="event_upcoming"
+              label="Queued matches"
+              value={totals.scheduled}
+              detail={`${matches.length} matches total`}
+              accent="amber"
+            />
+            <MetricCard
+              icon="task_alt"
+              label="Tournament progress"
+              value={`${progress}%`}
+              detail={`${totals.completed} matches completed`}
+              accent="emerald"
             />
           </div>
 
-          <div className="mt-6 rounded-lg border border-outline-variant/30 bg-primary/5 p-4 text-sm font-semibold text-primary">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-lg">info</span>
-              <p>{loading ? "Loading tournament data..." : message}</p>
-            </div>
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm text-blue-950 shadow-sm">
+            <span
+              className={cx(
+                "material-symbols-outlined mt-0.5 text-xl text-blue-600",
+                loading && "admin-spin",
+              )}
+            >
+              {loading ? "progress_activity" : "info"}
+            </span>
+            <p className="min-w-0 flex-1 font-semibold leading-6">{message}</p>
+            <span className="hidden shrink-0 text-xs font-bold uppercase tracking-wider text-blue-500 sm:block">
+              Live workspace
+            </span>
           </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <div className="inline-flex min-w-full gap-2 rounded-lg bg-surface-container-low p-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-bold transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-white text-primary shadow-sm"
-                      : "text-on-surface-variant hover:bg-white hover:text-primary"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    {tab.icon}
-                  </span>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div
-            className={`mt-6 grid min-w-0 items-stretch gap-6 ${
-              activeTab === "matches"
-                ? "xl:grid-cols-[minmax(0,1fr)_380px]"
-                : ""
-            }`}
-          >
-            <section className="flex min-h-0 min-w-0 flex-col gap-6">
-              {activeTab === "registrations" && (
-                <div className="h-full rounded-lg border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <div className="flex flex-col gap-3 border-b border-outline-variant/20 px-5 py-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Player registration list
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        Confirm payment, approve teams, or move overflow teams
-                        to the waitlist.
-                      </p>
-                    </div>
-                    <div className="inline-flex rounded-lg bg-surface-container-low p-1">
-                      {[
-                        ["all", "All"],
-                        ["pending", "Pending"],
-                        ["approved", "Approved"],
-                        ["waitlist", "Waitlist"],
-                      ].map(([value, label]) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setTeamFilter(value as TeamFilter)}
-                          className={`h-8 rounded-md px-3 text-xs font-bold transition-colors ${
-                            teamFilter === value
-                              ? "bg-white text-primary shadow-sm"
-                              : "text-on-surface-variant hover:bg-white hover:text-primary"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="h-9 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface outline-none"
-                    >
-                      <option value="all">All divisions</option>
-                      {settings.categories.map((division) => (
-                        <option key={division} value={division}>
-                          {division}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1040px] border-collapse text-left">
-                      <colgroup>
-                        <col className="w-[29%]" />
-                        <col className="w-[20%]" />
-                        <col className="w-[9%]" />
-                        <col className="w-[11%]" />
-                        <col className="w-[11%]" />
-                        <col className="w-[20%]" />
-                      </colgroup>
-                      <thead>
-                        <tr className="border-b border-outline-variant/20 bg-surface-container-low text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-                          <th className="px-5 py-3">Team</th>
-                          <th className="px-5 py-3">Match division</th>
-                          <th className="px-5 py-3">Group</th>
-                          <th className="px-5 py-3">Payment</th>
-                          <th className="px-5 py-3">Status</th>
-                          <th className="px-5 py-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-outline-variant/20">
-                        {filteredTeams.map((team) => (
-                          <tr
-                            key={team.id}
-                            className="align-middle transition-colors hover:bg-surface-container-low/50"
-                          >
-                            <td className="px-5 py-5">
-                              <p className="text-sm font-extrabold leading-5 text-on-surface">
-                                {team.partner
-                                  ? `${team.player} / ${team.partner}`
-                                  : team.player}
-                              </p>
-                              <p className="mt-1 text-xs font-semibold text-on-surface-variant">
-                                {team.id} - {team.city}
-                              </p>
-                              <p className="mt-1 text-xs text-on-surface-variant">
-                                Registered {team.registeredAt}
-                              </p>
-                            </td>
-                            <td className="px-5 py-5 text-sm font-semibold text-on-surface">
-                              {team.category}
-                            </td>
-                            <td className="px-5 py-5">
-                              <span className="inline-flex h-9 min-w-16 items-center justify-center rounded-lg border border-outline-variant/40 bg-surface-container-low px-2.5 text-sm font-bold text-on-surface">
-                                {team.group
-                                  ? (team.group.split(" · ").pop() ??
-                                    team.group)
-                                  : "—"}
-                              </span>
-                              <span className="mt-1 block text-[11px] text-on-surface-variant">
-                                {team.seed != null
-                                  ? `Seed ${team.seed} (official draw)`
-                                  : "Assigned by draw"}
-                              </span>
-                            </td>
-                            <td className="px-5 py-5">
-                              <PaymentBadge paid={team.paid} />
-                            </td>
-                            <td className="px-5 py-5">
-                              <StatusBadge {...teamStatusMeta[team.status]} />
-                            </td>
-                            <td className="px-5 py-5">
-                              <select
-                                value=""
-                                onChange={(event) =>
-                                  runTeamAction(team.id, event.target.value)
-                                }
-                                className="ml-auto block h-9 w-40 rounded-lg border border-outline-variant/60 bg-white px-3 text-sm font-bold text-on-surface outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                aria-label={`Action for ${team.player} and ${team.partner}`}
-                              >
-                                <option value="" disabled>
-                                  Select action
-                                </option>
-                                {!team.paid && (
-                                  <option value="mark-paid">Mark paid</option>
-                                )}
-                                <option
-                                  value="approve"
-                                  disabled={team.status === "approved"}
-                                >
-                                  Approve
-                                </option>
-                                <option
-                                  value="waitlist"
-                                  disabled={team.status === "waitlist"}
-                                >
-                                  Move to waitlist
-                                </option>
-                                <option value="remove">Remove</option>
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
+            <aside className="sticky top-20 z-20 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_16px_50px_rgba(15,23,42,0.07)]">
+              <div className="px-3 pb-3 pt-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
+                  Tournament workflow
+                </p>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-700"
+                    style={{
+                      width:
+                        activeSection === "setup"
+                          ? "25%"
+                          : activeSection === "registrations"
+                            ? "50%"
+                            : activeSection === "operations"
+                              ? "75%"
+                              : "100%",
+                    }}
+                  />
                 </div>
-              )}
-
-              {activeTab === "matches" && (
-                <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Match operations
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        Select a scheduled, live, or completed match to manage
-                        scoring in the detail panel.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <select
-                        value={matchCategoryFilter}
-                        onChange={(event) =>
-                          setMatchCategoryFilter(event.target.value)
-                        }
-                        className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface"
-                        aria-label="Filter matches by division"
-                      >
-                        <option value="all">All divisions</option>
-                        {settings.categories.map((division) => (
-                          <option key={division} value={division}>
-                            {division}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={matchPhaseFilter}
-                        onChange={(event) =>
-                          setMatchPhaseFilter(
-                            event.target.value as "all" | Phase,
-                          )
-                        }
-                        className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface"
-                        aria-label="Filter matches by phase"
-                      >
-                        <option value="all">All phases</option>
-                        <option value="group">Group stage</option>
-                        <option value="knockout">Knockout</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 xl:grid-cols-2">
-                    {filteredMatches.map((match) => (
-                      <button
-                        key={match.id}
-                        type="button"
-                        onClick={() => setSelectedMatchId(match.id)}
-                        className={`w-full rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0px_12px_32px_rgba(17,24,39,0.08)] ${
-                          selectedMatch?.id === match.id
-                            ? "border-primary bg-primary/5"
-                            : "border-outline-variant/30 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-                              {match.category || "Open Division"} ·{" "}
-                              {match.phase}
-                            </p>
-                            <p className="text-sm font-extrabold text-on-surface">
-                              {getTeamName(teams, match.teamAId)} vs{" "}
-                              {getTeamName(teams, match.teamBId)}
-                            </p>
-                            <p className="mt-1 text-xs text-on-surface-variant">
-                              {match.round} -{" "}
-                              {match.courtId
-                                ? `Court ${match.courtId}`
-                                : "Court unassigned"}{" "}
-                              - {match.time}
-                            </p>
-                          </div>
-                          <StatusBadge {...matchStatusMeta[match.status]} />
-                        </div>
-                      </button>
-                    ))}
-                    {filteredMatches.length === 0 && (
-                      <div className="rounded-lg bg-surface-container-low p-5 text-sm font-semibold text-on-surface-variant xl:col-span-2">
-                        No matches found for these filters. Generate and publish
-                        the draw from Draw & Schedule first.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "results" && (
-                <div className="grid gap-6 xl:grid-cols-2">
-                  <div className="flex flex-col gap-3 rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:flex-row sm:items-center sm:justify-between xl:col-span-2">
-                    <div>
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Tournament results
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        Group standings and knockout results stay separated by
-                        match division.
-                      </p>
-                    </div>
-                    <select
-                      value={matchCategoryFilter}
-                      onChange={(event) =>
-                        setMatchCategoryFilter(event.target.value)
-                      }
-                      className="h-10 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface"
-                      aria-label="Filter results by division"
-                    >
-                      <option value="all">All divisions</option>
-                      {settings.categories.map((division) => (
-                        <option key={division} value={division}>
-                          {division}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {groupStandings.length === 0 && (
-                    <div className="rounded-lg border border-outline-variant/30 bg-white p-8 text-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] xl:col-span-2">
-                      <span className="material-symbols-outlined text-4xl text-on-surface-variant">
-                        table_chart
-                      </span>
-                      <p className="mt-3 text-sm font-bold text-on-surface">
-                        No groups assigned yet
-                      </p>
-                      <p className="mt-1 text-sm text-on-surface-variant">
-                        Generate the draw and complete group matches to populate
-                        standings.
-                      </p>
-                    </div>
-                  )}
-                  {groupStandings.map(([group, rows]) => (
-                    <div
-                      key={group}
-                      className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
-                    >
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        {group}
-                      </h2>
-                      <table className="mt-4 w-full text-left text-sm">
-                        <thead className="text-xs font-bold uppercase text-on-surface-variant">
-                          <tr>
-                            <th className="py-2">Team</th>
-                            <th className="py-2 text-center">P</th>
-                            <th className="py-2 text-center">W</th>
-                            <th className="py-2 text-center">L</th>
-                            <th className="py-2 text-center" title="Games Won">
-                              GW
-                            </th>
-                            <th className="py-2 text-center" title="Games Lost">
-                              GL
-                            </th>
-                            <th
-                              className="py-2 text-center"
-                              title="Score Difference (Total Games Scored)"
-                            >
-                              SD
-                            </th>
-                            <th className="py-2 text-center">Pts</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-outline-variant/20">
-                          {rows
-                            .sort(
-                              (a, b) => b.points - a.points || b.diff - a.diff,
-                            )
-                            .map((team) => (
-                              <tr key={team.id}>
-                                <td className="py-3 font-bold text-on-surface">
-                                  {team.partner
-                                    ? `${team.player} / ${team.partner}`
-                                    : team.player}
-                                </td>
-                                <td className="py-3 text-center">
-                                  {team.played}
-                                </td>
-                                <td className="py-3 text-center">
-                                  {team.wins}
-                                </td>
-                                <td className="py-3 text-center">
-                                  {team.losses}
-                                </td>
-                                <td className="py-3 text-center font-medium text-on-surface-variant">
-                                  {team.gamesWon}
-                                </td>
-                                <td className="py-3 text-center font-medium text-on-surface-variant">
-                                  {team.gamesLost}
-                                </td>
-                                <td className="py-3 text-center font-bold text-on-surface-variant">
-                                  {team.diff > 0 ? `+${team.diff}` : team.diff}
-                                </td>
-                                <td className="py-3 text-center font-bold text-primary">
-                                  {team.points}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === "results" && (
-                <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Knockout phase
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        Group winners and the best runner-ups advance to
-                        knockout. Regenerate to update OOP.
-                      </p>
-                    </div>
+              </div>
+              <nav
+                className="grid grid-cols-2 gap-1 lg:grid-cols-1"
+                aria-label="Tournament administration"
+              >
+                {sectionItems.map((item) => {
+                  const active = activeSection === item.id;
+                  return (
                     <button
+                      key={item.id}
                       type="button"
-                      onClick={() => generateDraw("knockout")}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
+                      onClick={() => setActiveSection(item.id)}
+                      className={cx(
+                        "group relative flex min-h-20 items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-left transition duration-300",
+                        active
+                          ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                          : "text-slate-600 hover:bg-blue-50 hover:text-blue-800",
+                      )}
                     >
-                      <span className="material-symbols-outlined text-lg">
-                        shuffle
-                      </span>
-                      Regenerate knockout
-                    </button>
-                  </div>
-
-                  <div className="mt-5 grid gap-4">
-                    {matches
-                      .filter(
-                        (match) =>
-                          match.phase === "knockout" &&
-                          (matchCategoryFilter === "all" ||
-                            match.category === matchCategoryFilter),
-                      )
-                      .map((match) => (
-                        <div
-                          key={match.id}
-                          className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1">
-                              <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                                {match.category || "Open Division"} ·{" "}
-                                {match.round}
-                              </p>
-                              <div className="mt-2 grid gap-3 md:grid-cols-2">
-                                <div>
-                                  <p className="text-sm font-bold text-on-surface">
-                                    {getTeamName(teams, match.teamAId)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-bold text-on-surface">
-                                    {getTeamName(teams, match.teamBId)}
-                                  </p>
-                                </div>
-                              </div>
-                              {match.winnerTeamId && (
-                                <p className="mt-2 text-xs font-semibold text-secondary">
-                                  Winner:{" "}
-                                  {getTeamName(teams, match.winnerTeamId)}
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedMatchId(match.id);
-                                setActiveTab("matches");
-                              }}
-                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-outline-variant/50 bg-white px-3 text-xs font-bold text-on-surface transition-colors hover:bg-surface-container-low"
-                            >
-                              <span className="material-symbols-outlined text-[15px]">
-                                edit
-                              </span>
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    {matches.filter(
-                      (match) =>
-                        match.phase === "knockout" &&
-                        (matchCategoryFilter === "all" ||
-                          match.category === matchCategoryFilter),
-                    ).length === 0 && (
-                      <div className="rounded-lg bg-surface-container-low p-5 text-sm font-semibold text-on-surface-variant">
-                        No knockout matches yet. Generate the draw first, then
-                        group winners will appear here.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "schedule" && (
-                <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Order of Play (OOP)
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        {oopPlan?.title ??
-                          "Session-based schedule across all courts."}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-lg bg-surface-container-low px-3 py-2 text-xs font-bold text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[15px]">
-                          schedule
+                      {active && (
+                        <span className="admin-nav-glow absolute inset-y-0 -left-10 w-12 rotate-12 bg-white/20 blur-md" />
+                      )}
+                      <span
+                        className={cx(
+                          "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition",
+                          active
+                            ? "bg-white/15 text-white"
+                            : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700",
+                        )}
+                      >
+                        <span className="material-symbols-outlined text-xl">
+                          {item.icon}
                         </span>
-                        {matches.length} matches
                       </span>
+                      <span className="relative hidden min-w-0 lg:block">
+                        <span
+                          className={cx(
+                            "block text-[10px] font-extrabold uppercase tracking-[0.16em]",
+                            active ? "text-blue-100" : "text-slate-400",
+                          )}
+                        >
+                          {item.step}
+                        </span>
+                        <span className="mt-0.5 block text-sm font-extrabold">
+                          {item.label}
+                        </span>
+                        <span
+                          className={cx(
+                            "mt-0.5 block truncate text-[11px]",
+                            active ? "text-blue-100/75" : "text-slate-400",
+                          )}
+                        >
+                          {item.description}
+                        </span>
+                      </span>
+                      <span className="relative block text-xs font-extrabold lg:hidden">
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </nav>
+              <div className="m-2 hidden rounded-xl bg-[#071c4d] p-4 text-white lg:block">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-200">
+                  Operating tip
+                </p>
+                <p className="mt-2 text-xs leading-5 text-blue-100/80">
+                  Open each scoring workspace in a new tab. Keep this board open
+                  as the shared tournament overview.
+                </p>
+              </div>
+            </aside>
+
+            <section
+              key={activeSection}
+              className="admin-section-enter min-w-0"
+            >
+              {activeSection === "setup" && (
+                <div className="space-y-6">
+                  <SectionTitle
+                    eyebrow="Step 01 · Foundation"
+                    title="Set the tournament rules once"
+                    description="Keep identity, capacity and competition format together. Changes are saved as one clear configuration."
+                    action={
+                      <button
+                        type="button"
+                        onClick={saveSettings}
+                        disabled={saving}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        <span
+                          className={cx(
+                            "material-symbols-outlined text-lg",
+                            saving && "admin-spin",
+                          )}
+                        >
+                          {saving ? "progress_activity" : "save"}
+                        </span>
+                        {saving ? "Saving…" : "Save setup"}
+                      </button>
+                    }
+                  />
+
+                  <div className="grid gap-5 xl:grid-cols-2">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                          <span className="material-symbols-outlined">
+                            badge
+                          </span>
+                        </span>
+                        <div>
+                          <h3 className="font-black text-slate-950">
+                            Tournament identity
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            What teams and spectators will see
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">Tournament name</span>
+                          <input
+                            value={settings.name}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                name: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Venue</span>
+                          <input
+                            value={settings.venue}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                venue: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Lifecycle status</span>
+                          <select
+                            value={settings.status}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                status: event.target.value as TournamentStatus,
+                              }))
+                            }
+                            className="admin-input"
+                          >
+                            <option value="setup">Setup</option>
+                            <option value="registration">
+                              Registration open
+                            </option>
+                            <option value="live">Live</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </label>
+                        <div className="sm:col-span-2">
+                          <span className="admin-label">Tournament dates</span>
+                          <DateRangePicker
+                            startsAt={settings.startsAt}
+                            endsAt={settings.endsAt}
+                            onChange={(startsAt, endsAt) =>
+                              setSettings((current) => ({
+                                ...current,
+                                startsAt,
+                                endsAt,
+                                dateLabel:
+                                  startsAt && endsAt
+                                    ? formatDateRange(startsAt, endsAt)
+                                    : current.dateLabel,
+                              }))
+                            }
+                          />
+                        </div>
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">Description</span>
+                          <textarea
+                            rows={4}
+                            value={settings.description}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                description: event.target.value,
+                              }))
+                            }
+                            className="admin-input h-auto py-3"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                          <span className="material-symbols-outlined">
+                            manufacturing
+                          </span>
+                        </span>
+                        <div>
+                          <h3 className="font-black text-slate-950">
+                            Operations capacity
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Resources and tournament pacing
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                        <label>
+                          <span className="admin-label">Maximum teams</span>
+                          <input
+                            type="number"
+                            min={8}
+                            max={256}
+                            value={settings.maxPlayers}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                maxPlayers: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Waitlist limit</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={128}
+                            value={settings.waitlistLimit}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                waitlistLimit: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Active courts</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={12}
+                            value={settings.courts}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                courts: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Match duration</span>
+                          <select
+                            value={settings.matchDuration}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                matchDuration: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          >
+                            <option value={15}>15 minutes</option>
+                            <option value={20}>20 minutes</option>
+                            <option value={30}>30 minutes</option>
+                            <option value={45}>45 minutes</option>
+                            <option value={60}>60 minutes</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span className="admin-label">Team format</span>
+                          <select
+                            value={settings.teamSize}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                teamSize: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          >
+                            <option>Doubles</option>
+                            <option>Singles</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Competition format
+                          </span>
+                          <select
+                            value={settings.format}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                format: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          >
+                            <option>Group stage + knockout</option>
+                            <option>Single elimination</option>
+                            <option>Round robin</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Default teams per group
+                          </span>
+                          <input
+                            type="number"
+                            min={2}
+                            max={16}
+                            value={settings.groupSize}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                groupSize: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Default knockout size
+                          </span>
+                          <select
+                            value={settings.qualifierCount}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                qualifierCount: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          >
+                            <option value={8}>Top 8</option>
+                            <option value={16}>Top 16</option>
+                            <option value={24}>Top 24</option>
+                            <option value={32}>Top 32</option>
+                          </select>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
-                  {!oopPlan || oopPlan.sessions.length === 0 ? (
-                    <div className="mt-5 rounded-lg bg-surface-container-low p-6 text-sm font-semibold text-on-surface-variant">
-                      No order of play yet. Generate the draw (or import an
-                      official draw file from the Registrations tab) to build
-                      the session schedule.
-                    </div>
-                  ) : (
-                    <div className="mt-5 space-y-8">
-                      {oopPlan.sessions.map((session, sessionIndex) => (
-                        <div
-                          key={`${session.timeLabel}-${sessionIndex}`}
-                          className="overflow-hidden rounded-lg border border-outline-variant/25"
-                        >
-                          <div className="flex flex-wrap items-center gap-3 bg-[#E69138] px-4 py-2.5">
-                            <span className="material-symbols-outlined text-lg text-white">
-                              schedule
-                            </span>
-                            <p className="text-sm font-extrabold uppercase tracking-wide text-white">
-                              {session.timeLabel}
-                            </p>
-                            <p className="ml-auto text-xs font-bold text-white/80">
-                              {session.slots.length}{" "}
-                              {session.slots.length === 1 ? "slot" : "slots"}
-                            </p>
-                          </div>
-                          <div className="overflow-x-auto">
-                            <div
-                              className="grid min-w-[760px]"
-                              style={{
-                                gridTemplateColumns: `56px repeat(${oopPlan.courts}, minmax(165px, 1fr))`,
-                              }}
-                            >
-                              <div className="bg-surface-container-low px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                #
-                              </div>
-                              {Array.from(
-                                { length: oopPlan.courts },
-                                (_, courtIndex) => `Court ${courtIndex + 1}`,
-                              ).map((courtLabel) => (
-                                <div
-                                  key={courtLabel}
-                                  className="border-l border-outline-variant/15 bg-surface-container-low px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
-                                >
-                                  {courtLabel}
-                                </div>
-                              ))}
-                              {session.slots.map((slot) => {
-                                const firstEntry =
-                                  slot.courts.find((entry) => entry != null) ??
-                                  null;
-                                const isEvent = firstEntry?.kind === "event";
-                                return (
-                                  <Fragment key={slot.number}>
-                                    <div className="flex items-center justify-center border-t border-outline-variant/15 bg-surface-container-low/60 px-2 py-3 text-sm font-extrabold text-on-surface">
-                                      {slot.number}
-                                    </div>
-                                    {isEvent && firstEntry ? (
-                                      <div
-                                        style={{ gridColumn: "2 / -1" }}
-                                        className="flex items-center justify-center border-t border-outline-variant/15 bg-[#FFD966] px-3 py-4 text-center text-sm font-extrabold uppercase tracking-wide text-black"
-                                      >
-                                        {firstEntry.title}
-                                      </div>
-                                    ) : (
-                                      slot.courts
-                                        .map((entry, courtIndex) => ({
-                                          entry,
-                                          courtLabel: `Court ${courtIndex + 1}`,
-                                        }))
-                                        .map(({ entry, courtLabel }) => (
-                                          <div
-                                            key={`${slot.number}-${courtLabel}`}
-                                            className="border-l border-t border-outline-variant/15 p-1.5"
-                                          >
-                                            {entry && entry.kind === "match" ? (
-                                              <div
-                                                className={`h-full rounded-md p-2 ${oopCategoryClasses(entry.category)}`}
-                                              >
-                                                <p className="text-[11px] font-extrabold leading-4">
-                                                  {entry.matchLabel}
-                                                </p>
-                                                <p className="text-[10px] font-bold opacity-70">
-                                                  {entry.stageLabel}
-                                                </p>
-                                                <div className="mt-1.5 space-y-1">
-                                                  {entry.matchIds.map(
-                                                    (matchId) => {
-                                                      const match =
-                                                        matches.find(
-                                                          (item) =>
-                                                            item.id === matchId,
-                                                        );
-                                                      if (!match) return null;
-                                                      return (
-                                                        <button
-                                                          key={matchId}
-                                                          type="button"
-                                                          onClick={() => {
-                                                            setSelectedMatchId(
-                                                              matchId,
-                                                            );
-                                                            setActiveTab(
-                                                              "matches",
-                                                            );
-                                                          }}
-                                                          className="block w-full rounded bg-white/55 px-1.5 py-1 text-left text-[10px] font-semibold leading-3.5 text-black transition-colors hover:bg-white"
-                                                        >
-                                                          {getTeamName(
-                                                            teams,
-                                                            match.teamAId,
-                                                          )}{" "}
-                                                          vs{" "}
-                                                          {getTeamName(
-                                                            teams,
-                                                            match.teamBId,
-                                                          )}
-                                                          <span className="opacity-60">
-                                                            {" "}
-                                                            ·{" "}
-                                                            {
-                                                              matchStatusMeta[
-                                                                match.status
-                                                              ].label
-                                                            }
-                                                            {match.score
-                                                              ? ` · ${match.score}`
-                                                              : ""}
-                                                          </span>
-                                                        </button>
-                                                      );
-                                                    },
-                                                  )}
-                                                </div>
-                                              </div>
-                                            ) : (
-                                              <div className="h-full min-h-9" />
-                                            )}
-                                          </div>
-                                        ))
-                                    )}
-                                  </Fragment>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "setup" && (
-                <div className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <h2 className="text-lg font-extrabold text-on-surface">
-                    Tournament setup
-                  </h2>
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <label className="block md:col-span-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Tournament name
-                      </span>
-                      <input
-                        value={settings.name ?? ""}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            name: event.target.value,
-                          }))
-                        }
-                        placeholder="Jakarta Summer Open"
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                      <span className="mt-1 block text-xs text-on-surface-variant">
-                        Renaming keeps the public tournament URL unchanged.
-                      </span>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Venue
-                      </span>
-                      <input
-                        value={settings.venue ?? ""}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            venue: event.target.value,
-                          }))
-                        }
-                        placeholder="Main Arena"
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <div className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Date range
-                      </span>
-                      <DateRangePicker
-                        startsAt={settings.startsAt ?? ""}
-                        endsAt={settings.endsAt ?? ""}
-                        onChange={(startsAt, endsAt) =>
-                          setSettings((current) => ({
-                            ...current,
-                            startsAt,
-                            endsAt,
-                          }))
-                        }
-                      />
-                    </div>
-                    <label className="block md:col-span-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Description
-                      </span>
-                      <textarea
-                        value={settings.description ?? ""}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            description: event.target.value,
-                          }))
-                        }
-                        rows={3}
-                        placeholder="Describe tournament purpose and operating notes."
-                        className="mt-2 w-full resize-none rounded-lg border border-outline-variant/50 bg-white px-3 py-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Maximum players
-                      </span>
-                      <input
-                        type="number"
-                        min="8"
-                        max="256"
-                        value={settings.maxPlayers}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            maxPlayers: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Waitlist limit
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="64"
-                        value={settings.waitlistLimit}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            waitlistLimit: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Active courts
-                      </span>
-                      <input
-                        type="range"
-                        min="1"
-                        max="12"
-                        value={settings.courts}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            courts: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-3 w-full accent-primary"
-                      />
-                      <span className="mt-1 block text-sm font-bold text-primary">
-                        {settings.courts} courts
-                      </span>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Match duration
-                      </span>
-                      <select
-                        value={settings.matchDuration}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            matchDuration: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      >
-                        <option value={20}>20 minutes</option>
-                        <option value={30}>30 minutes</option>
-                        <option value={45}>45 minutes</option>
-                        <option value={60}>60 minutes</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Teams per group
-                      </span>
-                      <input
-                        type="number"
-                        min="2"
-                        max="16"
-                        value={settings.groupSize}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            groupSize: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                      <span className="mt-1 block text-xs text-on-surface-variant">
-                        Every group plays a full round robin. Regenerate the
-                        draw to apply.
-                      </span>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Knockout size
-                      </span>
-                      <select
-                        value={settings.qualifierCount}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            qualifierCount: Number(event.target.value),
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      >
-                        <option value={8}>8 teams (Quarter-finals)</option>
-                        <option value={16}>16 teams (Round of 16)</option>
-                        <option value={24}>24 teams (Round of 24)</option>
-                        <option value={32}>32 teams (Round of 32)</option>
-                      </select>
-                      <span className="mt-1 block text-xs text-on-surface-variant">
-                        Group winners qualify first, then the best runner-ups
-                        fill the bracket. Example: 9 groups + 16 slots = 9
-                        winners + 7 best runner-ups.
-                      </span>
-                    </label>
-                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
-                      <h3 className="text-sm font-extrabold text-on-surface">
-                        Group stage projection
-                      </h3>
-                      <p className="mt-1 text-xs text-on-surface-variant">
-                        Based on teams that are approved and paid right now.
-                        Generating the draw splits each division into groups
-                        using its own group size below.
-                      </p>
-                      {drawPreview.length === 0 ? (
-                        <p className="mt-3 text-sm font-semibold text-on-surface-variant">
-                          No eligible teams yet. Approve and mark teams as paid
-                          to see the group projection.
-                        </p>
-                      ) : (
-                        <ul className="mt-3 space-y-2">
-                          {drawPreview.map((preview) => (
-                            <li
-                              key={preview.division}
-                              className="rounded-lg border border-outline-variant/20 bg-white px-4 py-3 text-sm"
-                            >
-                              <span className="font-extrabold text-on-surface">
-                                {preview.division}
-                              </span>
-                              <span className="text-on-surface-variant">
-                                {" "}
-                                — {preview.teamCount} teams →{" "}
-                                {preview.groups > 0
-                                  ? `${preview.groups} groups of ${preview.groupSize}`
-                                  : "no draw"}{" "}
-                                → {preview.advancement}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
-                      <h3 className="text-sm font-extrabold text-on-surface">
-                        Per-division format
-                      </h3>
-                      <p className="mt-1 text-xs text-on-surface-variant">
-                        Override the group size and knockout size for a single
-                        division. Leave a value on "Default" to use the
-                        tournament-wide setting above. Regenerate the draw to
-                        apply.
-                      </p>
-                      {settings.categories.length === 0 ? (
-                        <p className="mt-3 text-sm font-semibold text-on-surface-variant">
-                          Add a match division to configure its format.
-                        </p>
-                      ) : (
-                        <div className="mt-3 space-y-3">
-                          {settings.categories.map((division) => {
-                            const override =
-                              settings.divisionSettings?.[division] ?? {};
-                            return (
-                              <div
-                                key={division}
-                                className="rounded-lg border border-outline-variant/20 bg-white p-4"
-                              >
-                                <p className="text-sm font-extrabold text-on-surface">
-                                  {division}
-                                </p>
-                                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                                  <label className="block">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                                      Teams per group
-                                    </span>
-                                    <select
-                                      value={override.groupSize ?? ""}
-                                      onChange={(event) =>
-                                        setDivisionOverride(
-                                          division,
-                                          "groupSize",
-                                          event.target.value === ""
-                                            ? null
-                                            : Number(event.target.value),
-                                        )
-                                      }
-                                      className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                    >
-                                      <option value="">
-                                        Default ({settings.groupSize})
-                                      </option>
-                                      {[2, 3, 4, 5, 6, 7, 8].map((size) => (
-                                        <option key={size} value={size}>
-                                          {size} teams
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
-                                  <label className="block">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                                      Knockout size
-                                    </span>
-                                    <select
-                                      value={override.knockoutSize ?? ""}
-                                      onChange={(event) =>
-                                        setDivisionOverride(
-                                          division,
-                                          "knockoutSize",
-                                          event.target.value === ""
-                                            ? null
-                                            : Number(event.target.value),
-                                        )
-                                      }
-                                      className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                    >
-                                      <option value="">
-                                        Default ({settings.qualifierCount})
-                                      </option>
-                                      <option value={8}>
-                                        8 teams (Quarter-finals)
-                                      </option>
-                                      <option value={16}>
-                                        16 teams (Round of 16)
-                                      </option>
-                                      <option value={24}>
-                                        24 teams (Round of 24)
-                                      </option>
-                                      <option value={32}>
-                                        32 teams (Round of 32)
-                                      </option>
-                                    </select>
-                                  </label>
-                                </div>
-                                <label className="mt-3 flex items-center gap-2.5">
-                                  <input
-                                    type="checkbox"
-                                    checked={override.bronzeMatch === true}
-                                    onChange={(event) =>
-                                      setDivisionBronze(
-                                        division,
-                                        event.target.checked,
-                                      )
-                                    }
-                                    className="h-4 w-4 accent-primary"
-                                  />
-                                  <span className="text-sm font-semibold text-on-surface">
-                                    Bronze match (3rd place play-off)
-                                  </span>
-                                </label>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
-                      <h3 className="text-sm font-extrabold text-on-surface">
-                        Order of Play (OOP) sessions
-                      </h3>
-                      <p className="mt-1 text-xs text-on-surface-variant">
-                        Session times, special events and the knockout order
-                        used by the Draw &amp; Schedule tab and the .xlsx
-                        export. Save setup to apply.
-                      </p>
-                      {!settings.oop ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettings((current) => ({
-                              ...current,
-                              oop: padelCahOopTemplate(current.categories),
-                            }))
-                          }
-                          className="mt-3 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-                        >
-                          <span className="material-symbols-outlined text-lg">
-                            magic_button
-                          </span>
-                          Load PadelCah! session plan
-                        </button>
-                      ) : (
-                        <div className="mt-3 space-y-4">
-                          <div className="grid gap-3 sm:grid-cols-3">
-                            <label className="block">
-                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                                First session start
-                              </span>
-                              <input
-                                value={settings.oop.startTime}
-                                onChange={(event) =>
-                                  updateOopSettings((oop) => ({
-                                    ...oop,
-                                    startTime: event.target.value,
-                                  }))
-                                }
-                                placeholder="09:00"
-                                className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                              />
-                            </label>
-                            <label className="block">
-                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                                Slots per session
-                              </span>
-                              <input
-                                type="number"
-                                min="1"
-                                max="12"
-                                value={settings.oop.slotsPerSession}
-                                onChange={(event) =>
-                                  updateOopSettings((oop) => ({
-                                    ...oop,
-                                    slotsPerSession: Math.max(
-                                      1,
-                                      Number(event.target.value) || 1,
-                                    ),
-                                  }))
-                                }
-                                className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                              />
-                            </label>
-                            <div className="block">
-                              <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                                Groups fill courts first
-                              </span>
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {settings.categories.map((division) => {
-                                  const active =
-                                    settings.oop?.categoryOrder.includes(
-                                      division,
-                                    ) ?? false;
-                                  return (
-                                    <button
-                                      key={division}
-                                      type="button"
-                                      onClick={() =>
-                                        updateOopSettings((oop) => ({
-                                          ...oop,
-                                          categoryOrder: active
-                                            ? oop.categoryOrder.filter(
-                                                (item) => item !== division,
-                                              )
-                                            : [...oop.categoryOrder, division],
-                                        }))
-                                      }
-                                      className={`h-9 rounded-lg border px-2.5 text-xs font-bold transition-colors ${
-                                        active
-                                          ? "border-primary/30 bg-primary/10 text-primary"
-                                          : "border-outline-variant/50 bg-white text-on-surface-variant hover:border-primary/30"
-                                      }`}
-                                    >
-                                      {division}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            {settings.oop.sessions.map((session, index) => (
-                              <div
-                                key={`${session.time}-${index}`}
-                                className="grid items-end gap-2 rounded-lg border border-outline-variant/20 bg-white p-3 sm:grid-cols-[110px_auto_110px_1fr_auto]"
-                              >
-                                <label className="block">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                    Time
-                                  </span>
-                                  <input
-                                    value={session.time}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map((item, i) =>
-                                          i === index
-                                            ? {
-                                                ...item,
-                                                time: event.target.value,
-                                              }
-                                            : item,
-                                        ),
-                                      }))
-                                    }
-                                    placeholder="11:00"
-                                    className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none focus:border-primary"
-                                  />
-                                </label>
-                                <label className="flex h-10 items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={session.notBefore}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map((item, i) =>
-                                          i === index
-                                            ? {
-                                                ...item,
-                                                notBefore: event.target.checked,
-                                              }
-                                            : item,
-                                        ),
-                                      }))
-                                    }
-                                    className="h-4 w-4 accent-primary"
-                                  />
-                                  <span className="text-xs font-bold text-on-surface">
-                                    Not before
-                                  </span>
-                                </label>
-                                <label className="block">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                    Capacity
-                                  </span>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    max="12"
-                                    value={session.capacity ?? ""}
-                                    placeholder="Auto"
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map((item, i) =>
-                                          i === index
-                                            ? {
-                                                ...item,
-                                                capacity:
-                                                  event.target.value === ""
-                                                    ? null
-                                                    : Math.max(
-                                                        1,
-                                                        Number(
-                                                          event.target.value,
-                                                        ) || 1,
-                                                      ),
-                                              }
-                                            : item,
-                                        ),
-                                      }))
-                                    }
-                                    className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none focus:border-primary"
-                                  />
-                                </label>
-                                <div className="grid gap-2 sm:grid-cols-3">
-                                  <label className="block">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                      Events before
-                                    </span>
-                                    <input
-                                      value={(session.eventsBefore ?? []).join(
-                                        ", ",
-                                      )}
-                                      onChange={(event) =>
-                                        updateOopSettings((oop) => ({
-                                          ...oop,
-                                          sessions: oop.sessions.map(
-                                            (item, i) =>
-                                              i === index
-                                                ? {
-                                                    ...item,
-                                                    eventsBefore:
-                                                      event.target.value
-                                                        .split(",")
-                                                        .map((s) => s.trim())
-                                                        .filter(Boolean),
-                                                  }
-                                                : item,
-                                          ),
-                                        }))
-                                      }
-                                      placeholder="OPENING CEREMONY"
-                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
-                                    />
-                                  </label>
-                                  <label className="block">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                      Events mid (Title@slot)
-                                    </span>
-                                    <input
-                                      value={(session.eventsMid ?? [])
-                                        .map(
-                                          (item) =>
-                                            `${item.title}@${item.afterSlot}`,
-                                        )
-                                        .join(", ")}
-                                      onChange={(event) =>
-                                        updateOopSettings((oop) => ({
-                                          ...oop,
-                                          sessions: oop.sessions.map(
-                                            (item, i) =>
-                                              i === index
-                                                ? {
-                                                    ...item,
-                                                    eventsMid:
-                                                      event.target.value
-                                                        .split(",")
-                                                        .map((raw) => {
-                                                          const [title, slot] =
-                                                            raw
-                                                              .trim()
-                                                              .split("@");
-                                                          return {
-                                                            title: (
-                                                              title ?? ""
-                                                            ).trim(),
-                                                            afterSlot:
-                                                              Number(slot) || 1,
-                                                          };
-                                                        })
-                                                        .filter(
-                                                          (item) => item.title,
-                                                        ),
-                                                  }
-                                                : item,
-                                          ),
-                                        }))
-                                      }
-                                      placeholder="GAMES@1"
-                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
-                                    />
-                                  </label>
-                                  <label className="block">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                      Events after
-                                    </span>
-                                    <input
-                                      value={(session.eventsAfter ?? []).join(
-                                        ", ",
-                                      )}
-                                      onChange={(event) =>
-                                        updateOopSettings((oop) => ({
-                                          ...oop,
-                                          sessions: oop.sessions.map(
-                                            (item, i) =>
-                                              i === index
-                                                ? {
-                                                    ...item,
-                                                    eventsAfter:
-                                                      event.target.value
-                                                        .split(",")
-                                                        .map((s) => s.trim())
-                                                        .filter(Boolean),
-                                                  }
-                                                : item,
-                                          ),
-                                        }))
-                                      }
-                                      placeholder="AWARDING"
-                                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-2 text-xs font-semibold text-on-surface outline-none focus:border-primary"
-                                    />
-                                  </label>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateOopSettings((oop) => ({
-                                      ...oop,
-                                      sessions: oop.sessions.filter(
-                                        (_, i) => i !== index,
-                                      ),
-                                    }))
-                                  }
-                                  aria-label={`Remove session ${session.time}`}
-                                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-outline-variant/50 text-on-surface-variant transition-colors hover:border-error/40 hover:text-error"
-                                >
-                                  <span className="material-symbols-outlined text-lg">
-                                    delete
-                                  </span>
-                                </button>
-                              </div>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateOopSettings((oop) => ({
-                                  ...oop,
-                                  sessions: [
-                                    ...oop.sessions,
-                                    { time: "", notBefore: true },
-                                  ],
-                                }))
-                              }
-                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-dashed border-outline-variant/60 px-3 text-xs font-bold text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary"
-                            >
-                              <span className="material-symbols-outlined text-[15px]">
-                                add
-                              </span>
-                              Add session
-                            </button>
-                          </div>
-
-                          <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                              Knockout order
-                            </span>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {settings.oop.knockoutOrder.length === 0 ? (
-                                <span className="text-xs font-semibold text-on-surface-variant">
-                                  Empty — rounds are scheduled automatically in
-                                  division order.
-                                </span>
-                              ) : (
-                                settings.oop.knockoutOrder.map(
-                                  (entry, index) => (
-                                    <span
-                                      key={`${entry.category}-${index}`}
-                                      className="inline-flex items-center rounded-lg border border-outline-variant/40 bg-white px-2.5 py-1 text-[11px] font-bold text-on-surface"
-                                    >
-                                      {entry.category.replace(
-                                        /\s*[—–-]\s*/g,
-                                        " ",
-                                      )}
-                                      {" · "}
-                                      {typeof entry.stage === "number"
-                                        ? `Round ${entry.stage}`
-                                        : entry.stage === "3rd-place"
-                                          ? "3rd Place"
-                                          : entry.stage}
-                                    </span>
-                                  ),
-                                )
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Tournament status
-                      </span>
-                      <select
-                        value={settings.status ?? "setup"}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            status: event.target
-                              .value as AdminTournament["status"],
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      >
-                        <option value="setup">Setup</option>
-                        <option value="registration">Registration</option>
-                        <option value="live">Live</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Match format
-                      </span>
-                      <select
-                        value={settings.format}
-                        onChange={(event) =>
-                          setSettings((current) => ({
-                            ...current,
-                            format: event.target.value,
-                          }))
-                        }
-                        className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      >
-                        <option>Group stage + knockout</option>
-                        <option>Single elimination</option>
-                        <option>Round robin</option>
-                        <option>Swiss pairing</option>
-                      </select>
-                    </label>
-                    <div className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4 md:col-span-2">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                       <div>
-                        <h3 className="text-sm font-extrabold text-on-surface">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
                           Match divisions
+                        </p>
+                        <h3 className="mt-1 text-xl font-black text-slate-950">
+                          Division-specific draw rules
                         </h3>
-                        <p className="mt-1 text-xs text-on-surface-variant">
-                          Each division combines match category and skill level.
-                          Existing divisions cannot be removed after teams or
-                          matches use them.
+                        <p className="mt-1 text-sm text-slate-500">
+                          Override group and knockout sizes only where a
+                          division needs different rules.
                         </p>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {settings.categories.map((division) => {
-                          const isInUse =
-                            teams.some((team) => team.category === division) ||
-                            matches.some(
-                              (match) => match.category === division,
-                            );
-                          return (
-                            <span
-                              key={division}
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-white px-3 py-1.5 text-sm font-bold text-primary"
-                            >
-                              {division}
-                              <button
-                                type="button"
-                                onClick={() => removeDivision(division)}
-                                disabled={isInUse}
-                                aria-label={`Remove ${division}`}
-                                title={
-                                  isInUse
-                                    ? "Move its registrations and matches before removing this division."
-                                    : `Remove ${division}`
-                                }
-                                className="flex h-5 w-5 items-center justify-center rounded-full text-primary/60 transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
-                              >
-                                <span className="material-symbols-outlined text-[14px]">
-                                  close
-                                </span>
-                              </button>
-                            </span>
-                          );
-                        })}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_150px_auto]">
                         <input
-                          value={newDivisionName}
+                          value={newDivision}
                           onChange={(event) =>
-                            setNewDivisionName(event.target.value)
+                            setNewDivision(event.target.value)
                           }
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              addDivision();
-                            }
-                          }}
                           placeholder="e.g. Mixed Doubles"
-                          className="h-10 min-w-[180px] flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                          className="admin-input"
                         />
                         <select
                           value={newDivisionLevel}
@@ -2772,7 +1394,7 @@ export default function TournamentControlRoom({
                               event.target.value as DivisionSkillLevel,
                             )
                           }
-                          className="h-10 w-[160px] max-w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
+                          className="admin-input"
                         >
                           {DIVISION_SKILL_LEVELS.map((level) => (
                             <option key={level.value} value={level.value}>
@@ -2783,587 +1405,1498 @@ export default function TournamentControlRoom({
                         <button
                           type="button"
                           onClick={addDivision}
-                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary"
+                          className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white transition hover:bg-blue-700"
                         >
-                          <span className="material-symbols-outlined text-lg">
-                            add
-                          </span>
-                          Add
+                          Add division
                         </button>
                       </div>
                     </div>
+                    <div className="mt-5 grid gap-3 xl:grid-cols-2">
+                      {settings.categories.length === 0 ? (
+                        <div className="xl:col-span-2">
+                          <EmptyState
+                            icon="category"
+                            title="Add your first match division"
+                            description="Divisions keep registrations, draws, standings and brackets separated correctly."
+                          />
+                        </div>
+                      ) : (
+                        settings.categories.map((division) => {
+                          const override =
+                            settings.divisionSettings?.[division] ?? {};
+                          return (
+                            <div
+                              key={division}
+                              className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="font-extrabold text-slate-950">
+                                    {division}
+                                  </p>
+                                  <p className="mt-1 text-xs text-slate-500">
+                                    {
+                                      teams.filter(
+                                        (team) => team.category === division,
+                                      ).length
+                                    }{" "}
+                                    registered teams
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeDivision(division)}
+                                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                  aria-label={`Remove ${division}`}
+                                >
+                                  <span className="material-symbols-outlined text-lg">
+                                    delete
+                                  </span>
+                                </button>
+                              </div>
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                <label>
+                                  <span className="admin-label">
+                                    Teams per group
+                                  </span>
+                                  <select
+                                    value={override.groupSize ?? ""}
+                                    onChange={(event) =>
+                                      setDivisionOverride(
+                                        division,
+                                        "groupSize",
+                                        event.target.value
+                                          ? Number(event.target.value)
+                                          : undefined,
+                                      )
+                                    }
+                                    className="admin-input"
+                                  >
+                                    <option value="">
+                                      Default ({settings.groupSize})
+                                    </option>
+                                    {[2, 3, 4, 5, 6, 8].map((value) => (
+                                      <option key={value} value={value}>
+                                        {value} teams
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <label>
+                                  <span className="admin-label">
+                                    Knockout size
+                                  </span>
+                                  <select
+                                    value={override.knockoutSize ?? ""}
+                                    onChange={(event) =>
+                                      setDivisionOverride(
+                                        division,
+                                        "knockoutSize",
+                                        event.target.value
+                                          ? Number(event.target.value)
+                                          : undefined,
+                                      )
+                                    }
+                                    className="admin-input"
+                                  >
+                                    <option value="">
+                                      Default ({settings.qualifierCount})
+                                    </option>
+                                    {[2, 4, 8, 16, 24, 32].map((value) => (
+                                      <option key={value} value={value}>
+                                        Top {value}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              </div>
+                              <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
+                                <input
+                                  type="checkbox"
+                                  checked={override.bronzeMatch ?? false}
+                                  onChange={(event) =>
+                                    setDivisionOverride(
+                                      division,
+                                      "bronzeMatch",
+                                      event.target.checked || undefined,
+                                    )
+                                  }
+                                  className="h-4 w-4 accent-blue-600"
+                                />
+                                Include a third-place match
+                              </label>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                          Order of Play
+                        </p>
+                        <h3 className="mt-1 text-xl font-black text-slate-950">
+                          Session and court sequencing
+                        </h3>
+                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                          Configure how group and knockout matches fill every
+                          court. The same plan powers the operations grid and
+                          XLSX export.
+                        </p>
+                      </div>
+                      {!settings.oop && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSettings((current) => ({
+                              ...current,
+                              oop: padelCahOopTemplate(current.categories),
+                            }))
+                          }
+                          className="h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200"
+                        >
+                          Use Padel CAH template
+                        </button>
+                      )}
+                    </div>
+
+                    {settings.oop ? (
+                      <div className="mt-5 space-y-5">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <label>
+                            <span className="admin-label">Day start time</span>
+                            <input
+                              value={settings.oop.startTime}
+                              onChange={(event) =>
+                                updateOopSettings((oop) => ({
+                                  ...oop,
+                                  startTime: event.target.value,
+                                }))
+                              }
+                              placeholder="09:00"
+                              className="admin-input"
+                            />
+                          </label>
+                          <label>
+                            <span className="admin-label">
+                              Slots per session
+                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={12}
+                              value={settings.oop.slotsPerSession}
+                              onChange={(event) =>
+                                updateOopSettings((oop) => ({
+                                  ...oop,
+                                  slotsPerSession: Math.max(
+                                    1,
+                                    Number(event.target.value) || 1,
+                                  ),
+                                }))
+                              }
+                              className="admin-input"
+                            />
+                          </label>
+                        </div>
+                        <div>
+                          <span className="admin-label">
+                            Groups fill courts in this order
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {settings.categories.map((division) => {
+                              const active =
+                                settings.oop?.categoryOrder.includes(
+                                  division,
+                                ) ?? false;
+                              return (
+                                <button
+                                  key={division}
+                                  type="button"
+                                  onClick={() =>
+                                    updateOopSettings((oop) => ({
+                                      ...oop,
+                                      categoryOrder: active
+                                        ? oop.categoryOrder.filter(
+                                            (item) => item !== division,
+                                          )
+                                        : [...oop.categoryOrder, division],
+                                    }))
+                                  }
+                                  className={cx(
+                                    "rounded-xl border px-3 py-2 text-xs font-extrabold transition",
+                                    active
+                                      ? "border-blue-300 bg-blue-50 text-blue-700"
+                                      : "border-slate-200 bg-white text-slate-500 hover:border-blue-200",
+                                  )}
+                                >
+                                  {division}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          {settings.oop.sessions.map((session, index) => (
+                            <div
+                              key={`${session.time}-${index}`}
+                              className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                            >
+                              <div className="grid items-end gap-3 sm:grid-cols-[130px_130px_1fr_auto]">
+                                <label>
+                                  <span className="admin-label">
+                                    Session time
+                                  </span>
+                                  <input
+                                    value={session.time}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  time: event.target.value,
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    className="admin-input"
+                                  />
+                                </label>
+                                <label>
+                                  <span className="admin-label">Capacity</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={12}
+                                    value={session.capacity ?? ""}
+                                    placeholder="Auto"
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  capacity: event.target.value
+                                                    ? Number(event.target.value)
+                                                    : null,
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    className="admin-input"
+                                  />
+                                </label>
+                                <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700">
+                                  <input
+                                    type="checkbox"
+                                    checked={session.notBefore}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  notBefore:
+                                                    event.target.checked,
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    className="h-4 w-4 accent-blue-600"
+                                  />
+                                  Not before this time
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateOopSettings((oop) => ({
+                                      ...oop,
+                                      sessions: oop.sessions.filter(
+                                        (_, itemIndex) => itemIndex !== index,
+                                      ),
+                                    }))
+                                  }
+                                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-600"
+                                  aria-label={`Remove session ${session.time}`}
+                                >
+                                  <span className="material-symbols-outlined">
+                                    delete
+                                  </span>
+                                </button>
+                              </div>
+                              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                                <label>
+                                  <span className="admin-label">
+                                    Events before
+                                  </span>
+                                  <input
+                                    value={(session.eventsBefore ?? []).join(
+                                      ", ",
+                                    )}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  eventsBefore:
+                                                    event.target.value
+                                                      .split(",")
+                                                      .map((value) =>
+                                                        value.trim(),
+                                                      )
+                                                      .filter(Boolean),
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    placeholder="Opening ceremony"
+                                    className="admin-input"
+                                  />
+                                </label>
+                                <label>
+                                  <span className="admin-label">
+                                    Events mid (Title@slot)
+                                  </span>
+                                  <input
+                                    value={(session.eventsMid ?? [])
+                                      .map(
+                                        (item) =>
+                                          `${item.title}@${item.afterSlot}`,
+                                      )
+                                      .join(", ")}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  eventsMid: event.target.value
+                                                    .split(",")
+                                                    .map((raw) => {
+                                                      const [title, slot] = raw
+                                                        .trim()
+                                                        .split("@");
+                                                      return {
+                                                        title: (
+                                                          title ?? ""
+                                                        ).trim(),
+                                                        afterSlot:
+                                                          Number(slot) || 1,
+                                                      };
+                                                    })
+                                                    .filter(
+                                                      (entry) => entry.title,
+                                                    ),
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    placeholder="Games@1"
+                                    className="admin-input"
+                                  />
+                                </label>
+                                <label>
+                                  <span className="admin-label">
+                                    Events after
+                                  </span>
+                                  <input
+                                    value={(session.eventsAfter ?? []).join(
+                                      ", ",
+                                    )}
+                                    onChange={(event) =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.map(
+                                          (item, itemIndex) =>
+                                            itemIndex === index
+                                              ? {
+                                                  ...item,
+                                                  eventsAfter:
+                                                    event.target.value
+                                                      .split(",")
+                                                      .map((value) =>
+                                                        value.trim(),
+                                                      )
+                                                      .filter(Boolean),
+                                                }
+                                              : item,
+                                        ),
+                                      }))
+                                    }
+                                    placeholder="Awarding"
+                                    className="admin-input"
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateOopSettings((oop) => ({
+                                ...oop,
+                                sessions: [
+                                  ...oop.sessions,
+                                  { time: "", notBefore: true },
+                                ],
+                              }))
+                            }
+                            className="h-10 rounded-xl border border-dashed border-blue-300 px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                          >
+                            + Add OOP session
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-5 rounded-2xl border border-dashed border-blue-200 bg-blue-50/60 p-5 text-sm font-semibold text-blue-800">
+                        Enable the template to configure OOP sessions, events,
+                        category order and court capacity.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeSection === "registrations" && (
+                <div className="space-y-6">
+                  <SectionTitle
+                    eyebrow="Step 02 · Team readiness"
+                    title="Know exactly who can enter the draw"
+                    description="Search, approve and confirm payment without losing sight of each pair or division."
+                    action={
+                      <button
+                        type="button"
+                        onClick={() => setInsertDialog(true)}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          person_add
+                        </span>
+                        Add team
+                      </button>
+                    }
+                  />
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <MetricCard
+                      icon="verified"
+                      label="Approved"
+                      value={totals.approved}
+                      detail={`${teams.length} total registrations`}
+                    />
+                    <MetricCard
+                      icon="payments"
+                      label="Paid"
+                      value={totals.paid}
+                      detail={`${teams.length - totals.paid} awaiting payment`}
+                      accent="emerald"
+                    />
+                    <MetricCard
+                      icon="rocket_launch"
+                      label="Draw-ready"
+                      value={totals.eligible}
+                      detail="Approved and paid"
+                      accent="amber"
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_220px]">
+                      <label className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                          search
+                        </span>
+                        <input
+                          value={teamSearch}
+                          onChange={(event) =>
+                            setTeamSearch(event.target.value)
+                          }
+                          placeholder="Search team, city or ID"
+                          className="admin-input pl-10"
+                        />
+                      </label>
+                      <select
+                        value={teamFilter}
+                        onChange={(event) =>
+                          setTeamFilter(
+                            event.target.value as RegistrationFilter,
+                          )
+                        }
+                        className="admin-input"
+                      >
+                        <option value="all">All statuses</option>
+                        <option value="pending">Needs review</option>
+                        <option value="approved">Approved</option>
+                        <option value="waitlist">Waitlist</option>
+                      </select>
+                      <select
+                        value={teamDivision}
+                        onChange={(event) =>
+                          setTeamDivision(event.target.value)
+                        }
+                        className="admin-input"
+                      >
+                        <option value="all">All divisions</option>
+                        {settings.categories.map((division) => (
+                          <option key={division} value={division}>
+                            {division}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {filteredTeams.length === 0 ? (
+                    <EmptyState
+                      icon="group_off"
+                      title="No teams match these filters"
+                      description="Clear a filter or add a team to continue building the tournament field."
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredTeams.map((team, index) => (
+                        <article
+                          key={team.id}
+                          style={{
+                            animationDelay: `${String(Math.min(index * 40, 320))}ms`,
+                          }}
+                          className="admin-rise rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md sm:p-5"
+                        >
+                          <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+                            <div className="flex min-w-0 flex-1 items-start gap-4">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-sm font-black text-white shadow-md shadow-blue-200">
+                                {team.player.charAt(0).toUpperCase()}
+                                {team.partner?.charAt(0).toUpperCase() ?? ""}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="truncate font-black text-slate-950">
+                                    {teamName(team)}
+                                  </h3>
+                                  <span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                    {team.id}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-sm font-semibold text-blue-700">
+                                  {team.category}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-400">
+                                  {team.city} · Registered{" "}
+                                  {new Date(
+                                    team.registeredAt,
+                                  ).toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-3 xl:w-[520px]">
+                              <label>
+                                <span className="admin-label">
+                                  Review status
+                                </span>
+                                <select
+                                  value={
+                                    team.status === "rejected"
+                                      ? "pending"
+                                      : team.status
+                                  }
+                                  onChange={(event) =>
+                                    patchTeam(team, {
+                                      status: event.target.value as TeamStatus,
+                                    })
+                                  }
+                                  className="admin-input"
+                                >
+                                  <option value="pending">Needs review</option>
+                                  <option value="approved">Approved</option>
+                                  <option value="waitlist">Waitlist</option>
+                                </select>
+                              </label>
+                              <label>
+                                <span className="admin-label">Payment</span>
+                                <select
+                                  value={team.paid ? "paid" : "unpaid"}
+                                  onChange={(event) =>
+                                    patchTeam(team, {
+                                      paid: event.target.value === "paid",
+                                    })
+                                  }
+                                  className="admin-input"
+                                >
+                                  <option value="unpaid">Unpaid</option>
+                                  <option value="paid">Paid</option>
+                                </select>
+                              </label>
+                              <div>
+                                <span className="admin-label">Readiness</span>
+                                <div
+                                  className={cx(
+                                    "flex h-11 items-center justify-center gap-2 rounded-xl border text-xs font-extrabold",
+                                    team.status === "approved" && team.paid
+                                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                      : "border-amber-200 bg-amber-50 text-amber-700",
+                                  )}
+                                >
+                                  <span className="material-symbols-outlined text-base">
+                                    {team.status === "approved" && team.paid
+                                      ? "check_circle"
+                                      : "pending"}
+                                  </span>
+                                  {team.status === "approved" && team.paid
+                                    ? "Draw-ready"
+                                    : "Action needed"}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveTarget(team)}
+                              className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                person_remove
+                              </span>
+                              Remove
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeSection === "operations" && (
+                <div className="space-y-6">
+                  <SectionTitle
+                    eyebrow="Step 03 · One operations board"
+                    title="Draw, schedule and matches—together"
+                    description="Every match has its context, court and state in one card. Open scoring in separate tabs to run several courts without confusion."
+                    action={
+                      <div className="flex flex-wrap gap-2">
+                        <input
+                          ref={importInputRef}
+                          type="file"
+                          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                          className="sr-only"
+                          onChange={(event) => {
+                            void handleImportFile(
+                              event.target.files?.[0] ?? null,
+                            );
+                            event.target.value = "";
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => importInputRef.current?.click()}
+                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            upload_file
+                          </span>
+                          Import draw
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void exportOopFile()}
+                          disabled={exportingOop || !oopPlan}
+                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            download
+                          </span>
+                          {exportingOop ? "Exporting…" : "Export OOP"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDrawDialog(true)}
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                        >
+                          <span className="material-symbols-outlined text-lg">
+                            shuffle
+                          </span>
+                          {matches.length ? "Regenerate draw" : "Generate draw"}
+                        </button>
+                      </div>
+                    }
+                  />
+
+                  <div className="overflow-hidden rounded-2xl bg-[#071c4d] p-5 text-white shadow-xl shadow-blue-950/10 sm:p-6">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="admin-live-dot h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-200">
+                            Court control
+                          </p>
+                        </div>
+                        <h3 className="mt-2 text-xl font-black">
+                          {totals.live
+                            ? `${totals.live} matches live now`
+                            : "All courts are calm"}
+                        </h3>
+                        <p className="mt-1 text-sm text-blue-100/70">
+                          Open each scoring room in a new tab. This operations
+                          board stays your source of truth.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from(
+                          { length: settings.courts },
+                          (_, index) => index + 1,
+                        ).map((court) => {
+                          const live = matches.find(
+                            (match) =>
+                              match.courtId === court &&
+                              match.status === "live",
+                          );
+                          return (
+                            <div
+                              key={court}
+                              className={cx(
+                                "min-w-24 rounded-xl border px-3 py-2",
+                                live
+                                  ? "border-rose-400/40 bg-rose-500/15"
+                                  : "border-white/10 bg-white/5",
+                              )}
+                            >
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200">
+                                Court {court}
+                              </p>
+                              <p
+                                className={cx(
+                                  "mt-1 text-xs font-extrabold",
+                                  live ? "text-rose-200" : "text-white",
+                                )}
+                              >
+                                {live ? `Live · ${live.id}` : "Available"}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {oopPlan && oopPlan.sessions.length > 0 && (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                            Order of Play
+                          </p>
+                          <h3 className="mt-1 text-xl font-black text-slate-950">
+                            {oopPlan.title}
+                          </h3>
+                          <p className="mt-1 text-sm text-slate-500">
+                            Official running order across {oopPlan.courts}{" "}
+                            courts. Match cards below follow this same sequence.
+                          </p>
+                        </div>
+                        <span className="rounded-xl bg-blue-50 px-3 py-2 text-xs font-extrabold text-blue-700">
+                          {matches.length} scheduled matches
+                        </span>
+                      </div>
+                      <div className="mt-5 space-y-5">
+                        {oopPlan.sessions.map((session, sessionIndex) => (
+                          <div
+                            key={`${session.timeLabel}-${sessionIndex}`}
+                            className="overflow-hidden rounded-2xl border border-slate-200"
+                          >
+                            <div className="flex items-center gap-2 bg-blue-700 px-4 py-3 text-white">
+                              <span className="material-symbols-outlined text-lg">
+                                schedule
+                              </span>
+                              <p className="text-sm font-black uppercase tracking-wider">
+                                {session.timeLabel}
+                              </p>
+                              <span className="ml-auto text-xs font-bold text-blue-100">
+                                {session.slots.length} slots
+                              </span>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <div
+                                className="grid min-w-[760px]"
+                                style={{
+                                  gridTemplateColumns: `56px repeat(${oopPlan.courts}, minmax(170px, 1fr))`,
+                                }}
+                              >
+                                <div className="bg-slate-50 px-2 py-2 text-center text-[10px] font-black uppercase text-slate-400">
+                                  #
+                                </div>
+                                {Array.from(
+                                  { length: oopPlan.courts },
+                                  (_, index) => index + 1,
+                                ).map((court) => (
+                                  <div
+                                    key={court}
+                                    className="border-l border-slate-200 bg-slate-50 px-2 py-2 text-center text-[10px] font-black uppercase text-slate-500"
+                                  >
+                                    Court {court}
+                                  </div>
+                                ))}
+                                {session.slots.map((slot) => {
+                                  const firstEntry =
+                                    slot.courts.find(Boolean) ?? null;
+                                  if (firstEntry?.kind === "event") {
+                                    return (
+                                      <Fragment key={slot.number}>
+                                        <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-black text-slate-500">
+                                          {slot.number}
+                                        </div>
+                                        <div
+                                          style={{ gridColumn: "2 / -1" }}
+                                          className="flex items-center justify-center border-l border-t border-amber-200 bg-amber-100 px-4 py-4 text-sm font-black uppercase tracking-wider text-amber-950"
+                                        >
+                                          {firstEntry.title}
+                                        </div>
+                                      </Fragment>
+                                    );
+                                  }
+                                  return (
+                                    <Fragment key={slot.number}>
+                                      <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-black text-slate-500">
+                                        {slot.number}
+                                      </div>
+                                      {slot.courts.map((entry, courtIndex) => (
+                                        <div
+                                          key={`${slot.number}-${courtIndex}`}
+                                          className="min-h-28 border-l border-t border-slate-200 p-1.5"
+                                        >
+                                          {entry?.kind === "match" ? (
+                                            <div
+                                              className={cx(
+                                                "h-full rounded-xl p-3",
+                                                oopCategoryClasses(
+                                                  entry.category,
+                                                ),
+                                              )}
+                                            >
+                                              <p className="text-xs font-black">
+                                                {entry.matchLabel}
+                                              </p>
+                                              <p className="mt-0.5 text-[10px] font-bold opacity-65">
+                                                {entry.stageLabel}
+                                              </p>
+                                              <div className="mt-2 space-y-1">
+                                                {entry.matchIds.map((id) => {
+                                                  const item = matches.find(
+                                                    (candidate) =>
+                                                      candidate.id === id,
+                                                  );
+                                                  return (
+                                                    <Link
+                                                      key={id}
+                                                      href={`/admin/tournaments/${tournamentId}/matches/${id}`}
+                                                      target="_blank"
+                                                      className="flex items-center justify-between rounded-lg bg-white/70 px-2 py-1 text-[10px] font-extrabold transition hover:bg-white"
+                                                    >
+                                                      <span>{id}</span>
+                                                      <span className="material-symbols-outlined text-xs">
+                                                        open_in_new
+                                                      </span>
+                                                      {item?.status ===
+                                                        "live" && (
+                                                        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-rose-500" />
+                                                      )}
+                                                    </Link>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          ) : null}
+                                        </div>
+                                      ))}
+                                    </Fragment>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {matches.length === 0 && drawPreview.length > 0 && (
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                        Draw preview
+                      </p>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        {drawPreview.map((preview) => (
+                          <div
+                            key={preview.division}
+                            className="rounded-xl border border-blue-100 bg-white p-4"
+                          >
+                            <p className="font-extrabold text-slate-950">
+                              {preview.division}
+                            </p>
+                            <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                              <div>
+                                <p className="text-lg font-black text-blue-700">
+                                  {preview.teamCount}
+                                </p>
+                                <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  Teams
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-lg font-black text-blue-700">
+                                  {preview.groups}
+                                </p>
+                                <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  Groups
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-lg font-black text-blue-700">
+                                  {preview.groupSize}
+                                </p>
+                                <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  Per group
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-lg font-black text-blue-700">
+                                  {preview.knockoutSize}
+                                </p>
+                                <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  Knockout
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_170px_170px_220px]">
+                      <label className="relative">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                          search
+                        </span>
+                        <input
+                          value={matchSearch}
+                          onChange={(event) =>
+                            setMatchSearch(event.target.value)
+                          }
+                          placeholder="Search match or team"
+                          className="admin-input pl-10"
+                        />
+                      </label>
+                      <select
+                        value={matchStatus}
+                        onChange={(event) =>
+                          setMatchStatus(
+                            event.target.value as "all" | MatchStatus,
+                          )
+                        }
+                        className="admin-input"
+                      >
+                        <option value="all">All states</option>
+                        <option value="live">Live</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                      <select
+                        value={matchPhase}
+                        onChange={(event) =>
+                          setMatchPhase(event.target.value as "all" | Phase)
+                        }
+                        className="admin-input"
+                      >
+                        <option value="all">All phases</option>
+                        <option value="group">Group stage</option>
+                        <option value="knockout">Knockout</option>
+                      </select>
+                      <select
+                        value={matchDivision}
+                        onChange={(event) =>
+                          setMatchDivision(event.target.value)
+                        }
+                        className="admin-input"
+                      >
+                        <option value="all">All divisions</option>
+                        {settings.categories.map((division) => (
+                          <option key={division} value={division}>
+                            {division}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {filteredMatches.length === 0 ? (
+                    <EmptyState
+                      icon="sports_score"
+                      title={
+                        matches.length
+                          ? "No matches match these filters"
+                          : "The match board is waiting for a draw"
+                      }
+                      description={
+                        matches.length
+                          ? "Adjust your filters to bring matches back into view."
+                          : "Approve and mark teams paid, then generate the group-stage or full tournament draw."
+                      }
+                    />
+                  ) : (
+                    <div className="grid gap-4 2xl:grid-cols-2">
+                      {filteredMatches.map((match, index) => (
+                        <article
+                          key={match.id}
+                          style={{
+                            animationDelay: `${String(Math.min(index * 35, 280))}ms`,
+                          }}
+                          className={cx(
+                            "admin-rise group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg",
+                            match.status === "live"
+                              ? "border-rose-200 ring-2 ring-rose-100"
+                              : "border-slate-200 hover:border-blue-200",
+                          )}
+                        >
+                          {match.status === "live" && (
+                            <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-orange-400 to-rose-500" />
+                          )}
+                          <div className="p-5">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className={cx(
+                                      "rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider",
+                                      matchStatusStyle[match.status],
+                                    )}
+                                  >
+                                    {match.status}
+                                  </span>
+                                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                    {match.phase}
+                                  </span>
+                                  <span className="text-xs font-black text-slate-400">
+                                    #{match.id}
+                                  </span>
+                                </div>
+                                <h3 className="mt-3 font-black text-slate-950">
+                                  {match.category}
+                                </h3>
+                                <p className="mt-1 text-xs font-semibold text-slate-500">
+                                  {match.group ? `${match.group} · ` : ""}
+                                  {match.round}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-black tracking-tight text-blue-700">
+                                  {match.score || "0-0"}
+                                </p>
+                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                  Current score
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl bg-slate-50 p-4">
+                              <div>
+                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                  Team A
+                                </p>
+                                <p className="mt-1 text-sm font-black leading-5 text-slate-950">
+                                  {getTeamName(teams, match.teamAId)}
+                                </p>
+                              </div>
+                              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[10px] font-black text-slate-400 shadow-sm">
+                                VS
+                              </span>
+                              <div className="text-right">
+                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                  Team B
+                                </p>
+                                <p className="mt-1 text-sm font-black leading-5 text-slate-950">
+                                  {getTeamName(teams, match.teamBId)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                              <label>
+                                <span className="admin-label">Court</span>
+                                <select
+                                  value={match.courtId ?? ""}
+                                  onChange={(event) =>
+                                    quickMatchUpdate(match, {
+                                      courtId: event.target.value
+                                        ? Number(event.target.value)
+                                        : null,
+                                    })
+                                  }
+                                  className="admin-input"
+                                >
+                                  <option value="">Unassigned</option>
+                                  {Array.from(
+                                    { length: settings.courts },
+                                    (_, court) => court + 1,
+                                  ).map((court) => (
+                                    <option key={court} value={court}>
+                                      Court {court}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                <span className="admin-label">Match state</span>
+                                <select
+                                  value={match.status}
+                                  onChange={(event) =>
+                                    quickMatchUpdate(match, {
+                                      status: event.target.value as MatchStatus,
+                                    })
+                                  }
+                                  className="admin-input"
+                                >
+                                  <option value="scheduled">Scheduled</option>
+                                  <option value="live">Live</option>
+                                  {match.status === "completed" && (
+                                    <option value="completed">Completed</option>
+                                  )}
+                                </select>
+                              </label>
+                              <div>
+                                <span className="admin-label">Referee</span>
+                                <div className="flex h-11 items-center truncate rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">
+                                  {match.referee || "Unassigned"}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                              <Link
+                                href={
+                                  "/admin/tournaments/" +
+                                  tournamentId +
+                                  "/matches/" +
+                                  match.id
+                                }
+                                target="_blank"
+                                className={cx(
+                                  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5",
+                                  match.status === "live"
+                                    ? "bg-rose-500 shadow-rose-200 hover:bg-rose-600"
+                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700",
+                                )}
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  scoreboard
+                                </span>
+                                {match.status === "completed"
+                                  ? "Review scoring"
+                                  : "Open scoring"}
+                                <span className="material-symbols-outlined text-sm">
+                                  open_in_new
+                                </span>
+                              </Link>
+                              {match.status === "scheduled" && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    quickMatchUpdate(match, { status: "live" })
+                                  }
+                                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                >
+                                  <span className="material-symbols-outlined text-lg">
+                                    play_arrow
+                                  </span>
+                                  Start match
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeSection === "results" && (
+                <div className="space-y-6">
+                  <SectionTitle
+                    eyebrow="Step 04 · Tournament truth"
+                    title="Standings and final scores"
+                    description="A readable result center for group performance, completed matches and progression."
+                    action={
+                      <Link
+                        href="/tournaments/bracket"
+                        target="_blank"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          account_tree
+                        </span>
+                        Open public bracket
+                      </Link>
+                    }
+                  />
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <MetricCard
+                      icon="task_alt"
+                      label="Completed"
+                      value={totals.completed}
+                      detail={`${matches.length} total matches`}
+                      accent="emerald"
+                    />
+                    <MetricCard
+                      icon="percent"
+                      label="Progress"
+                      value={`${progress}%`}
+                      detail={`${totals.scheduled + totals.live} remaining`}
+                    />
+                    <MetricCard
+                      icon="emoji_events"
+                      label="Divisions"
+                      value={settings.categories.length}
+                      detail="Separate competition tracks"
+                      accent="amber"
+                    />
+                  </div>
+                  {groupStandings.length === 0 ? (
+                    <EmptyState
+                      icon="leaderboard"
+                      title="Standings will appear after the draw"
+                      description="Complete group matches and points will be calculated here automatically."
+                    />
+                  ) : (
+                    <div>
+                      <h3 className="mb-3 text-lg font-black text-slate-950">
+                        Group standings
+                      </h3>
+                      <div className="grid gap-4 xl:grid-cols-2">
+                        {groupStandings.map(({ group, rows }) => (
+                          <div
+                            key={group}
+                            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                          >
+                            <div className="border-b border-slate-100 bg-blue-50/70 px-4 py-3">
+                              <p className="font-extrabold text-blue-950">
+                                {group}
+                              </p>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full min-w-[680px] text-left text-sm">
+                                <thead>
+                                  <tr className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    <th className="px-4 py-3">#</th>
+                                    <th className="px-4 py-3">Team</th>
+                                    <th className="px-3 py-3 text-center">P</th>
+                                    <th className="px-3 py-3 text-center">W</th>
+                                    <th className="px-3 py-3 text-center">L</th>
+                                    <th className="px-3 py-3 text-center">
+                                      GW
+                                    </th>
+                                    <th className="px-3 py-3 text-center">
+                                      GL
+                                    </th>
+                                    <th
+                                      className="px-3 py-3 text-center"
+                                      title="Score difference: total games scored"
+                                    >
+                                      SD
+                                    </th>
+                                    <th className="px-4 py-3 text-center">
+                                      Pts
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {rows.map((row, index) => (
+                                    <tr
+                                      key={row.id}
+                                      className="border-t border-slate-100"
+                                    >
+                                      <td className="px-4 py-3">
+                                        <span
+                                          className={cx(
+                                            "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black",
+                                            index < 2
+                                              ? "bg-blue-600 text-white"
+                                              : "bg-slate-100 text-slate-500",
+                                          )}
+                                        >
+                                          {index + 1}
+                                        </span>
+                                      </td>
+                                      <td className="px-4 py-3 font-bold text-slate-800">
+                                        {row.name}
+                                      </td>
+                                      <td className="px-3 py-3 text-center text-slate-500">
+                                        {row.played}
+                                      </td>
+                                      <td className="px-3 py-3 text-center text-slate-500">
+                                        {row.wins}
+                                      </td>
+                                      <td className="px-3 py-3 text-center text-slate-500">
+                                        {row.losses}
+                                      </td>
+                                      <td className="px-3 py-3 text-center text-slate-500">
+                                        {row.gamesWon}
+                                      </td>
+                                      <td className="px-3 py-3 text-center text-slate-500">
+                                        {row.gamesLost}
+                                      </td>
+                                      <td className="px-3 py-3 text-center font-bold text-slate-700">
+                                        {row.diff}
+                                      </td>
+                                      <td className="px-4 py-3 text-center font-black text-blue-700">
+                                        {row.points}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="mb-3 text-lg font-black text-slate-950">
+                      Completed matches
+                    </h3>
+                    {completedMatches.length === 0 ? (
+                      <EmptyState
+                        icon="scoreboard"
+                        title="No final scores yet"
+                        description="Finished matches will collect here with their winner and set scores."
+                      />
+                    ) : (
+                      <div className="grid gap-3 xl:grid-cols-2">
+                        {completedMatches.map((match) => (
+                          <div
+                            key={match.id}
+                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                                  {match.category} · {match.round}
+                                </p>
+                                <p className="mt-2 text-sm font-bold text-slate-800">
+                                  {getTeamName(teams, match.teamAId)}
+                                </p>
+                                <p className="mt-1 text-sm font-bold text-slate-800">
+                                  {getTeamName(teams, match.teamBId)}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xl font-black text-blue-700">
+                                  {match.score}
+                                </p>
+                                <Link
+                                  href={
+                                    "/admin/tournaments/" +
+                                    tournamentId +
+                                    "/matches/" +
+                                    match.id
+                                  }
+                                  target="_blank"
+                                  className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600 hover:text-blue-800"
+                                >
+                                  Review{" "}
+                                  <span className="material-symbols-outlined text-sm">
+                                    open_in_new
+                                  </span>
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </section>
-
-            {activeTab === "matches" && (
-              <aside className="flex min-w-0">
-                <div className="h-full min-w-0 w-full overflow-hidden rounded-lg border border-outline-variant/30 bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="text-lg font-extrabold text-on-surface">
-                        Match details
-                      </h2>
-                      <p className="text-sm text-on-surface-variant">
-                        Manage match status, scoring, and results.
-                      </p>
-                    </div>
-                    <span className="material-symbols-outlined text-primary">
-                      dock_to_right
-                    </span>
-                  </div>
-
-                  {selectedMatch && (
-                    <div className="mt-5 space-y-4">
-                      {/* Match info card */}
-                      <div className="rounded-lg bg-surface-container-low p-4">
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">
-                          {selectedMatch.category || "Open Division"}
-                        </p>
-                        <p className="break-all text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                          {selectedMatch.id} - {selectedMatch.round}
-                        </p>
-                        <h3 className="mt-2 break-words text-lg font-extrabold text-on-surface">
-                          {getTeamName(teams, selectedMatch.teamAId)}
-                        </h3>
-                        <p className="my-2 text-xs font-bold uppercase tracking-wider text-primary">
-                          versus
-                        </p>
-                        <h3 className="break-words text-lg font-extrabold text-on-surface">
-                          {getTeamName(teams, selectedMatch.teamBId)}
-                        </h3>
-                      </div>
-
-                      {/* Court selector — always visible */}
-                      <label className="block">
-                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                          Court
-                        </span>
-                        <select
-                          value={selectedMatch.courtId ?? ""}
-                          onChange={(event) =>
-                            updateMatch(selectedMatch.id, {
-                              courtId: event.target.value
-                                ? Number(event.target.value)
-                                : null,
-                            })
-                          }
-                          className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
-                        >
-                          <option value="">Unassigned</option>
-                          {Array.from(
-                            { length: settings.courts },
-                            (_, index) => index + 1,
-                          ).map((courtId) => (
-                            <option key={`court-${courtId}`} value={courtId}>
-                              Court {courtId}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-
-                      {/* ── Scheduled state ── */}
-                      {selectedMatch.status === "scheduled" && (
-                        <div className="space-y-3">
-                          <StatusBadge {...matchStatusMeta.scheduled} />
-                          <div className="rounded-lg border border-outline-variant/20 bg-surface-container-low p-4 text-center">
-                            <span className="material-symbols-outlined text-3xl text-on-surface-variant">
-                              score
-                            </span>
-                            <p className="mt-2 text-sm font-semibold text-on-surface-variant">
-                              Start the match to enter scores
-                            </p>
-                          </div>
-                          {!selectedMatch.teamAId || !selectedMatch.teamBId ? (
-                            <div className="rounded-lg bg-surface-container-low p-4 text-center">
-                              <span className="material-symbols-outlined text-2xl text-on-surface-variant">
-                                hourglass_empty
-                              </span>
-                              <p className="mt-2 text-xs font-semibold text-on-surface-variant">
-                                Teams not yet determined.
-                              </p>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateMatch(selectedMatch.id, {
-                                  status: "live",
-                                })
-                              }
-                              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-bold text-on-secondary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-secondary/90"
-                            >
-                              <span className="material-symbols-outlined text-lg">
-                                play_arrow
-                              </span>
-                              Start match
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* ── Live state ── */}
-                      {selectedMatch.status === "live" && (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-error px-3 py-1 text-xs font-bold uppercase text-on-error">
-                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-on-error" />
-                              Live
-                            </span>
-                          </div>
-
-                          {/* Set-based scoring */}
-                          <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                              Score
-                            </span>
-                            <div className="mt-2 space-y-2">
-                              {draftSets.map((set, index) => {
-                                const aWins = set.teamA > set.teamB;
-                                const bWins = set.teamB > set.teamA;
-                                return (
-                                  <div
-                                    key={`set-${index}-${set.teamA}-${set.teamB}`}
-                                    className="flex min-w-0 items-center gap-1.5 rounded-lg bg-surface-container-low p-2.5 sm:gap-2 sm:p-3"
-                                  >
-                                    <span className="w-6 shrink-0 text-xs font-bold uppercase text-on-surface-variant sm:w-8">
-                                      S{index + 1}
-                                    </span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={99}
-                                      value={set.teamA}
-                                      onChange={(e) =>
-                                        updateDraftSet(
-                                          index,
-                                          "teamA",
-                                          Number(e.target.value),
-                                        )
-                                      }
-                                      className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
-                                        aWins
-                                          ? "border-secondary/40 bg-secondary/5 text-secondary"
-                                          : "border-outline-variant/50 text-on-surface"
-                                      }`}
-                                    />
-                                    <span className="text-sm font-bold text-on-surface-variant">
-                                      –
-                                    </span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={99}
-                                      value={set.teamB}
-                                      onChange={(e) =>
-                                        updateDraftSet(
-                                          index,
-                                          "teamB",
-                                          Number(e.target.value),
-                                        )
-                                      }
-                                      className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
-                                        bWins
-                                          ? "border-secondary/40 bg-secondary/5 text-secondary"
-                                          : "border-outline-variant/50 text-on-surface"
-                                      }`}
-                                    />
-                                    {(aWins || bWins) && (
-                                      <span className="material-symbols-outlined hidden text-base text-secondary sm:inline-block">
-                                        check_circle
-                                      </span>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => removeDraftSet(index)}
-                                      className="ml-auto text-on-surface-variant transition-colors hover:text-error"
-                                      aria-label={`Remove set ${index + 1}`}
-                                    >
-                                      <span className="material-symbols-outlined text-lg">
-                                        close
-                                      </span>
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                              <button
-                                type="button"
-                                onClick={addDraftSet}
-                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-outline-variant/50 text-sm font-bold text-primary transition-colors hover:border-primary/40 hover:bg-primary/5"
-                              >
-                                <span className="material-symbols-outlined text-lg">
-                                  add
-                                </span>
-                                Add set
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Finish Match */}
-                          {draftSets.length > 0 &&
-                            !showWinnerPicker &&
-                            selectedMatch.teamAId &&
-                            selectedMatch.teamBId && (
-                              <button
-                                type="button"
-                                onClick={() => setShowWinnerPicker(true)}
-                                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-secondary text-sm font-bold text-on-secondary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-secondary/90"
-                              >
-                                <span className="material-symbols-outlined text-lg">
-                                  emoji_events
-                                </span>
-                                Finish match
-                              </button>
-                            )}
-
-                          {showWinnerPicker && (
-                            <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-                              <p className="text-sm font-extrabold text-on-surface">
-                                Who won the match?
-                              </p>
-                              <div className="mt-3 grid grid-cols-2 gap-2">
-                                {selectedMatch.teamAId && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      finishMatch(selectedMatch.teamAId ?? "")
-                                    }
-                                    className="flex h-12 items-center justify-center rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface transition-colors hover:border-secondary hover:bg-secondary/5"
-                                  >
-                                    {getTeamName(teams, selectedMatch.teamAId)}
-                                  </button>
-                                )}
-                                {selectedMatch.teamBId && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      finishMatch(selectedMatch.teamBId ?? "")
-                                    }
-                                    className="flex h-12 items-center justify-center rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-bold text-on-surface transition-colors hover:border-secondary hover:bg-secondary/5"
-                                  >
-                                    {getTeamName(teams, selectedMatch.teamBId)}
-                                  </button>
-                                )}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setShowWinnerPicker(false)}
-                                className="mt-2 w-full text-center text-xs font-bold text-on-surface-variant transition-colors hover:text-primary"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* ── Completed state (editable) ── */}
-                      {selectedMatch.status === "completed" && (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <StatusBadge {...matchStatusMeta.completed} />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateMatch(selectedMatch.id, {
-                                  status: "live",
-                                  winnerTeamId: null,
-                                })
-                              }
-                              className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-outline-variant/50 px-2.5 text-xs font-bold text-on-surface-variant transition-colors hover:bg-surface-container-low"
-                            >
-                              <span className="material-symbols-outlined text-sm">
-                                replay
-                              </span>
-                              Reopen
-                            </button>
-                          </div>
-
-                          {/* Winner banner — editable */}
-                          {selectedMatch.winnerTeamId && (
-                            <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-                              <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-xl text-secondary">
-                                  emoji_events
-                                </span>
-                                <div>
-                                  <p className="text-xs font-bold uppercase tracking-wider text-secondary">
-                                    Winner
-                                  </p>
-                                  <p className="text-sm font-extrabold text-on-surface">
-                                    {getTeamName(
-                                      teams,
-                                      selectedMatch.winnerTeamId,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Editable score sets */}
-                          <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                              Score
-                            </span>
-                            <div className="mt-2 space-y-2">
-                              {draftSets.map((set, index) => {
-                                const aWins = set.teamA > set.teamB;
-                                const bWins = set.teamB > set.teamA;
-                                return (
-                                  <div
-                                    key={`set-${index}-${set.teamA}-${set.teamB}`}
-                                    className="flex min-w-0 items-center gap-1.5 rounded-lg bg-surface-container-low p-2.5 sm:gap-2 sm:p-3"
-                                  >
-                                    <span className="w-6 shrink-0 text-xs font-bold uppercase text-on-surface-variant sm:w-8">
-                                      S{index + 1}
-                                    </span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={99}
-                                      value={set.teamA}
-                                      onChange={(e) =>
-                                        updateDraftSet(
-                                          index,
-                                          "teamA",
-                                          Number(e.target.value),
-                                        )
-                                      }
-                                      className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
-                                        aWins
-                                          ? "border-secondary/40 bg-secondary/5 text-secondary"
-                                          : "border-outline-variant/50 text-on-surface"
-                                      }`}
-                                    />
-                                    <span className="text-sm font-bold text-on-surface-variant">
-                                      –
-                                    </span>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={99}
-                                      value={set.teamB}
-                                      onChange={(e) =>
-                                        updateDraftSet(
-                                          index,
-                                          "teamB",
-                                          Number(e.target.value),
-                                        )
-                                      }
-                                      className={`h-10 w-12 min-w-0 rounded-lg border bg-white text-center text-base font-extrabold tabular-nums outline-none transition-colors focus:ring-2 focus:ring-primary/10 sm:w-16 sm:text-lg ${
-                                        bWins
-                                          ? "border-secondary/40 bg-secondary/5 text-secondary"
-                                          : "border-outline-variant/50 text-on-surface"
-                                      }`}
-                                    />
-                                    {(aWins || bWins) && (
-                                      <span className="material-symbols-outlined hidden text-base text-secondary sm:inline-block">
-                                        check_circle
-                                      </span>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => removeDraftSet(index)}
-                                      className="ml-auto text-on-surface-variant transition-colors hover:text-error"
-                                      aria-label={`Remove set ${index + 1}`}
-                                    >
-                                      <span className="material-symbols-outlined text-lg">
-                                        close
-                                      </span>
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                              <button
-                                type="button"
-                                onClick={addDraftSet}
-                                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-outline-variant/50 text-sm font-bold text-primary transition-colors hover:border-primary/40 hover:bg-primary/5"
-                              >
-                                <span className="material-symbols-outlined text-lg">
-                                  add
-                                </span>
-                                Add set
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Change winner */}
-                          <label className="block">
-                            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                              Winner
-                            </span>
-                            <select
-                              value={selectedMatch.winnerTeamId ?? ""}
-                              onChange={(event) =>
-                                updateMatch(selectedMatch.id, {
-                                  winnerTeamId: event.target.value || null,
-                                })
-                              }
-                              className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
-                            >
-                              <option value="">No winner</option>
-                              {selectedMatch.teamAId && (
-                                <option value={selectedMatch.teamAId}>
-                                  {getTeamName(teams, selectedMatch.teamAId)}
-                                </option>
-                              )}
-                              {selectedMatch.teamBId && (
-                                <option value={selectedMatch.teamBId}>
-                                  {getTeamName(teams, selectedMatch.teamBId)}
-                                </option>
-                              )}
-                            </select>
-                          </label>
-
-                          {/* Save score changes */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateMatch(selectedMatch.id, {
-                                scoreSets: draftSets,
-                                score: computeScoreString(draftSets),
-                              })
-                            }
-                            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-on-primary shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-primary/90"
-                          >
-                            <span className="material-symbols-outlined text-lg">
-                              save
-                            </span>
-                            Save changes
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Referee — editable except when completed */}
-                      <label className="block">
-                        <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                          Referee
-                        </span>
-                        <input
-                          value={selectedMatch.referee}
-                          onChange={(event) =>
-                            updateMatch(selectedMatch.id, {
-                              referee: event.target.value,
-                            })
-                          }
-                          className="mt-2 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface"
-                        />
-                      </label>
-                    </div>
-                  )}
-                </div>
-              </aside>
-            )}
           </div>
         </div>
       </main>
       <Footer />
 
-      {removeTarget && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+      {drawDialog && (
+        <div
+          className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+          role="presentation"
+        >
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="remove-registration-title"
-            aria-describedby="remove-registration-description"
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
+            aria-labelledby="draw-title"
+            className="admin-dialog-enter w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
           >
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-error/10 text-error">
-              <span className="material-symbols-outlined">person_remove</span>
+            <div className="bg-[#071c4d] p-6 text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500 shadow-lg shadow-blue-950/30">
+                <span className="material-symbols-outlined">account_tree</span>
+              </span>
+              <h2 id="draw-title" className="mt-5 text-2xl font-black">
+                Build the match board
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-blue-100/75">
+                The draw uses {totals.eligible} approved, paid teams and keeps
+                every match division separate.
+              </p>
             </div>
-            <h2
-              id="remove-registration-title"
-              className="text-xl font-extrabold text-on-surface"
-            >
-              Remove registration?
-            </h2>
-            <p
-              id="remove-registration-description"
-              className="mt-2 text-sm leading-relaxed text-on-surface-variant"
-            >
-              This will permanently remove{" "}
-              <span className="font-bold text-on-surface">
-                {removeTarget.partner
-                  ? `${removeTarget.player} / ${removeTarget.partner}`
-                  : removeTarget.player}
-              </span>{" "}
-              from this tournament.
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="p-6">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+                <span className="font-black">Heads up:</span> generating again
+                rebuilds the selected phases and their existing matches.
+              </div>
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => generateDraw("group")}
+                  className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                >
+                  Groups only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => generateDraw("knockout")}
+                  className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                >
+                  Knockout only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => generateDraw("all")}
+                  className="h-12 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
+                >
+                  Full draw
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => setRemoveTarget(null)}
-                disabled={removingTeamId === removeTarget.id}
-                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+                onClick={() => setDrawDialog(false)}
+                className="mt-3 h-11 w-full rounded-xl text-sm font-extrabold text-slate-500 transition hover:bg-slate-100"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={removeTeam}
-                disabled={removingTeamId === removeTarget.id}
-                className="h-10 rounded-lg bg-error px-4 text-sm font-bold text-on-error transition-colors hover:bg-error/90 disabled:cursor-wait disabled:opacity-70"
-              >
-                {removingTeamId === removeTarget.id
-                  ? "Removing..."
-                  : "Remove registration"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {confirmDraw && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="draw-confirm-title"
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
-          >
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <span className="material-symbols-outlined">shuffle</span>
-            </div>
-            <h2
-              id="draw-confirm-title"
-              className="text-xl font-extrabold text-on-surface"
-            >
-              Generate tournament draw?
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              {hasImportedDraw
-                ? "An official draw is imported: groups and seeds are kept, and matches are rebuilt around them."
-                : "This will rebuild group matches and knockout placeholders from approved paid teams."}
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmDraw(false)}
-                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  generateDraw("group", {
-                    useExistingGroups: hasImportedDraw,
-                  })
-                }
-                className="h-10 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90"
-              >
-                Groups only
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  generateDraw("all", { useExistingGroups: hasImportedDraw })
-                }
-                className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90"
-              >
-                Generate all
               </button>
             </div>
           </div>
@@ -3371,371 +2904,335 @@ export default function TournamentControlRoom({
       )}
 
       {importPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+        <div className="admin-modal fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="import-draw-title"
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)]"
+            aria-labelledby="import-title"
+            className="admin-dialog-enter max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.4)]"
           >
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <span className="material-symbols-outlined">upload_file</span>
+            <div className="bg-[#071c4d] p-6 text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500">
+                <span className="material-symbols-outlined">upload_file</span>
+              </span>
+              <h2 id="import-title" className="mt-4 text-2xl font-black">
+                Review official draw
+              </h2>
+              <p className="mt-2 text-sm text-blue-100/70">
+                {importFileName}: {importPreview.assignments.length} teams
+                matched.
+              </p>
             </div>
-            <h2
-              id="import-draw-title"
-              className="text-xl font-extrabold text-on-surface"
-            >
-              Import official draw
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              {importFileName}: matched{" "}
-              <span className="font-bold text-on-surface">
-                {importPreview.assignments.length}
-              </span>{" "}
-              of {rawTeams.length} registered teams against the workbook rows.
-            </p>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {Object.entries(importPreview.byCategory).map(
-                ([category, count]) => (
-                  <div
-                    key={category}
-                    className="rounded-lg border border-outline-variant/30 bg-surface-container-low px-3 py-2 text-sm font-bold text-on-surface"
-                  >
-                    {category}
-                    <span className="float-right text-primary">
-                      {count} teams
-                    </span>
-                  </div>
-                ),
+            <div className="space-y-4 p-6">
+              <div className="grid gap-2 sm:grid-cols-2">
+                {Object.entries(importPreview.byCategory).map(
+                  ([category, count]) => (
+                    <div
+                      key={category}
+                      className="rounded-xl border border-blue-100 bg-blue-50 p-3"
+                    >
+                      <p className="text-sm font-black text-blue-950">
+                        {category}
+                      </p>
+                      <p className="mt-1 text-xs font-bold text-blue-600">
+                        {count} assignments
+                      </p>
+                    </div>
+                  ),
+                )}
+              </div>
+              {importPreview.warnings.length > 0 && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-wider text-amber-800">
+                    Warnings
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-amber-900">
+                    {importPreview.warnings.map((warning) => (
+                      <li key={warning}>• {warning}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
+              {importPreview.unmatched.length > 0 && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-xs font-black uppercase tracking-wider text-rose-700">
+                    Unmatched rows
+                  </p>
+                  <ul className="mt-2 space-y-1 text-sm text-rose-900">
+                    {importPreview.unmatched.map((row) => (
+                      <li key={`${row.sheetName}-${row.no}`}>
+                        • {row.player1} / {row.player2} · {row.group}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportPreview(null);
+                    setImportFileName("");
+                  }}
+                  disabled={importBusy}
+                  className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void confirmImportDraw()}
+                  disabled={
+                    importBusy ||
+                    importPreview.assignments.length === 0 ||
+                    importPreview.unmatched.length > 0
+                  }
+                  className="h-11 flex-1 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 disabled:opacity-40"
+                >
+                  {importBusy ? "Importing…" : "Import & regenerate"}
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {importPreview.warnings.length > 0 && (
-              <div className="mt-4 rounded-lg border border-tertiary/30 bg-tertiary/10 p-3">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-tertiary">
-                  Warnings
-                </p>
-                <ul className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs font-semibold text-on-surface-variant">
-                  {importPreview.warnings.map((warning) => (
-                    <li key={warning}>• {warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {importPreview.unmatched.length > 0 && (
-              <div className="mt-4 rounded-lg border border-error/30 bg-error/10 p-3">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-error">
-                  Unmatched rows — fix registration names before importing
-                </p>
-                <ul className="mt-1.5 max-h-40 space-y-1 overflow-y-auto text-xs font-semibold text-on-surface-variant">
-                  {importPreview.unmatched.map((row) => (
-                    <li key={`${row.sheetName}-${row.no}`}>
-                      • {row.sheetName} #{row.no}: {row.player1}
-                      {row.player2 ? ` / ${row.player2}` : ""} (Group{" "}
-                      {row.group || "?"})
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end gap-2">
+      {removeTarget && (
+        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="admin-dialog-enter w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+              <span className="material-symbols-outlined">person_remove</span>
+            </span>
+            <h2 className="mt-5 text-2xl font-black text-slate-950">
+              Remove this team?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              <span className="font-bold text-slate-800">
+                {teamName(removeTarget)}
+              </span>{" "}
+              will be permanently removed from this tournament.
+            </p>
+            <div className="mt-6 flex gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setImportPreview(null);
-                  setImportFileName("");
-                }}
-                disabled={importBusy}
-                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
+                onClick={() => setRemoveTarget(null)}
+                className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={() => void confirmImportDraw()}
-                disabled={
-                  importBusy ||
-                  importPreview.assignments.length === 0 ||
-                  importPreview.unmatched.length > 0
-                }
-                className="h-10 rounded-lg bg-primary px-4 text-sm font-bold text-on-primary transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={removeTeam}
+                className="h-11 flex-1 rounded-xl bg-rose-600 text-sm font-extrabold text-white shadow-lg shadow-rose-200"
               >
-                {importBusy
-                  ? "Importing..."
-                  : "Import draw & regenerate matches"}
+                Remove team
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {insertOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-inverse-surface/45 px-4 backdrop-blur-sm">
+      {insertDialog && (
+        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="insert-players-title"
-            className="w-full max-w-lg rounded-lg bg-white p-6 shadow-[0px_24px_80px_rgba(17,24,39,0.22)] max-h-[90vh] overflow-y-auto"
+            className="admin-dialog-enter max-h-full w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
           >
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-              <span className="material-symbols-outlined">person_add</span>
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 p-5 backdrop-blur">
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                  Manual registration
+                </p>
+                <h2 className="mt-1 text-xl font-black text-slate-950">
+                  Add a team
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInsertDialog(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
-            <h2
-              id="insert-players-title"
-              className="text-xl font-extrabold text-on-surface"
-            >
-              Insert players
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
-              Manually register a team (player + partner) for this tournament.
-            </p>
-
-            <div className="mt-6 grid gap-4">
-              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
-                <legend className="text-sm font-extrabold text-on-surface px-2">
+            <div className="space-y-5 p-5 sm:p-6">
+              <fieldset className="rounded-2xl border border-slate-200 p-4">
+                <legend className="px-2 text-sm font-black text-slate-800">
                   Player
                 </legend>
-                <div className="grid gap-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Full name *
-                      </span>
-                      <input
-                        value={insertForm.playerFullName}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            playerFullName: e.target.value,
-                          }))
-                        }
-                        placeholder="Player name"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Email *
-                      </span>
-                      <input
-                        type="email"
-                        value={insertForm.playerEmail}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            playerEmail: e.target.value,
-                          }))
-                        }
-                        placeholder="player@email.com"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Phone *
-                      </span>
-                      <input
-                        value={insertForm.playerPhone}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            playerPhone: e.target.value,
-                          }))
-                        }
-                        placeholder="+62..."
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Nationality
-                      </span>
-                      <input
-                        value={insertForm.playerNationality}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            playerNationality: e.target.value,
-                          }))
-                        }
-                        placeholder="ID"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        City
-                      </span>
-                      <input
-                        value={insertForm.playerCity}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            playerCity: e.target.value,
-                          }))
-                        }
-                        placeholder="Jakarta"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                  </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label>
+                    <span className="admin-label">Full name *</span>
+                    <input
+                      value={insertForm.playerFullName}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          playerFullName: event.target.value,
+                        }))
+                      }
+                      className="admin-input"
+                    />
+                  </label>
+                  <label>
+                    <span className="admin-label">Email *</span>
+                    <input
+                      type="email"
+                      value={insertForm.playerEmail}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          playerEmail: event.target.value,
+                        }))
+                      }
+                      className="admin-input"
+                    />
+                  </label>
+                  <label>
+                    <span className="admin-label">Phone *</span>
+                    <input
+                      value={insertForm.playerPhone}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          playerPhone: event.target.value,
+                        }))
+                      }
+                      className="admin-input"
+                    />
+                  </label>
+                  <label>
+                    <span className="admin-label">City</span>
+                    <input
+                      value={insertForm.playerCity}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          playerCity: event.target.value,
+                        }))
+                      }
+                      className="admin-input"
+                    />
+                  </label>
                 </div>
               </fieldset>
-
-              <label className="block">
-                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Match division *
-                </span>
-                <select
-                  value={insertForm.category}
-                  onChange={(e) =>
-                    setInsertForm((f) => ({
-                      ...f,
-                      category: e.target.value,
-                    }))
-                  }
-                  className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                >
-                  <option value="">Select match division</option>
-                  {settings.categories.map((division) => (
-                    <option key={division} value={division}>
-                      {division}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-on-surface-variant">
-                  The division sets the competition level for both players.
-                </p>
-              </label>
-
-              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
-                <legend className="text-sm font-extrabold text-on-surface px-2">
+              <fieldset className="rounded-2xl border border-slate-200 p-4">
+                <legend className="px-2 text-sm font-black text-slate-800">
                   Partner
                 </legend>
-                <div className="grid gap-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Full name *
-                      </span>
-                      <input
-                        value={insertForm.partnerFullName}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            partnerFullName: e.target.value,
-                          }))
-                        }
-                        placeholder="Partner name"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        Email *
-                      </span>
-                      <input
-                        type="email"
-                        value={insertForm.partnerEmail}
-                        onChange={(e) =>
-                          setInsertForm((f) => ({
-                            ...f,
-                            partnerEmail: e.target.value,
-                          }))
-                        }
-                        placeholder="partner@email.com"
-                        className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset className="rounded-lg border border-outline-variant/30 bg-surface-container-low p-4">
-                <legend className="text-sm font-extrabold text-on-surface px-2">
-                  Admin overrides
-                </legend>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="flex items-center gap-3">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label>
+                    <span className="admin-label">Full name *</span>
                     <input
-                      type="checkbox"
-                      checked={insertForm.paid}
-                      onChange={(e) =>
-                        setInsertForm((f) => ({
-                          ...f,
-                          paid: e.target.checked,
+                      value={insertForm.partnerFullName}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          partnerFullName: event.target.value,
                         }))
                       }
-                      className="h-4 w-4 rounded accent-primary"
+                      className="admin-input"
                     />
-                    <span className="text-sm font-semibold text-on-surface">
-                      Mark as paid
-                    </span>
                   </label>
-                  <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                      Team status
-                    </span>
-                    <select
-                      value={insertForm.status}
-                      onChange={(e) =>
-                        setInsertForm((f) => ({
-                          ...f,
-                          status: e.target.value as TeamStatus,
+                  <label>
+                    <span className="admin-label">Email *</span>
+                    <input
+                      type="email"
+                      value={insertForm.partnerEmail}
+                      onChange={(event) =>
+                        setInsertForm((current) => ({
+                          ...current,
+                          partnerEmail: event.target.value,
                         }))
                       }
-                      className="mt-1 h-10 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="waitlist">Waitlist</option>
-                    </select>
+                      className="admin-input"
+                    />
                   </label>
                 </div>
               </fieldset>
-            </div>
-
-            {insertError && (
-              <div className="mt-5 rounded-lg border border-error/20 bg-error-container px-4 py-3 text-sm font-semibold text-on-error-container">
-                <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-lg">
-                    error
-                  </span>
-                  <p>{insertError}</p>
-                </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label>
+                  <span className="admin-label">Match division *</span>
+                  <select
+                    value={insertForm.category}
+                    onChange={(event) =>
+                      setInsertForm((current) => ({
+                        ...current,
+                        category: event.target.value,
+                      }))
+                    }
+                    className="admin-input"
+                  >
+                    <option value="">Choose division</option>
+                    {settings.categories.map((division) => (
+                      <option key={division} value={division}>
+                        {division}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span className="admin-label">Review status</span>
+                  <select
+                    value={insertForm.status}
+                    onChange={(event) =>
+                      setInsertForm((current) => ({
+                        ...current,
+                        status: event.target.value as Exclude<
+                          TeamStatus,
+                          "rejected"
+                        >,
+                      }))
+                    }
+                    className="admin-input"
+                  >
+                    <option value="pending">Needs review</option>
+                    <option value="approved">Approved</option>
+                    <option value="waitlist">Waitlist</option>
+                  </select>
+                </label>
               </div>
-            )}
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setInsertOpen(false);
-                  setInsertError("");
-                }}
-                disabled={insertSubmitting}
-                className="h-10 rounded-lg border border-outline-variant/50 px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={submitInsertPlayers}
-                disabled={insertSubmitting}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-secondary px-4 text-sm font-bold text-on-secondary transition-colors hover:bg-secondary/90 disabled:cursor-wait disabled:opacity-70"
-              >
-                <span className="material-symbols-outlined text-lg">
-                  {insertSubmitting ? "hourglass_top" : "person_add"}
-                </span>
-                {insertSubmitting ? "Inserting..." : "Insert players"}
-              </button>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-blue-50 p-4 text-sm font-bold text-blue-900">
+                <input
+                  type="checkbox"
+                  checked={insertForm.paid}
+                  onChange={(event) =>
+                    setInsertForm((current) => ({
+                      ...current,
+                      paid: event.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4 accent-blue-600"
+                />
+                Mark this team as paid
+              </label>
+              {formError && (
+                <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-700">
+                  {formError}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInsertDialog(false)}
+                  className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitTeam}
+                  disabled={submittingTeam}
+                  className="h-11 flex-1 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 disabled:opacity-60"
+                >
+                  {submittingTeam ? "Adding…" : "Add team"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
