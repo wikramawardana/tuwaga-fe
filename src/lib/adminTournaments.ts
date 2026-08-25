@@ -1,4 +1,8 @@
-import type { DivisionSettings, OopSettings } from "@/lib/tuwagaApi";
+import type {
+  DivisionSettings,
+  OopSettings,
+  TournamentFormat,
+} from "@/lib/tuwagaApi";
 
 export type AdminTournament = {
   id: string;
@@ -13,7 +17,7 @@ export type AdminTournament = {
     courts: number;
     matchDuration: number;
     teamSize: string;
-    format: string;
+    format: TournamentFormat;
     groupSize: number;
     qualifierCount: number;
     divisionSettings?: Record<string, DivisionSettings>;

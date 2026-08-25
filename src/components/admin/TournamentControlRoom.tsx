@@ -46,6 +46,7 @@ import {
   type RegistrationTeam,
   type TeamStatus,
   type Tournament,
+  type TournamentFormat,
   type TournamentSettings,
   type TournamentStatus,
   updateMatch,
@@ -492,8 +493,16 @@ export default function TournamentControlRoom({
         division,
         teamCount,
         groupSize,
-        groups: countGroups(teamCount, groupSize),
+        groups:
+          settings.format === "Round robin"
+            ? teamCount >= 2
+              ? 1
+              : 0
+            : settings.format === "Single elimination"
+              ? 0
+              : countGroups(teamCount, groupSize),
         knockoutSize: effectiveKnockoutSize(settings, division),
+        roundRobinMatches: (teamCount * (teamCount - 1)) / 2,
       };
     });
   }, [settings, teams]);
@@ -1343,7 +1352,7 @@ export default function TournamentControlRoom({
                             onChange={(event) =>
                               setSettings((current) => ({
                                 ...current,
-                                format: event.target.value,
+                                format: event.target.value as TournamentFormat,
                               }))
                             }
                             className="admin-input"
@@ -1361,6 +1370,9 @@ export default function TournamentControlRoom({
                             type="number"
                             min={2}
                             max={16}
+                            disabled={
+                              settings.format !== "Group stage + knockout"
+                            }
                             value={settings.groupSize}
                             onChange={(event) =>
                               setSettings((current) => ({
@@ -1368,7 +1380,7 @@ export default function TournamentControlRoom({
                                 groupSize: Number(event.target.value),
                               }))
                             }
-                            className="admin-input"
+                            className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
                           />
                         </label>
                         <label>
@@ -1377,13 +1389,16 @@ export default function TournamentControlRoom({
                           </span>
                           <select
                             value={settings.qualifierCount}
+                            disabled={
+                              settings.format !== "Group stage + knockout"
+                            }
                             onChange={(event) =>
                               setSettings((current) => ({
                                 ...current,
                                 qualifierCount: Number(event.target.value),
                               }))
                             }
-                            className="admin-input"
+                            className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             <option value={8}>Top 8</option>
                             <option value={16}>Top 16</option>
@@ -2527,7 +2542,13 @@ export default function TournamentControlRoom({
                             <p className="font-extrabold text-slate-950">
                               {preview.division}
                             </p>
-                            <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                            <div
+                              className={`mt-3 grid gap-2 text-center ${
+                                settings.format === "Group stage + knockout"
+                                  ? "grid-cols-4"
+                                  : "grid-cols-2"
+                              }`}
+                            >
                               <div>
                                 <p className="text-lg font-black text-blue-700">
                                   {preview.teamCount}
@@ -2536,30 +2557,54 @@ export default function TournamentControlRoom({
                                   Teams
                                 </p>
                               </div>
-                              <div>
-                                <p className="text-lg font-black text-blue-700">
-                                  {preview.groups}
-                                </p>
-                                <p className="text-[10px] font-bold uppercase text-slate-400">
-                                  Groups
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-lg font-black text-blue-700">
-                                  {preview.groupSize}
-                                </p>
-                                <p className="text-[10px] font-bold uppercase text-slate-400">
-                                  Per group
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-lg font-black text-blue-700">
-                                  {preview.knockoutSize}
-                                </p>
-                                <p className="text-[10px] font-bold uppercase text-slate-400">
-                                  Knockout
-                                </p>
-                              </div>
+                              {settings.format === "Single elimination" ? (
+                                <div>
+                                  <p className="text-lg font-black text-blue-700">
+                                    {preview.teamCount >= 2
+                                      ? preview.teamCount
+                                      : 0}
+                                  </p>
+                                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                                    Knockout field
+                                  </p>
+                                </div>
+                              ) : settings.format === "Round robin" ? (
+                                <div>
+                                  <p className="text-lg font-black text-blue-700">
+                                    {preview.roundRobinMatches}
+                                  </p>
+                                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                                    Total matches
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  <div>
+                                    <p className="text-lg font-black text-blue-700">
+                                      {preview.groups}
+                                    </p>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                      Groups
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-lg font-black text-blue-700">
+                                      {preview.groupSize}
+                                    </p>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                      Per group
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-lg font-black text-blue-700">
+                                      {preview.knockoutSize}
+                                    </p>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                      Knockout
+                                    </p>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -3053,8 +3098,11 @@ export default function TournamentControlRoom({
                 Build the match board
               </h2>
               <p className="mt-2 text-sm leading-6 text-blue-100/75">
-                The draw uses {totals.eligible} approved, paid teams and keeps
-                every match division separate.
+                {settings.format === "Single elimination"
+                  ? `The draw seeds ${totals.eligible} approved, paid teams directly into knockout brackets without groups.`
+                  : settings.format === "Round robin"
+                    ? `The draw creates an all-play-all table from approved, paid teams in each division.`
+                    : `The draw uses ${totals.eligible} approved, paid teams and keeps every match division separate.`}
               </p>
             </div>
             <div className="p-6">
@@ -3062,27 +3110,41 @@ export default function TournamentControlRoom({
                 <span className="font-black">Heads up:</span> generating again
                 rebuilds the selected phases and their existing matches.
               </div>
-              <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                <button
-                  type="button"
-                  onClick={() => generateDraw("group")}
-                  className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
-                >
-                  Groups only
-                </button>
-                <button
-                  type="button"
-                  onClick={() => generateDraw("knockout")}
-                  className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
-                >
-                  Knockout only
-                </button>
+              <div
+                className={`mt-5 grid gap-2 ${
+                  settings.format === "Group stage + knockout"
+                    ? "sm:grid-cols-3"
+                    : "grid-cols-1"
+                }`}
+              >
+                {settings.format === "Group stage + knockout" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => generateDraw("group")}
+                      className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                    >
+                      Groups only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => generateDraw("knockout")}
+                      className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                    >
+                      Knockout only
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => generateDraw("all")}
                   className="h-12 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
                 >
-                  Full draw
+                  {settings.format === "Single elimination"
+                    ? "Generate knockout"
+                    : settings.format === "Round robin"
+                      ? "Generate round robin"
+                      : "Full draw"}
                 </button>
               </div>
               <button

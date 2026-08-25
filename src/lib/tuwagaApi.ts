@@ -5,6 +5,10 @@ export type TournamentStatus = "setup" | "registration" | "live" | "completed";
 export type TeamStatus = "approved" | "pending" | "waitlist" | "rejected";
 export type MatchStatus = "live" | "scheduled" | "completed";
 export type Phase = "group" | "knockout";
+export type TournamentFormat =
+  | "Group stage + knockout"
+  | "Single elimination"
+  | "Round robin";
 
 export type DivisionSettings = {
   groupSize?: number;
@@ -46,7 +50,7 @@ export type TournamentSettings = {
   courts: number;
   matchDuration: number;
   teamSize: string;
-  format: string;
+  format: TournamentFormat;
   groupSize: number;
   qualifierCount: number;
   knockoutSeedMode: string;
@@ -437,7 +441,7 @@ export async function createTournament(input: {
   courts: number;
   matchDuration: number;
   teamSize: string;
-  format: string;
+  format: TournamentFormat;
   categories?: string[];
 }) {
   const data = await apiRequest<{ tournament: Tournament }>(
@@ -645,7 +649,6 @@ export async function generateDraw(
     {
       method: "POST",
       body: JSON.stringify({
-        mode: "group-stage-plus-knockout",
         phase,
         includeOnlyPaidApprovedTeams: true,
         overwriteExistingMatches: true,

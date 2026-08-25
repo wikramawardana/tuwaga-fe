@@ -10,7 +10,10 @@ import {
   DIVISION_SKILL_LEVELS,
   type DivisionSkillLevel,
 } from "@/lib/matchDivisions";
-import { createTournament as createTournamentRequest } from "@/lib/tuwagaApi";
+import {
+  createTournament as createTournamentRequest,
+  type TournamentFormat,
+} from "@/lib/tuwagaApi";
 
 function RequiredMark() {
   return (
@@ -45,7 +48,7 @@ export default function NewTournamentPage() {
     courts: 4,
     matchDuration: 30,
     teamSize: "Doubles",
-    format: "Group stage + knockout",
+    format: "Group stage + knockout" as TournamentFormat,
   });
 
   const addCategory = () => {
@@ -349,14 +352,16 @@ export default function NewTournamentPage() {
                   <select
                     value={form.format}
                     onChange={(event) =>
-                      updateForm("format", event.target.value)
+                      updateForm(
+                        "format",
+                        event.target.value as TournamentFormat,
+                      )
                     }
                     className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
                   >
                     <option>Group stage + knockout</option>
                     <option>Single elimination</option>
                     <option>Round robin</option>
-                    <option>Swiss pairing</option>
                   </select>
                 </label>
 
