@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -83,21 +84,35 @@ export default function TournamentBracketPage() {
                     : "Reading standings and bracket from the backend."}
                 </p>
               </div>
-              <div className="inline-flex self-start border-2 border-[#07142f] bg-white p-1 shadow-[4px_4px_0_#07142f] md:self-auto">
-                {(["groups", "bracket"] as const).map((view) => (
-                  <button
-                    key={view}
-                    type="button"
-                    onClick={() => setActiveView(view)}
-                    className={`h-10 px-4 text-sm font-black uppercase transition-colors ${
-                      activeView === view
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-600 hover:bg-cyan-100"
-                    }`}
+              <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+                <div className="inline-flex border-2 border-[#07142f] bg-white p-1 shadow-[4px_4px_0_#07142f]">
+                  {(["groups", "bracket"] as const).map((view) => (
+                    <button
+                      key={view}
+                      type="button"
+                      onClick={() => setActiveView(view)}
+                      className={`h-10 px-4 text-sm font-black uppercase transition-colors ${
+                        activeView === view
+                          ? "bg-blue-600 text-white"
+                          : "text-slate-600 hover:bg-cyan-100"
+                      }`}
+                    >
+                      {view}
+                    </button>
+                  ))}
+                </div>
+                {tournament && (
+                  <Link
+                    href={`/tournaments/${tournament.slug}/display`}
+                    target="_blank"
+                    className="public-button inline-flex h-12 items-center gap-2 bg-yellow-200 px-4 text-xs font-black uppercase text-[#07142f]"
                   >
-                    {view}
-                  </button>
-                ))}
+                    <span className="material-symbols-outlined text-lg">
+                      tv
+                    </span>
+                    Open TV display
+                  </Link>
+                )}
               </div>
             </div>
           </div>
