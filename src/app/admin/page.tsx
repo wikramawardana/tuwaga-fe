@@ -37,7 +37,7 @@ export default function AdminIndexPage() {
 
         <AdminTournamentList />
       </main>
-      <Footer />
+      <Footer showAdminPortal={false} />
     </>
   );
 }

@@ -3077,7 +3077,7 @@ export default function TournamentControlRoom({
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer showAdminPortal={false} />
 
       {drawDialog && (
         <div

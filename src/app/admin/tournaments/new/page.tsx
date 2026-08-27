@@ -451,7 +451,7 @@ export default function NewTournamentPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer showAdminPortal={false} />
     </>
   );
 }
