@@ -8,6 +8,7 @@ import {
   listRegistrations,
   type Match,
   type RegistrationTeam,
+  type ScoringRules,
   type Tournament,
   updateMatch,
 } from "@/lib/tuwagaApi";
@@ -29,6 +30,120 @@ function displayTeam(team: RegistrationTeam | undefined, fallback: string) {
 
 function scoreLabel(sets: SetScore[]) {
   return sets.map((set) => `${set.teamA}-${set.teamB}`).join(", ");
+}
+
+function getSportCue(
+  sport: string | undefined,
+  set: SetScore,
+  _setIndex: number,
+  setsWonA: number,
+  setsWonB: number,
+  rules?: ScoringRules,
+): { type: "alert" | "warning" | "info" | "neutral"; text: string } | null {
+  const ptsA = set.teamA;
+  const ptsB = set.teamB;
+  const maxPts = Math.max(ptsA, ptsB);
+  const minPts = Math.min(ptsA, ptsB);
+  const diff = Math.abs(ptsA - ptsB);
+  const targetPts =
+    rules?.pointsPerSet ??
+    (sport === "table_tennis"
+      ? 11
+      : sport === "padel" || sport === "tennis"
+        ? 6
+        : 21);
+  const setsToWin = rules?.setsToWin ?? 2;
+
+  // Badminton cues
+  if (sport === "badminton" || !sport) {
+    if (maxPts === 11 && minPts < 11) {
+      return {
+        type: "info",
+        text: "🏸 11-Point Interval: 60-second break & side change advice",
+      };
+    }
+    if (ptsA === 29 && ptsB === 29) {
+      return {
+        type: "alert",
+        text: "⚡ Sudden Death at 29-29: Next point wins the set (Cap 30)",
+      };
+    }
+    if (maxPts >= targetPts - 1 && diff >= 1) {
+      const leader = ptsA > ptsB ? "Team A" : "Team B";
+      const isMatchPoint =
+        (leader === "Team A" ? setsWonA : setsWonB) === setsToWin - 1;
+      return {
+        type: "warning",
+        text: `${isMatchPoint ? "🔥 MATCH POINT" : "🎯 GAME POINT"} for ${leader} (${ptsA}-${ptsB})`,
+      };
+    }
+  }
+
+  // Padel cues
+  if (sport === "padel") {
+    if (ptsA === 6 && ptsB === 6) {
+      return {
+        type: "alert",
+        text: "🎾 Tiebreak at 6-6: First to 7 points (must win by 2)",
+      };
+    }
+    if (rules?.goldenPoint && ptsA >= 5 && ptsB >= 5 && diff === 0) {
+      return {
+        type: "alert",
+        text: "⭐ Punto de Oro (Golden Point) active on deciding deuce!",
+      };
+    }
+  }
+
+  // Tennis cues
+  if (sport === "tennis") {
+    if (ptsA === 6 && ptsB === 6) {
+      return {
+        type: "alert",
+        text: "🎾 Tiebreak at 6-6: First to 7 points (must win by 2)",
+      };
+    }
+    if (maxPts >= 5 && diff === 1) {
+      const leader = ptsA > ptsB ? "Team A" : "Team B";
+      return {
+        type: "warning",
+        text: `🎯 Advantage / Game Point for ${leader}`,
+      };
+    }
+  }
+
+  // Table Tennis cues
+  if (sport === "table_tennis") {
+    const totalPoints = ptsA + ptsB;
+    const server =
+      ptsA >= 10 && ptsB >= 10
+        ? totalPoints % 2 === 0
+          ? "Team A"
+          : "Team B"
+        : Math.floor(totalPoints / 2) % 2 === 0
+          ? "Team A"
+          : "Team B";
+
+    if (ptsA >= 10 && ptsB >= 10) {
+      if (diff === 0) {
+        return {
+          type: "info",
+          text: `🏓 Deuce (10-10+). Service changes every point. Server: ${server}`,
+        };
+      }
+      const leader = ptsA > ptsB ? "Team A" : "Team B";
+      return {
+        type: "warning",
+        text: `🎯 Game Point for ${leader}! Server: ${server}`,
+      };
+    }
+    return {
+      type: "neutral",
+      text: `🏓 Service: ${server} to serve (Total points: ${totalPoints})`,
+    };
+  }
+
+  return null;
 }
 
 function MatchScoringSkeleton() {
@@ -415,9 +530,16 @@ export default function MatchScoringWorkspace({
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <section className="neo-panel overflow-hidden bg-white">
             <div className="border-b-4 border-[#07142f] bg-[#246bfe] px-5 py-5 text-center text-white">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-200">
-                {match.category}
-              </p>
+              <div className="flex items-center justify-center gap-2">
+                <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                  {tournament?.settings.sport
+                    ?.replace("_", " ")
+                    .toUpperCase() ?? "BADMINTON"}
+                </span>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-100">
+                  {match.category} · {match.round}
+                </p>
+              </div>
               <div className="mt-2 flex items-center justify-center gap-4">
                 <span className="text-4xl font-black">{setWins.teamA}</span>
                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-extrabold text-blue-100">
@@ -451,106 +573,146 @@ export default function MatchScoringWorkspace({
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-6">
-              {sets.map((set, index) => (
-                <div
-                  key={String(index)}
-                  className="admin-rise overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/70"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-500">
-                      Set {index + 1}
-                    </p>
-                    {sets.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSet(index)}
-                        className="flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+              {sets.map((set, index) => {
+                const cue = getSportCue(
+                  tournament?.settings.sport,
+                  set,
+                  index,
+                  setWins.teamA,
+                  setWins.teamB,
+                  tournament?.settings.scoringRules,
+                );
+                return (
+                  <div
+                    key={String(index)}
+                    className="admin-rise overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50/70 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-700">
+                          Set {index + 1}
+                        </p>
+                        {tournament?.settings.sport && (
+                          <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-blue-700">
+                            {tournament.settings.sport.replace("_", " ")}
+                          </span>
+                        )}
+                      </div>
+                      {sets.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSet(index)}
+                          className="flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                        >
+                          <span className="material-symbols-outlined text-base">
+                            delete
+                          </span>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {cue && (
+                      <div
+                        className={cx(
+                          "px-4 py-2 text-xs font-black tracking-wide flex items-center justify-between transition-all",
+                          cue.type === "alert"
+                            ? "bg-rose-500 text-white animate-pulse"
+                            : cue.type === "warning"
+                              ? "bg-amber-400 text-slate-950 shadow-inner"
+                              : cue.type === "info"
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-200 text-slate-800",
+                        )}
                       >
-                        <span className="material-symbols-outlined text-base">
-                          delete
+                        <span className="font-extrabold">{cue.text}</span>
+                        <span className="text-[10px] font-black uppercase tracking-wider opacity-90">
+                          Referee Cue
                         </span>
-                        Remove
-                      </button>
+                      </div>
                     )}
-                  </div>
-                  <div className="grid grid-cols-2 divide-x divide-slate-200">
-                    <div className="p-3 sm:p-5">
-                      <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateScore(index, "teamA", -1)}
-                          className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-blue-700 transition active:scale-90 hover:bg-blue-50"
-                          aria-label={`Subtract one point from ${teamA.name}`}
-                        >
-                          <span className="material-symbols-outlined">
-                            remove
-                          </span>
-                        </button>
-                        <input
-                          type="number"
-                          min={0}
-                          max={99}
-                          value={set.teamA}
-                          onChange={(event) =>
-                            setExactScore(
-                              index,
-                              "teamA",
-                              Number(event.target.value),
-                            )
-                          }
-                          className="h-20 min-w-0 w-full rounded-2xl border-2 border-blue-100 bg-white text-center text-4xl font-black text-blue-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 sm:h-24 sm:text-6xl"
-                          aria-label={`${teamA.name} set ${String(index + 1)} score`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => updateScore(index, "teamA", 1)}
-                          className="flex h-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200 transition active:scale-90 hover:bg-blue-700"
-                          aria-label={`Add one point to ${teamA.name}`}
-                        >
-                          <span className="material-symbols-outlined">add</span>
-                        </button>
+                    <div className="grid grid-cols-2 divide-x divide-slate-200">
+                      <div className="p-3 sm:p-5">
+                        <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateScore(index, "teamA", -1)}
+                            className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-blue-700 transition active:scale-90 hover:bg-blue-50"
+                            aria-label={`Subtract one point from ${teamA.name}`}
+                          >
+                            <span className="material-symbols-outlined">
+                              remove
+                            </span>
+                          </button>
+                          <input
+                            type="number"
+                            min={0}
+                            max={99}
+                            value={set.teamA}
+                            onChange={(event) =>
+                              setExactScore(
+                                index,
+                                "teamA",
+                                Number(event.target.value),
+                              )
+                            }
+                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-blue-100 bg-white text-center text-4xl font-black text-blue-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 sm:h-24 sm:text-6xl"
+                            aria-label={`${teamA.name} set ${String(index + 1)} score`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateScore(index, "teamA", 1)}
+                            className="flex h-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200 transition active:scale-90 hover:bg-blue-700"
+                            aria-label={`Add one point to ${teamA.name}`}
+                          >
+                            <span className="material-symbols-outlined">
+                              add
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-3 sm:p-5">
+                        <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateScore(index, "teamB", -1)}
+                            className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-cyan-700 transition active:scale-90 hover:bg-cyan-50"
+                            aria-label={`Subtract one point from ${teamB.name}`}
+                          >
+                            <span className="material-symbols-outlined">
+                              remove
+                            </span>
+                          </button>
+                          <input
+                            type="number"
+                            min={0}
+                            max={99}
+                            value={set.teamB}
+                            onChange={(event) =>
+                              setExactScore(
+                                index,
+                                "teamB",
+                                Number(event.target.value),
+                              )
+                            }
+                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-cyan-100 bg-white text-center text-4xl font-black text-cyan-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 sm:h-24 sm:text-6xl"
+                            aria-label={`${teamB.name} set ${String(index + 1)} score`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateScore(index, "teamB", 1)}
+                            className="flex h-11 items-center justify-center rounded-xl bg-cyan-500 text-white shadow-md shadow-cyan-200 transition active:scale-90 hover:bg-cyan-600"
+                            aria-label={`Add one point to ${teamB.name}`}
+                          >
+                            <span className="material-symbols-outlined">
+                              add
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="p-3 sm:p-5">
-                      <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateScore(index, "teamB", -1)}
-                          className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-cyan-700 transition active:scale-90 hover:bg-cyan-50"
-                          aria-label={`Subtract one point from ${teamB.name}`}
-                        >
-                          <span className="material-symbols-outlined">
-                            remove
-                          </span>
-                        </button>
-                        <input
-                          type="number"
-                          min={0}
-                          max={99}
-                          value={set.teamB}
-                          onChange={(event) =>
-                            setExactScore(
-                              index,
-                              "teamB",
-                              Number(event.target.value),
-                            )
-                          }
-                          className="h-20 min-w-0 w-full rounded-2xl border-2 border-cyan-100 bg-white text-center text-4xl font-black text-cyan-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 sm:h-24 sm:text-6xl"
-                          aria-label={`${teamB.name} set ${String(index + 1)} score`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => updateScore(index, "teamB", 1)}
-                          className="flex h-11 items-center justify-center rounded-xl bg-cyan-500 text-white shadow-md shadow-cyan-200 transition active:scale-90 hover:bg-cyan-600"
-                          aria-label={`Add one point to ${teamB.name}`}
-                        >
-                          <span className="material-symbols-outlined">add</span>
-                        </button>
-                      </div>
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <button
                 type="button"
                 onClick={addSet}

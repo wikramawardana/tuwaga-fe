@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import AiDirectorCopilot from "@/components/admin/AiDirectorCopilot";
 import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -44,6 +45,8 @@ import {
   type OopSettings,
   type Phase,
   type RegistrationTeam,
+  type ScoringRules,
+  type SportType,
   type TeamStatus,
   type Tournament,
   type TournamentFormat,
@@ -53,6 +56,71 @@ import {
   updateRegistration,
   updateSettings,
 } from "@/lib/tuwagaApi";
+
+const SPORT_OPTIONS: Array<{
+  value: SportType;
+  label: string;
+  badge: string;
+  defaultRules: ScoringRules;
+}> = [
+  {
+    value: "badminton",
+    label: "Badminton",
+    badge: "BWF Standard (21 pts, cap 30)",
+    defaultRules: {
+      sport: "badminton",
+      pointsPerSet: 21,
+      setsToWin: 2,
+      winByTwo: true,
+      goldenPoint: false,
+      maxPointCap: 30,
+      bronzeMatch: false,
+    },
+  },
+  {
+    value: "padel",
+    label: "Padel",
+    badge: "FIP / WPT (6 games, Punto de Oro)",
+    defaultRules: {
+      sport: "padel",
+      pointsPerSet: 6,
+      setsToWin: 2,
+      winByTwo: false,
+      goldenPoint: true,
+      tiebreakAt: 6,
+      tiebreakPoints: 7,
+      bronzeMatch: false,
+    },
+  },
+  {
+    value: "tennis",
+    label: "Tennis",
+    badge: "ITF Standard (6 games, deuce/adv)",
+    defaultRules: {
+      sport: "tennis",
+      pointsPerSet: 6,
+      setsToWin: 2,
+      winByTwo: true,
+      goldenPoint: false,
+      tiebreakAt: 6,
+      tiebreakPoints: 7,
+      bronzeMatch: false,
+    },
+  },
+  {
+    value: "table_tennis",
+    label: "Table Tennis",
+    badge: "ITTF Standard (11 pts, deuce +2)",
+    defaultRules: {
+      sport: "table_tennis",
+      pointsPerSet: 11,
+      setsToWin: 3,
+      winByTwo: true,
+      goldenPoint: false,
+      bronzeMatch: false,
+    },
+  },
+];
 
 type AdminSection = "setup" | "registrations" | "operations" | "results";
 type RegistrationFilter = "all" | Exclude<TeamStatus, "rejected">;
@@ -67,6 +135,7 @@ type EditableSettings = TournamentSettings & {
 };
 
 const emptySettings: EditableSettings = {
+  sport: "badminton",
   maxPlayers: 64,
   waitlistLimit: 12,
   courts: 4,
@@ -660,7 +729,7 @@ export default function TournamentControlRoom({
   function setDivisionOverride(
     division: string,
     field: keyof DivisionSettings,
-    value: number | boolean | undefined,
+    value: DivisionSettings[keyof DivisionSettings],
   ) {
     setSettings((current) => ({
       ...current,
@@ -1328,6 +1397,40 @@ export default function TournamentControlRoom({
                           </select>
                         </label>
                         <label>
+                          <span className="admin-label">
+                            Racket Sport / Discipline
+                          </span>
+                          <select
+                            value={settings.sport ?? "badminton"}
+                            onChange={(event) => {
+                              const selectedSport = event.target
+                                .value as SportType;
+                              const preset = SPORT_OPTIONS.find(
+                                (s) => s.value === selectedSport,
+                              )?.defaultRules;
+                              setSettings((current) => ({
+                                ...current,
+                                sport: selectedSport,
+                                scoringRules: preset
+                                  ? {
+                                      ...preset,
+                                      bronzeMatch:
+                                        current.scoringRules?.bronzeMatch ??
+                                        false,
+                                    }
+                                  : current.scoringRules,
+                              }));
+                            }}
+                            className="admin-input font-bold"
+                          >
+                            {SPORT_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label} — {opt.badge}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
                           <span className="admin-label">Team format</span>
                           <select
                             value={settings.teamSize}
@@ -1500,13 +1603,48 @@ export default function TournamentControlRoom({
                                   </span>
                                 </button>
                               </div>
-                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                <label>
+                                  <span className="admin-label">
+                                    Format override
+                                  </span>
+                                  <select
+                                    value={override.format ?? ""}
+                                    onChange={(event) =>
+                                      setDivisionOverride(
+                                        division,
+                                        "format",
+                                        (event.target
+                                          .value as TournamentFormat) ||
+                                          undefined,
+                                      )
+                                    }
+                                    className="admin-input font-bold"
+                                  >
+                                    <option value="">
+                                      Default ({settings.format})
+                                    </option>
+                                    <option value="Group stage + knockout">
+                                      Group stage + knockout
+                                    </option>
+                                    <option value="Single elimination">
+                                      Single elimination
+                                    </option>
+                                    <option value="Round robin">
+                                      Round robin
+                                    </option>
+                                  </select>
+                                </label>
                                 <label>
                                   <span className="admin-label">
                                     Teams per group
                                   </span>
                                   <select
                                     value={override.groupSize ?? ""}
+                                    disabled={
+                                      (override.format ?? settings.format) ===
+                                      "Single elimination"
+                                    }
                                     onChange={(event) =>
                                       setDivisionOverride(
                                         division,
@@ -1516,7 +1654,7 @@ export default function TournamentControlRoom({
                                           : undefined,
                                       )
                                     }
-                                    className="admin-input"
+                                    className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     <option value="">
                                       Default ({settings.groupSize})
@@ -1534,6 +1672,10 @@ export default function TournamentControlRoom({
                                   </span>
                                   <select
                                     value={override.knockoutSize ?? ""}
+                                    disabled={
+                                      (override.format ?? settings.format) ===
+                                      "Round robin"
+                                    }
                                     onChange={(event) =>
                                       setDivisionOverride(
                                         division,
@@ -1543,12 +1685,12 @@ export default function TournamentControlRoom({
                                           : undefined,
                                       )
                                     }
-                                    className="admin-input"
+                                    className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
                                   >
                                     <option value="">
                                       Default ({settings.qualifierCount})
                                     </option>
-                                    {[2, 4, 8, 16, 24, 32].map((value) => (
+                                    {[2, 4, 8, 16, 24, 32, 64].map((value) => (
                                       <option key={value} value={value}>
                                         Top {value}
                                       </option>
@@ -1569,7 +1711,7 @@ export default function TournamentControlRoom({
                                   }
                                   className="h-4 w-4 accent-blue-600"
                                 />
-                                Include a third-place match
+                                Include a 3rd-place (bronze) match
                               </label>
                             </div>
                           );
@@ -3493,6 +3635,10 @@ export default function TournamentControlRoom({
           </div>
         </div>
       )}
+      <AiDirectorCopilot
+        tournament={tournament}
+        onSettingsUpdated={() => window.location.reload()}
+      />
     </>
   );
 }

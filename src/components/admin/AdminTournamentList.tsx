@@ -8,6 +8,7 @@ import {
   listTournaments,
   type Tournament,
 } from "@/lib/tuwagaApi";
+import AiDirectorCopilot from "./AiDirectorCopilot";
 
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
@@ -307,6 +308,8 @@ export default function AdminTournamentList() {
           </div>
         </div>
       )}
+
+      <AiDirectorCopilot />
     </section>
   );
 }

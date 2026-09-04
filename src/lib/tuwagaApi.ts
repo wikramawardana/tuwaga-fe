@@ -10,10 +10,31 @@ export type TournamentFormat =
   | "Single elimination"
   | "Round robin";
 
+export type SportType =
+  | "badminton"
+  | "padel"
+  | "tennis"
+  | "table_tennis"
+  | "custom";
+
+export type ScoringRules = {
+  sport: SportType;
+  pointsPerSet: number;
+  setsToWin: number;
+  winByTwo: boolean;
+  maxPointCap?: number;
+  goldenPoint: boolean;
+  tiebreakAt?: number;
+  tiebreakPoints?: number;
+  bronzeMatch: boolean;
+};
+
 export type DivisionSettings = {
+  format?: TournamentFormat;
   groupSize?: number;
   knockoutSize?: number;
   bronzeMatch?: boolean;
+  scoringRules?: ScoringRules;
 };
 
 export type OopMidEvent = {
@@ -45,6 +66,8 @@ export type OopSettings = {
 };
 
 export type TournamentSettings = {
+  sport?: SportType | string;
+  scoringRules?: ScoringRules;
   maxPlayers: number;
   waitlistLimit: number;
   courts: number;
@@ -443,6 +466,9 @@ export async function createTournament(input: {
   teamSize: string;
   format: TournamentFormat;
   categories?: string[];
+  sport?: SportType;
+  scoringRules?: ScoringRules;
+  divisionSettings?: Record<string, DivisionSettings>;
 }) {
   const data = await apiRequest<{ tournament: Tournament }>(
     "/admin/tournaments",
@@ -716,4 +742,57 @@ export async function uploadQualification(
   }
 
   return envelope.data;
+}
+
+export type ChatMessage = {
+  role: "system" | "user" | "assistant" | "tool";
+  content?: string;
+  tool_calls?: unknown;
+  tool_call_id?: string;
+  name?: string;
+};
+
+export type AiDirectorPlan = {
+  total_players: number;
+  category_count: number;
+  players_per_category: number;
+  format: string;
+  bracket_size: number;
+  byes_count: number;
+  preliminary_matches_count: number;
+  bronze_match_included: boolean;
+  knockout_matches_per_category: number;
+  total_tournament_matches: number;
+  estimated_hours_on_4_courts: number;
+};
+
+export type AiDirectorProposedAction = {
+  type: string;
+  settings?: Partial<TournamentSettings> & {
+    plan?: AiDirectorPlan;
+    sport?: string;
+    division_settings?: Record<string, DivisionSettings>;
+  };
+  plan?: AiDirectorPlan;
+};
+
+export type AiDirectorResponse = {
+  reply: string;
+  messages: ChatMessage[];
+  proposedAction?: AiDirectorProposedAction;
+};
+
+export async function askAiDirector(
+  messages: ChatMessage[],
+  tournamentId?: string,
+): Promise<AiDirectorResponse> {
+  const token = await getAuthToken();
+  const endpoint = token ? "/api/v1/admin/ai/chat" : "/api/v1/ai/director";
+  return apiRequest<AiDirectorResponse>(endpoint, {
+    method: "POST",
+    body: JSON.stringify({
+      tournamentId,
+      messages,
+    }),
+  });
 }
