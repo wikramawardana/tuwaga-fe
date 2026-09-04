@@ -786,8 +786,7 @@ export async function askAiDirector(
   messages: ChatMessage[],
   tournamentId?: string,
 ): Promise<AiDirectorResponse> {
-  const token = await getAuthToken();
-  const endpoint = token ? "/api/v1/admin/ai/chat" : "/api/v1/ai/director";
+  const endpoint = "/api/v1/admin/ai/chat";
   return apiRequest<AiDirectorResponse>(endpoint, {
     method: "POST",
     body: JSON.stringify({

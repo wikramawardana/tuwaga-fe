@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "@/lib/auth-client";
 import {
   type AiDirectorProposedAction,
   askAiDirector,
@@ -12,6 +13,8 @@ import {
   updateSettings,
 } from "@/lib/tuwagaApi";
 
+const BOT_ALLOWED_EMAIL = "wikrama.dev@gmail.com";
+
 interface AiDirectorCopilotProps {
   tournament?: Tournament | null;
   onSettingsUpdated?: () => void;
@@ -21,6 +24,9 @@ export default function AiDirectorCopilot({
   tournament,
   onSettingsUpdated,
 }: AiDirectorCopilotProps) {
+  const { data: session } = useSession();
+  const userEmail = session?.user?.email?.toLowerCase();
+
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -115,6 +121,11 @@ export default function AiDirectorCopilot({
     } finally {
       setApplying(false);
     }
+  }
+
+  // Only wikrama.dev@gmail.com can see and access the Hermes Director Bot
+  if (userEmail !== BOT_ALLOWED_EMAIL) {
+    return null;
   }
 
   return (

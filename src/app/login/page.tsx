@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { authClient, signOut, useSession } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -54,22 +54,23 @@ function LoginContent() {
 
   useEffect(() => {
     if (reason === "admin_required") {
-      setAccessError("Only Tuwaga admins can access this workspace.");
+      setAccessError(
+        "Only Tuwaga organizers and admins can access this workspace.",
+      );
     }
   }, [reason]);
 
   useEffect(() => {
     if (isPending || !session) return;
 
-    if (session.user.role !== "admin") {
-      setAccessError("Only Tuwaga admins can access this workspace.");
-      signOut().catch(() => {});
+    const isAllowed =
+      session.user.role === "admin" || session.user.role === "panitia";
+    if (!isAllowed) {
+      window.location.href = "/403";
       return;
     }
 
-    if (session.user.role === "admin") {
-      window.location.href = safeCallbackPath;
-    }
+    window.location.href = safeCallbackPath;
   }, [isPending, safeCallbackPath, session]);
 
   const handleSignIn = async () => {
