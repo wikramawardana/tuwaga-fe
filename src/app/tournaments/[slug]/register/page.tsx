@@ -222,7 +222,16 @@ export default function TournamentRegisterPage() {
           skillLevel: divisionLevel,
         },
       });
-      setMessage(`Registration saved: ${response.registration.id}`);
+      const params = new URLSearchParams({
+        registrationId: response.registration.id,
+        tournamentName: tournament.name,
+        category: selectedCategory,
+        player: player.fullName.trim(),
+        partner: partner.fullName.trim(),
+        venue: tournament.venue,
+        date: tournament.dateLabel,
+      });
+      window.location.href = `/register/success?${params.toString()}`;
     } catch (err) {
       setMessage(
         err instanceof Error ? err.message : "Failed to submit registration.",

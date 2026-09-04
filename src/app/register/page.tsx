@@ -293,9 +293,16 @@ function RegisterPageContent() {
         },
         partner: partnerInput,
       });
-      setMessage(`Registration saved: ${response.registration.id}`);
-      form.reset();
-      setAgreed(false);
+      const params = new URLSearchParams({
+        registrationId: response.registration.id,
+        tournamentName: tournament.name,
+        category: selectedCategory,
+        player: field("full-name"),
+        partner: partnerInput?.fullName || "",
+        venue: tournament.venue,
+        date: tournament.dateLabel,
+      });
+      window.location.href = `/register/success?${params.toString()}`;
     } catch (err) {
       setMessage(
         err instanceof Error ? err.message : "Failed to submit registration.",
