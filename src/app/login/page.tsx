@@ -64,7 +64,9 @@ function LoginContent() {
     if (isPending || !session) return;
 
     const isAllowed =
-      session.user.role === "admin" || session.user.role === "panitia";
+      session.user.role === "admin" ||
+      session.user.role === "organizer" ||
+      session.user.role === "panitia";
     if (!isAllowed) {
       window.location.href = "/403";
       return;

@@ -35,7 +35,8 @@ export default function AdminLayout({
   }
 
   const role = session?.user?.role;
-  const isAllowed = role === "admin" || role === "panitia";
+  const isAllowed =
+    role === "admin" || role === "organizer" || role === "panitia";
 
   if (!session || !isAllowed) {
     return (
@@ -51,14 +52,14 @@ export default function AdminLayout({
           </div>
 
           <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-            Khusus Panitia & Admin Turnamen
+            Khusus Panitia (Organizer) & Admin
           </h1>
 
           <p className="mt-3 text-base leading-relaxed text-slate-600">
             Halaman ini khusus untuk manajemen turnamen dan hanya dapat diakses
             oleh akun dengan peran{" "}
             <strong className="text-slate-950 underline decoration-amber-400 decoration-4">
-              Panitia Turnamen
+              Organizer / Panitia Turnamen
             </strong>{" "}
             atau{" "}
             <strong className="text-slate-950 underline decoration-blue-400 decoration-4">

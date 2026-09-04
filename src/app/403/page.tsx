@@ -28,14 +28,14 @@ export default function ForbiddenPage() {
         </div>
 
         <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-          Akses Khusus Panitia & Admin
+          Akses Khusus Organizer & Admin
         </h1>
 
         <p className="mt-3 text-base leading-relaxed text-slate-600">
           Halaman Command Center turnamen hanya dapat diakses oleh akun dengan
           peran{" "}
           <strong className="text-slate-950 underline decoration-amber-400 decoration-4">
-            Panitia Turnamen
+            Organizer (Panitia Turnamen)
           </strong>{" "}
           atau{" "}
           <strong className="text-slate-950 underline decoration-blue-400 decoration-4">

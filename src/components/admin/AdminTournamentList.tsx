@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { AdminTournament } from "@/lib/adminTournaments";
+import { useSession } from "@/lib/auth-client";
 import {
   deleteTournament,
   listTournaments,
@@ -158,6 +159,7 @@ function TournamentCard({
 }
 
 export default function AdminTournamentList() {
+  const { data: session } = useSession();
   const [tournaments, setTournaments] = useState<AdminTournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -223,13 +225,24 @@ export default function AdminTournamentList() {
             Resume operations or start a new tournament from a guided setup.
           </p>
         </div>
-        <Link
-          href="/admin/tournaments/new"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
-        >
-          <span className="material-symbols-outlined text-lg">add</span>
-          New tournament
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          {session?.user?.role === "admin" && (
+            <Link
+              href="/admin/users"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-black bg-amber-300 px-5 text-sm font-black uppercase text-slate-900 shadow-[2px_2px_0_#000] hover:bg-amber-400"
+            >
+              <span className="material-symbols-outlined text-lg">group</span>
+              Crew & Roles
+            </Link>
+          )}
+          <Link
+            href="/admin/tournaments/new"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
+          >
+            <span className="material-symbols-outlined text-lg">add</span>
+            New tournament
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">

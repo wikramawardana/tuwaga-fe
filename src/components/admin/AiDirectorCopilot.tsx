@@ -13,8 +13,6 @@ import {
   updateSettings,
 } from "@/lib/tuwagaApi";
 
-const BOT_ALLOWED_EMAIL = "wikrama.dev@gmail.com";
-
 interface AiDirectorCopilotProps {
   tournament?: Tournament | null;
   onSettingsUpdated?: () => void;
@@ -25,7 +23,7 @@ export default function AiDirectorCopilot({
   onSettingsUpdated,
 }: AiDirectorCopilotProps) {
   const { data: session } = useSession();
-  const userEmail = session?.user?.email?.toLowerCase();
+  const isAdmin = session?.user?.role === "admin";
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -123,8 +121,8 @@ export default function AiDirectorCopilot({
     }
   }
 
-  // Only wikrama.dev@gmail.com can see and access the Hermes Director Bot
-  if (userEmail !== BOT_ALLOWED_EMAIL) {
+  // Only users with role "admin" can see and access the Hermes Director Bot
+  if (!isAdmin) {
     return null;
   }
 
