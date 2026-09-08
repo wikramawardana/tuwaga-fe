@@ -36,7 +36,7 @@ export default function Navbar({
 
   return (
     <header
-      className={`${sticky ? "sticky" : "fixed"} top-0 z-50 w-full border-b border-[#E6E3DA] bg-[#FAF9F6]/90 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] backdrop-blur-md`}
+      className={`${sticky ? "sticky" : "fixed"} top-0 z-50 w-full border-b border-outline-variant/20 bg-white/85 shadow-[0px_4px_20px_rgba(0,0,0,0.03)] backdrop-blur-xl`}
     >
       <nav className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-4 md:px-10">
         <Link
@@ -55,10 +55,10 @@ export default function Navbar({
         <div className="flex min-w-0 items-center gap-2">
           <Link
             href="/"
-            className={`hidden h-9 items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors sm:inline-flex ${
+            className={`hidden h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors sm:inline-flex ${
               active === "home"
-                ? "bg-[#0C0D11] text-[#F5EEDB]"
-                : "text-neutral-700 hover:bg-neutral-100/70"
+                ? "bg-primary/8 text-primary"
+                : "text-on-surface hover:bg-surface-container-low"
             }`}
           >
             Home
@@ -66,15 +66,15 @@ export default function Navbar({
           {actions.map((action) => {
             const className =
               action.variant === "primary"
-                ? "bg-[#0C0D11] text-[#F5EEDB] hover:bg-neutral-800"
-                : "border border-[#E6E3DA] bg-white text-neutral-800 hover:bg-neutral-50 shadow-xs";
+                ? "bg-primary text-on-primary hover:bg-primary/90"
+                : "text-on-surface hover:bg-surface-container-low";
 
             if (action.href) {
               return (
                 <Link
                   key={action.label}
                   href={action.href}
-                  className={`inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors ${className}`}
+                  className={`inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors ${className}`}
                 >
                   {action.label}
                 </Link>
@@ -85,7 +85,7 @@ export default function Navbar({
               <button
                 key={action.label}
                 type="button"
-                className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors ${className}`}
+                className={`inline-flex h-10 cursor-pointer items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors ${className}`}
               >
                 {action.label}
               </button>
@@ -96,7 +96,7 @@ export default function Navbar({
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#E6E3DA] bg-white px-3 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 hover:border-rose-200 disabled:cursor-wait disabled:opacity-70 sm:px-3.5"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-wait disabled:opacity-70"
             >
               <span className="material-symbols-outlined text-lg">logout</span>
               <span className="hidden sm:inline">

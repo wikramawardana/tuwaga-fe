@@ -979,8 +979,10 @@ export default function TournamentControlRoom({
   return (
     <>
       <Navbar active="admin" />
-      <main className="min-h-screen bg-[#FAF9F6] pt-16 text-[#0C0D11]">
-        <section className="relative overflow-hidden border-b border-[#E6E3DA] bg-[#0C0D11] text-white">
+      <main className="min-h-screen bg-[#f6f8fc] pt-16 text-on-surface">
+        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
+          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
           <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
             <PageBreadcrumb
               parentLabel="Admin"
@@ -990,7 +992,7 @@ export default function TournamentControlRoom({
             <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]">
+                  <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
                     Tournament control room
                   </span>
                   <span
@@ -1002,10 +1004,10 @@ export default function TournamentControlRoom({
                     {settings.status}
                   </span>
                 </div>
-                <h1 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl lg:text-5xl">
                   {tournament?.name ?? "Loading tournament"}
                 </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-300 sm:text-base">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-blue-100/70 sm:text-base">
                   {tournament?.venue || "Venue not set"} ·{" "}
                   {tournament?.dateLabel || "Date not set"}. Run the full
                   tournament from one calm, shared operations surface.
@@ -2391,10 +2393,10 @@ export default function TournamentControlRoom({
                       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                           <div>
-                            <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+                            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
                               Order of Play
                             </span>
-                            <h3 className="mt-4 text-2xl font-bold text-[#0C0D11]">
+                            <h3 className="mt-4 text-2xl font-black text-slate-950">
                               {oopPlan.title}
                             </h3>
                             <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
@@ -2403,16 +2405,16 @@ export default function TournamentControlRoom({
                               state.
                             </p>
                           </div>
-                          <div className="flex items-center self-start rounded-xl border border-[#e6e3da] bg-[#faf9f6] p-1">
+                          <div className="flex items-center self-start rounded-xl border border-slate-200 bg-slate-100 p-1">
                             <button
                               type="button"
                               aria-pressed={oopCompact}
                               onClick={() => setOopCompact(true)}
                               className={cx(
-                                "h-8 rounded-lg px-3 text-xs font-semibold uppercase tracking-wider transition",
+                                "h-8 rounded-lg px-3 text-xs font-bold uppercase tracking-wider transition",
                                 oopCompact
-                                  ? "bg-[#0c0d11] text-[#f5eedb]"
-                                  : "text-slate-600 hover:bg-white",
+                                  ? "bg-white text-blue-600 shadow-sm"
+                                  : "text-slate-600 hover:text-slate-950",
                               )}
                             >
                               Compact
@@ -2422,10 +2424,10 @@ export default function TournamentControlRoom({
                               aria-pressed={!oopCompact}
                               onClick={() => setOopCompact(false)}
                               className={cx(
-                                "h-8 rounded-lg px-3 text-xs font-semibold uppercase tracking-wider transition",
+                                "h-8 rounded-lg px-3 text-xs font-bold uppercase tracking-wider transition",
                                 !oopCompact
-                                  ? "bg-[#0c0d11] text-[#f5eedb]"
-                                  : "text-slate-600 hover:bg-white",
+                                  ? "bg-white text-blue-600 shadow-sm"
+                                  : "text-slate-600 hover:text-slate-950",
                               )}
                             >
                               Detailed
@@ -2433,7 +2435,7 @@ export default function TournamentControlRoom({
                           </div>
                         </div>
 
-                        <div className="mt-6 border-y border-[#e6e3da] bg-[#faf9f6] px-2 py-3">
+                        <div className="mt-6 border-y border-slate-200 bg-slate-50/50 px-2 py-3">
                           <div
                             className="flex gap-3 overflow-x-auto pb-1"
                             role="tablist"
@@ -2455,8 +2457,8 @@ export default function TournamentControlRoom({
                                   className={cx(
                                     "min-w-[170px] shrink-0 rounded-xl px-4 py-3 text-left border transition",
                                     selected
-                                      ? "border-[#0c0d11] bg-[#0c0d11] text-[#f5eedb]"
-                                      : "border-[#e6e3da] bg-white text-slate-800 hover:bg-slate-50",
+                                      ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200"
+                                      : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50",
                                   )}
                                 >
                                   <span className="block text-[10px] font-black uppercase tracking-[0.16em] opacity-70">
@@ -2478,15 +2480,15 @@ export default function TournamentControlRoom({
                           </div>
                         </div>
 
-                        <div className="mt-5 overflow-hidden rounded-2xl border border-[#e6e3da]">
-                          <div className="flex flex-wrap items-center gap-3 border-b border-[#e6e3da] bg-[#0c0d11] px-4 py-3 text-white">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-[#f5eedb]">
+                        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
+                          <div className="flex flex-wrap items-center gap-3 border-b border-blue-950/20 bg-[#071c4d] px-4 py-3 text-white">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-blue-200">
                               <span className="material-symbols-outlined text-base">
                                 schedule
                               </span>
                             </span>
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#f5eedb]/70">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200/70">
                                 Now viewing
                               </p>
                               <p className="text-sm font-bold uppercase tracking-wide text-white">
@@ -2513,7 +2515,7 @@ export default function TournamentControlRoom({
                                 minWidth: `${String(64 + oopPlan.courts * (oopCompact ? 138 : 210))}px`,
                               }}
                             >
-                              <div className="sticky left-0 z-20 flex items-center justify-center border-b border-[#e6e3da] bg-[#faf9f6] px-2 py-3 text-[10px] font-bold uppercase text-slate-700">
+                              <div className="sticky left-0 z-20 flex items-center justify-center border-b border-slate-200 bg-slate-50 px-2 py-3 text-[10px] font-bold uppercase text-slate-700">
                                 Run
                               </div>
                               {Array.from(
@@ -2522,7 +2524,7 @@ export default function TournamentControlRoom({
                               ).map((court) => (
                                 <div
                                   key={court}
-                                  className="border-b border-l border-[#e6e3da] bg-[#faf9f6] px-2 py-3 text-center text-[11px] font-bold uppercase text-slate-800"
+                                  className="border-b border-l border-slate-200 bg-slate-50 px-2 py-3 text-center text-[11px] font-bold uppercase text-slate-800"
                                 >
                                   Court {court}
                                 </div>
@@ -2534,12 +2536,12 @@ export default function TournamentControlRoom({
                                 if (firstEntry?.kind === "event") {
                                   return (
                                     <Fragment key={slot.number}>
-                                      <div className="sticky left-0 z-10 flex items-center justify-center border-t border-[#e6e3da] bg-[#faf9f6] text-xs font-bold text-slate-700">
+                                      <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
                                         {String(slot.number).padStart(2, "0")}
                                       </div>
                                       <div
                                         style={{ gridColumn: "2 / -1" }}
-                                        className="flex items-center justify-center gap-2 border-l border-t border-[#e6e3da] bg-[#f5eedb]/60 px-4 py-4 text-xs font-bold uppercase tracking-wider text-[#0c0d11]"
+                                        className="flex items-center justify-center gap-2 border-l border-t border-slate-200 bg-blue-50/80 px-4 py-4 text-xs font-bold uppercase tracking-wider text-blue-900"
                                       >
                                         <span className="material-symbols-outlined text-base">
                                           campaign
@@ -2552,21 +2554,21 @@ export default function TournamentControlRoom({
 
                                 return (
                                   <Fragment key={slot.number}>
-                                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-[#e6e3da] bg-[#faf9f6] text-xs font-bold text-slate-700">
+                                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
                                       {String(slot.number).padStart(2, "0")}
                                     </div>
                                     {slot.courts.map((entry, courtIndex) => (
                                       <div
                                         key={`${slot.number}-${courtIndex}`}
                                         className={cx(
-                                          "border-l border-t border-[#e6e3da] bg-white p-2",
+                                          "border-l border-t border-slate-200 bg-white p-2",
                                           oopCompact ? "min-h-20" : "min-h-32",
                                         )}
                                       >
                                         {entry?.kind === "match" ? (
                                           <div
                                             className={cx(
-                                              "h-full rounded-xl border border-[#e6e3da] p-2 bg-[#faf9f6]",
+                                              "h-full rounded-xl border border-slate-200 p-2 bg-slate-50/70",
                                               oopCategoryClasses(
                                                 entry.category,
                                               ),
@@ -2574,7 +2576,7 @@ export default function TournamentControlRoom({
                                           >
                                             <div className="flex items-start justify-between gap-2">
                                               <div className="min-w-0">
-                                                <p className="truncate text-[11px] font-bold text-[#0c0d11]">
+                                                <p className="truncate text-[11px] font-bold text-slate-900">
                                                   {entry.matchLabel}
                                                 </p>
                                                 <p className="mt-0.5 truncate text-[9px] font-semibold uppercase text-slate-500">
@@ -2596,7 +2598,7 @@ export default function TournamentControlRoom({
                                                     key={id}
                                                     href={`/admin/tournaments/${tournamentId}/matches/${id}`}
                                                     target="_blank"
-                                                    className="block rounded-lg border border-[#e6e3da] bg-white px-2 py-1.5 text-[10px] font-semibold text-[#0c0d11] transition hover:bg-slate-50"
+                                                    className="block rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:bg-slate-50"
                                                   >
                                                     <span className="flex items-center gap-1.5">
                                                       <span
@@ -2756,10 +2758,10 @@ export default function TournamentControlRoom({
 
                   <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+                      <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
                         Match control
                       </span>
-                      <h3 className="mt-4 text-2xl font-bold text-[#0C0D11]">
+                      <h3 className="mt-4 text-2xl font-black text-slate-950">
                         Find and operate a match
                       </h3>
                       <p className="mt-1 text-sm text-slate-500">
@@ -2767,7 +2769,7 @@ export default function TournamentControlRoom({
                         sequence.
                       </p>
                     </div>
-                    <span className="self-start rounded-full border border-[#e6e3da] bg-[#faf9f6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 sm:self-auto">
+                    <span className="self-start rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:self-auto">
                       {filteredMatches.length} visible
                     </span>
                   </div>

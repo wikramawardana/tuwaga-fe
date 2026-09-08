@@ -27,10 +27,10 @@ function SetScoreRow({
       {sets.map((set) => (
         <span
           key={`${set.teamA}-${set.teamB}`}
-          className={`inline-flex h-7 min-w-10 items-center justify-center rounded-md border px-2 text-xs font-bold tabular-nums ${
+          className={`inline-flex h-7 min-w-10 items-center justify-center rounded-md px-2 text-xs font-bold tabular-nums ${
             set[teamIndex] > set[teamIndex === "teamA" ? "teamB" : "teamA"]
-              ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-              : "border-[#e6e3da] bg-white text-slate-600"
+              ? "bg-secondary/10 text-secondary"
+              : "bg-surface-container text-on-surface-variant"
           }`}
         >
           {set[teamIndex]}-{set[teamIndex === "teamA" ? "teamB" : "teamA"]}
@@ -54,7 +54,7 @@ export default function ScoreCard({
   const sets = scoreSets ?? [];
 
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-[#e6e3da] bg-white p-4 shadow-sm sm:p-6">
+    <article className="relative overflow-hidden rounded-xl border border-outline-variant/30 bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:p-6">
       {isLive && (
         <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-amber-300 to-rose-500" />
       )}
@@ -107,22 +107,22 @@ export default function ScoreCard({
       {/* Pair details with set scores */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {/* Team A */}
-        <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3">
-          <p className="break-words text-base font-bold text-[#0c0d11]">
+        <div className="rounded-lg bg-surface-container-low p-3">
+          <p className="break-words text-base font-extrabold text-on-surface sm:text-lg">
             {teamA.player1}
           </p>
-          <p className="mt-0.5 break-words text-xs font-medium text-slate-500">
+          <p className="mt-0.5 break-words text-sm text-on-surface-variant">
             {teamA.player2}
           </p>
           <SetScoreRow sets={sets} teamIndex="teamA" />
         </div>
 
         {/* Team B */}
-        <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3">
-          <p className="break-words text-base font-bold text-[#0c0d11]">
+        <div className="rounded-lg bg-surface-container-low p-3">
+          <p className="break-words text-base font-extrabold text-on-surface sm:text-lg">
             {teamB.player1}
           </p>
-          <p className="mt-0.5 break-words text-xs font-medium text-slate-500">
+          <p className="mt-0.5 break-words text-sm text-on-surface-variant">
             {teamB.player2}
           </p>
           <SetScoreRow sets={sets} teamIndex="teamB" />

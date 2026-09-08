@@ -132,7 +132,7 @@ export default function AiDirectorCopilot({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl border border-[#0c0d11] bg-[#0c0d11] px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] shadow-xl transition-all hover:bg-black active:scale-95"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-blue-500/25 transition-all hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95"
       >
         <span className="material-symbols-outlined text-lg">smart_toy</span>
         <span>Hermes Director</span>
@@ -141,18 +141,18 @@ export default function AiDirectorCopilot({
       {/* Slide-over Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs transition-opacity">
-          <div className="flex h-full w-full max-w-lg flex-col border-l border-[#e6e3da] bg-[#faf9f6] shadow-2xl">
+          <div className="flex h-full w-full max-w-lg flex-col border-l border-slate-200 bg-slate-50 shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 bg-[#0c0d11] px-5 py-4 text-white">
+            <div className="flex items-center justify-between border-b border-blue-900/20 bg-[#071c4d] px-5 py-4 text-white">
               <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-xl text-[#f5eedb]">
+                <span className="material-symbols-outlined text-xl text-blue-300">
                   smart_toy
                 </span>
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-wide text-white">
                     Tournament Director AI
                   </h2>
-                  <p className="text-[11px] font-medium text-white/70">
+                  <p className="text-[11px] font-medium text-blue-200/70">
                     Self-Hosted Hermes Agent & Bracket Solver
                   </p>
                 </div>
@@ -169,7 +169,7 @@ export default function AiDirectorCopilot({
             </div>
 
             {/* Quick Prompt Chips */}
-            <div className="flex gap-2 overflow-x-auto border-b border-[#e6e3da] bg-white p-3 text-xs scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto border-b border-slate-200 bg-white p-3 text-xs scrollbar-none">
               <button
                 type="button"
                 onClick={() =>
@@ -177,7 +177,7 @@ export default function AiDirectorCopilot({
                     "I have 70 players, separate into 2 categories, knockout phase, take 1st, 2nd, and 3rd champion in each",
                   )
                 }
-                className="shrink-0 rounded-lg border border-[#e6e3da] bg-[#faf9f6] px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
               >
                 🏆 70 Players / 2 Categories / 1st-3rd
               </button>
@@ -188,7 +188,7 @@ export default function AiDirectorCopilot({
                     "Set up Badminton tournament with BWF 21-point rally rules and deuce cap at 30",
                   )
                 }
-                className="shrink-0 rounded-lg border border-[#e6e3da] bg-[#faf9f6] px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
               >
                 🏸 Badminton BWF Rules
               </button>
@@ -199,7 +199,7 @@ export default function AiDirectorCopilot({
                     "Set up Padel tournament: 16 pairs, Golden Point at 40-40, tiebreak to 7",
                   )
                 }
-                className="shrink-0 rounded-lg border border-[#e6e3da] bg-[#faf9f6] px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
               >
                 🎾 Padel Golden Point
               </button>
@@ -217,8 +217,8 @@ export default function AiDirectorCopilot({
                     <div
                       className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                         isUser
-                          ? "border border-[#0c0d11] bg-[#0c0d11] font-medium text-[#f5eedb]"
-                          : "border border-[#e6e3da] bg-white text-slate-800 shadow-sm"
+                          ? "bg-blue-600 font-medium text-white shadow-sm"
+                          : "border border-slate-200 bg-white text-slate-800 shadow-sm"
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -238,35 +238,35 @@ export default function AiDirectorCopilot({
 
               {/* Proposed Action Card */}
               {latestAction?.settings && (
-                <div className="rounded-2xl border border-[#e6e3da] bg-white p-4 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#0c0d11]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
                       ⚡ Action Proposal
                     </span>
-                    <span className="rounded-md border border-[#e6e3da] bg-[#faf9f6] px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
+                    <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-800">
                       {latestAction.settings.sport || "Sport"}
                     </span>
                   </div>
 
                   {latestAction.settings.plan && (
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-medium">
-                      <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
                         <div className="text-[10px] uppercase text-slate-400">
                           Bracket Size
                         </div>
-                        <div className="text-sm font-bold text-[#0c0d11]">
+                        <div className="text-sm font-bold text-slate-900">
                           {latestAction.settings.plan.bracket_size}-Draw
                         </div>
                       </div>
-                      <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
                         <div className="text-[10px] uppercase text-slate-400">
                           Byes Assigned
                         </div>
-                        <div className="text-sm font-bold text-[#0c0d11]">
+                        <div className="text-sm font-bold text-slate-900">
                           {latestAction.settings.plan.byes_count} Byes
                         </div>
                       </div>
-                      <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
                         <div className="text-[10px] uppercase text-slate-400">
                           Bronze Match
                         </div>
@@ -276,11 +276,11 @@ export default function AiDirectorCopilot({
                             : "None"}
                         </div>
                       </div>
-                      <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
                         <div className="text-[10px] uppercase text-slate-400">
                           Total Matches
                         </div>
-                        <div className="text-sm font-bold text-[#0c0d11]">
+                        <div className="text-sm font-bold text-slate-900">
                           {latestAction.settings.plan.total_tournament_matches}
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function AiDirectorCopilot({
                     type="button"
                     disabled={applying}
                     onClick={handleApplyAction}
-                    className="mt-3 w-full rounded-xl border border-[#0c0d11] bg-[#0c0d11] py-2.5 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black disabled:opacity-50 active:scale-95"
+                    className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-50 active:scale-95"
                   >
                     {applying
                       ? tournament?.id
@@ -312,7 +312,7 @@ export default function AiDirectorCopilot({
             </div>
 
             {/* Input Footer */}
-            <div className="border-t border-[#e6e3da] bg-white p-3">
+            <div className="border-t border-slate-200 bg-white p-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -325,12 +325,12 @@ export default function AiDirectorCopilot({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask Hermes: e.g. 70 players, 2 categories..."
-                  className="flex-1 rounded-xl border border-[#e6e3da] bg-[#faf9f6] px-3.5 py-2 text-xs font-medium text-slate-900 outline-none focus:border-[#0c0d11]"
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-medium text-slate-900 outline-none focus:border-blue-600"
                 />
                 <button
                   type="submit"
                   disabled={loading || !input.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#0c0d11] bg-[#0c0d11] text-[#f5eedb] transition hover:bg-black disabled:opacity-40"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-40"
                 >
                   <span className="material-symbols-outlined text-base">
                     send

@@ -69,29 +69,29 @@ export default function TournamentBracketPage() {
 
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
               Tournament bracket
             </p>
-            <h1 className="mt-2 text-3xl font-extrabold text-[#0C0D11] md:text-4xl">
+            <h1 className="mt-2 text-3xl font-extrabold text-on-surface md:text-4xl">
               {tournament?.name ?? "Loading tournament"}
             </h1>
-            <p className="mt-2 text-sm text-[#5A5751]">
+            <p className="mt-2 text-sm text-on-surface-variant">
               {tournament
                 ? `${tournament.venue} · ${tournament.dateLabel}`
                 : "Reading standings and bracket from the backend."}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
-            <div className="inline-flex rounded-lg border border-[#E6E3DA] bg-[#FAF9F6] p-1">
+            <div className="inline-flex rounded-lg bg-surface-container-low p-1">
               {(["groups", "bracket"] as const).map((view) => (
                 <button
                   key={view}
                   type="button"
                   onClick={() => setActiveView(view)}
-                  className={`h-9 rounded-md px-4 text-sm font-semibold capitalize transition-colors ${
+                  className={`h-10 rounded-md px-4 text-sm font-bold capitalize transition-colors ${
                     activeView === view
-                      ? "bg-[#0C0D11] text-[#F5EEDB] shadow-xs"
-                      : "text-[#5A5751] hover:text-[#0C0D11]"
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-on-surface-variant hover:bg-white hover:text-primary"
                   }`}
                 >
                   {view}
@@ -102,7 +102,7 @@ export default function TournamentBracketPage() {
               <Link
                 href={`/tournaments/${tournament.slug}/display`}
                 target="_blank"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-4 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-[#FAF9F6]"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant/30 bg-white px-4 text-sm font-bold text-on-surface shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-colors hover:bg-surface-container-low"
               >
                 <span className="material-symbols-outlined text-lg">tv</span>
                 Open TV display
@@ -127,10 +127,10 @@ export default function TournamentBracketPage() {
               {standings?.groups.map((group) => (
                 <article
                   key={group.group}
-                  className="overflow-hidden rounded-2xl border border-[#e6e3da] bg-white shadow-sm"
+                  className="rounded-lg border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
                 >
-                  <div className="border-b border-[#e6e3da] bg-[#faf9f6] px-5 py-4">
-                    <h2 className="text-base font-bold text-[#0c0d11]">
+                  <div className="border-b border-outline-variant/20 px-5 py-4">
+                    <h2 className="text-lg font-extrabold text-on-surface">
                       {group.group.includes(" · ")
                         ? group.group
                         : `Group ${group.group}`}
@@ -227,16 +227,16 @@ export default function TournamentBracketPage() {
               {bracket?.rounds.map((round) => (
                 <article
                   key={round.name}
-                  className="rounded-2xl border border-[#e6e3da] bg-white p-5 shadow-sm"
+                  className="rounded-lg border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
                 >
-                  <h2 className="text-base font-bold text-[#0c0d11]">
+                  <h2 className="text-lg font-extrabold text-on-surface">
                     {round.name}
                   </h2>
                   <div className="mt-4 space-y-3">
                     {round.matches.map((match) => (
                       <div
                         key={match.id}
-                        className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-4"
+                        className="rounded-lg bg-surface-container-low p-4"
                       >
                         <p className="text-xs font-bold uppercase tracking-wider text-primary">
                           {match.label}

@@ -149,24 +149,24 @@ export default function AdminUsersPage() {
     return (
       <>
         <Navbar active="admin" />
-        <main className="min-h-screen pt-24 px-6 bg-[#FAF9F6]">
-          <div className="mx-auto max-w-xl rounded-2xl border border-[#E6E3DA] bg-white p-8 shadow-xs">
+        <main className="min-h-screen bg-[#f6f8fc] px-6 pt-24">
+          <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-4xl text-rose-500">
                 admin_panel_settings
               </span>
-              <h1 className="text-2xl font-bold tracking-tight text-[#0C0D11]">
+              <h1 className="text-2xl font-black tracking-tight text-slate-950">
                 Khusus Super Administrator
               </h1>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-[#5A5751]">
+            <p className="mt-4 text-sm leading-relaxed text-slate-600">
               Halaman penetapan hak akses kru dan admin hanya dapat dibuka oleh
               akun dengan role <strong>Admin</strong>.
             </p>
             <div className="mt-6">
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#0C0D11] px-5 text-sm font-semibold text-[#F5EEDB] shadow-xs hover:bg-neutral-800 transition-colors"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
               >
                 Kembali ke Dashboard Turnamen
               </Link>
@@ -182,18 +182,20 @@ export default function AdminUsersPage() {
     <>
       <Navbar active="admin" />
 
-      <main className="min-h-screen pt-16 bg-[#FAF9F6]">
-        <section className="relative overflow-hidden border-b border-[#E6E3DA] bg-[#0C0D11] text-white">
+      <main className="min-h-screen bg-[#f6f8fc] pt-16">
+        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
+          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
           <div className="relative mx-auto max-w-[1400px] px-6 py-12 md:px-10 md:py-14">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB] backdrop-blur-xs">
+                <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
                   Admin Ops · Crew & Roles
                 </span>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-5xl">
+                <h1 className="mt-4 text-3xl font-black tracking-[-0.035em] text-white sm:text-5xl">
                   Manajemen Peran & Kru Turnamen
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-300 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-blue-100/70 sm:text-base">
                   Atur hak akses operasional. <strong>Admin</strong> memiliki
                   kendali penuh termasuk asisten AI Hermes.{" "}
                   <strong>Organizer (Panitia)</strong> dapat mengelola turnamen,
@@ -204,7 +206,7 @@ export default function AdminUsersPage() {
 
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-white/10 hover:border-white/30"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white shadow-sm backdrop-blur transition hover:bg-white/15"
               >
                 <span className="material-symbols-outlined text-lg">
                   arrow_back
@@ -217,7 +219,7 @@ export default function AdminUsersPage() {
 
         <div className="mx-auto max-w-[1400px] px-4 py-8 md:px-10">
           {/* Quick Assign Form */}
-          <div className="mb-8 rounded-xl border border-[#e6e3da] bg-white p-6 shadow-xs">
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-2xl text-slate-800">
                 person_add
@@ -241,7 +243,7 @@ export default function AdminUsersPage() {
                 value={assignEmail}
                 onChange={(e) => setAssignEmail(e.target.value)}
                 required
-                className="h-11 min-w-[280px] flex-1 rounded-lg border border-[#e6e3da] px-4 text-sm font-medium focus:border-[#111318] focus:outline-none"
+                className="h-11 min-w-[280px] flex-1 rounded-xl border border-slate-200 px-4 text-sm font-medium focus:border-blue-600 focus:outline-none"
               />
 
               <select
@@ -251,7 +253,7 @@ export default function AdminUsersPage() {
                     e.target.value as "organizer" | "admin" | "user",
                   )
                 }
-                className="h-11 rounded-lg border border-[#e6e3da] bg-white px-3 text-xs font-semibold focus:border-[#111318] focus:outline-none"
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold focus:border-blue-600 focus:outline-none"
               >
                 <option value="organizer">Organizer (Panitia)</option>
                 <option value="admin">Admin (Full + Hermes AI)</option>
@@ -261,7 +263,7 @@ export default function AdminUsersPage() {
               <button
                 type="submit"
                 disabled={assigning}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#111318] px-6 text-xs font-bold uppercase tracking-wider text-[#f5eedb] hover:bg-neutral-800 disabled:opacity-50 transition"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-blue-200 hover:bg-blue-700 disabled:opacity-50 transition"
               >
                 {assigning ? "Menyimpan…" : "Tetapkan Peran"}
               </button>
@@ -269,7 +271,7 @@ export default function AdminUsersPage() {
 
             {assignMessage && (
               <div
-                className={`mt-4 rounded-lg border p-3 text-xs font-semibold ${
+                className={`mt-4 rounded-xl border p-3 text-xs font-semibold ${
                   assignMessage.type === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                     : "border-rose-200 bg-rose-50 text-rose-900"
@@ -295,10 +297,10 @@ export default function AdminUsersPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedFilter(tab.id)}
-                  className={`rounded-lg border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
+                  className={`rounded-xl border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
                     selectedFilter === tab.id
-                      ? "border-[#111318] bg-[#111318] text-[#f5eedb]"
-                      : "border-[#e6e3da] bg-white text-slate-700 hover:bg-slate-50"
+                      ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {tab.label}
@@ -312,7 +314,7 @@ export default function AdminUsersPage() {
                 placeholder="Cari email atau nama..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-10 w-full rounded-lg border border-[#e6e3da] bg-white pl-9 pr-4 text-xs font-medium focus:border-[#111318] focus:outline-none"
+                className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 text-xs font-medium focus:border-blue-600 focus:outline-none"
               />
               <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-base text-slate-400">
                 search
@@ -322,8 +324,8 @@ export default function AdminUsersPage() {
 
           {/* Users Table */}
           {loading ? (
-            <div className="rounded-xl border border-[#e6e3da] bg-white p-12 text-center shadow-xs">
-              <span className="material-symbols-outlined admin-spin text-4xl text-slate-700">
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+              <span className="material-symbols-outlined admin-spin text-4xl text-blue-600">
                 progress_activity
               </span>
               <p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -331,7 +333,7 @@ export default function AdminUsersPage() {
               </p>
             </div>
           ) : error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-rose-900 shadow-xs">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-900 shadow-sm">
               <p className="font-semibold">{error}</p>
               <button
                 type="button"
@@ -342,23 +344,23 @@ export default function AdminUsersPage() {
               </button>
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="rounded-xl border border-[#e6e3da] bg-white p-12 text-center shadow-xs">
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
               <p className="text-sm font-medium text-slate-500">
                 Tidak ada pengguna yang cocok dengan pencarian.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-[#e6e3da] bg-white shadow-xs">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-[#e6e3da] bg-[#faf9f6] text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     <th className="px-5 py-4">Pengguna</th>
                     <th className="px-5 py-4">Email</th>
                     <th className="px-5 py-4">Peran Saat Ini</th>
                     <th className="px-5 py-4 text-right">Ubah Hak Akses</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e6e3da]">
+                <tbody className="divide-y divide-slate-200">
                   {filteredUsers.map((user) => {
                     const currentRole = (user.role || "user").toLowerCase();
                     const isUpdating = updatingId === user.id;
@@ -376,10 +378,10 @@ export default function AdminUsersPage() {
                                 alt={user.name || user.email}
                                 width={36}
                                 height={36}
-                                className="h-9 w-9 rounded-full border border-[#e6e3da] object-cover"
+                                className="h-9 w-9 rounded-full border border-slate-200 object-cover"
                               />
                             ) : (
-                              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e6e3da] bg-[#faf9f6] text-xs font-bold text-slate-800">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xs font-bold text-slate-800">
                                 {(user.name || user.email)[0].toUpperCase()}
                               </div>
                             )}
@@ -430,7 +432,7 @@ export default function AdminUsersPage() {
                                 onClick={() =>
                                   handleUpdateRole(user.id, "admin")
                                 }
-                                className="rounded-lg border border-[#e6e3da] bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-slate-800 hover:border-amber-400 hover:bg-amber-50 disabled:opacity-50 transition"
+                                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-slate-800 hover:border-amber-400 hover:bg-amber-50 disabled:opacity-50 transition"
                                 title="Beri akses Admin dan Hermes AI"
                               >
                                 Set Admin
@@ -445,7 +447,7 @@ export default function AdminUsersPage() {
                                   onClick={() =>
                                     handleUpdateRole(user.id, "organizer")
                                   }
-                                  className="rounded-lg border border-[#e6e3da] bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-slate-800 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 transition"
+                                  className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-slate-800 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 transition"
                                   title="Beri akses operasional turnamen"
                                 >
                                   Set Organizer
@@ -459,7 +461,7 @@ export default function AdminUsersPage() {
                                 onClick={() =>
                                   handleUpdateRole(user.id, "user")
                                 }
-                                className="rounded-lg border border-[#e6e3da] bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-rose-600 hover:border-rose-300 hover:bg-rose-50 disabled:opacity-50 transition"
+                                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-rose-600 hover:border-rose-300 hover:bg-rose-50 disabled:opacity-50 transition"
                                 title="Cabut akses operasional (jadikan user biasa)"
                               >
                                 Cabut Akses

@@ -90,14 +90,14 @@ function EmptyDisplay({
 }) {
   return (
     <div className="display-scene-enter flex min-h-[55vh] items-center justify-center">
-      <div className="max-w-xl rounded-2xl border border-[#E6E3DA] bg-white p-8 text-center shadow-xs">
-        <span className="material-symbols-outlined text-6xl text-[#0C0D11]">
+      <div className="max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <span className="material-symbols-outlined text-6xl text-slate-400">
           {icon}
         </span>
-        <h2 className="mt-5 text-3xl font-bold tracking-tight text-[#0C0D11]">
+        <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-950">
           {title}
         </h2>
-        <p className="mt-4 text-base leading-relaxed text-[#5A5751]">
+        <p className="mt-4 text-base leading-relaxed text-slate-600">
           {description}
         </p>
       </div>
@@ -128,14 +128,14 @@ function GroupsScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             Scene 01 · Group stage
           </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
             Road to qualification
           </h2>
         </div>
-        <p className="hidden rounded-full border border-[#e6e3da] bg-[#faf9f6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 sm:block">
+        <p className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:block">
           Page {page + 1} / {totalPages}
         </p>
       </div>
@@ -149,15 +149,15 @@ function GroupsScene({
         {groups.map((group) => (
           <article
             key={group.group}
-            className="overflow-hidden rounded-2xl border border-[#e6e3da] bg-white shadow-sm"
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
-            <div className="flex items-center justify-between border-b border-[#e6e3da] bg-[#0c0d11] px-5 py-3 text-white">
+            <div className="flex items-center justify-between border-b border-blue-900/20 bg-[#071c4d] px-5 py-3 text-white">
               <h3 className="text-base font-bold text-white">
                 {group.group.includes(" · ")
                   ? group.group
                   : `Group ${group.group}`}
               </h3>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#f5eedb]/80">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200/80">
                 Top teams advance
               </span>
             </div>
@@ -188,7 +188,7 @@ function GroupsScene({
                             "inline-flex h-7 w-7 items-center justify-center rounded-md border text-xs font-bold",
                             team.qualified
                               ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-                              : "border-[#e6e3da] bg-white text-slate-600",
+                              : "border-slate-200 bg-white text-slate-600",
                           )}
                         >
                           {team.groupRank}
@@ -271,27 +271,27 @@ function OopScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             Scene 02 · Order of Play
           </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
             {publicOopTimeLabel(session.timeLabel)}
           </h2>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wider">
-          <span className="rounded-md border border-[#E6E3DA] bg-white px-3 py-1.5 text-[#0C0D11]">
+        <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
+          <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-800 shadow-sm">
             Session {sessionIndex + 1}/{plan.sessions.length}
           </span>
-          <span className="rounded-md border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1.5 text-[#0C0D11]">
+          <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-800">
             {matchCount} matches
           </span>
-          <span className="rounded-md border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1.5 text-[#0C0D11]">
+          <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-800">
             {plan.courts} courts
           </span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-xs">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-auto" data-display-scroll>
           <div
             className="grid"
@@ -300,14 +300,14 @@ function OopScene({
               minWidth: `${String(70 + plan.courts * 230)}px`,
             }}
           >
-            <div className="sticky left-0 z-20 flex items-center justify-center border-b border-[#e6e3da] bg-[#faf9f6] py-3 text-[10px] font-bold uppercase text-slate-700">
+            <div className="sticky left-0 z-20 flex items-center justify-center border-b border-slate-200 bg-slate-50 py-3 text-[10px] font-bold uppercase text-slate-700">
               Run
             </div>
             {Array.from({ length: plan.courts }, (_, index) => index + 1).map(
               (court) => (
                 <div
                   key={court}
-                  className="border-b border-l border-[#e6e3da] bg-[#faf9f6] px-3 py-3 text-center text-xs font-bold uppercase text-slate-800"
+                  className="border-b border-l border-slate-200 bg-slate-50 px-3 py-3 text-center text-xs font-bold uppercase text-slate-800"
                 >
                   Court {court}
                 </div>
@@ -319,12 +319,12 @@ function OopScene({
               if (firstEntry?.kind === "event") {
                 return (
                   <Fragment key={slot.number}>
-                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-[#e6e3da] bg-[#faf9f6] text-xs font-bold text-slate-700">
+                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
                       {String(slot.number).padStart(2, "0")}
                     </div>
                     <div
                       style={{ gridColumn: "2 / -1" }}
-                      className="flex items-center justify-center gap-3 border-l border-t border-[#e6e3da] bg-[#f5eedb]/60 px-5 py-4 text-sm font-bold uppercase text-[#0c0d11]"
+                      className="flex items-center justify-center gap-3 border-l border-t border-slate-200 bg-blue-50/80 px-5 py-4 text-sm font-bold uppercase text-blue-900"
                     >
                       <span className="material-symbols-outlined text-base">
                         campaign
@@ -337,23 +337,23 @@ function OopScene({
 
               return (
                 <Fragment key={slot.number}>
-                  <div className="sticky left-0 z-10 flex items-center justify-center border-t border-[#e6e3da] bg-[#faf9f6] text-xs font-bold text-slate-700">
+                  <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
                     {String(slot.number).padStart(2, "0")}
                   </div>
                   {slot.courts.map((entry, courtIndex) => (
                     <div
                       key={`${slot.number}-${courtIndex}`}
-                      className="min-h-24 border-l border-t border-[#e6e3da] bg-white p-2"
+                      className="min-h-24 border-l border-t border-slate-200 bg-white p-2"
                     >
                       {entry?.kind === "match" ? (
                         <div
                           className={cx(
-                            "h-full rounded-xl border border-[#e6e3da] p-2.5 bg-[#faf9f6]",
+                            "h-full rounded-xl border border-slate-200 p-2.5 bg-slate-50/70",
                             categoryTone(entry.category),
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#0c0d11]">
+                            <p className="truncate text-[10px] font-bold uppercase tracking-wide text-slate-900">
                               {entry.stageLabel}
                             </p>
                             <span className="text-[9px] font-semibold text-slate-400">
@@ -366,7 +366,7 @@ function OopScene({
                               return (
                                 <div
                                   key={id}
-                                  className="rounded-lg border border-[#e6e3da] bg-white px-2 py-1.5"
+                                  className="rounded-lg border border-slate-200 bg-white px-2 py-1.5"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span
@@ -438,14 +438,14 @@ function BracketScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             Scene 03 · Knockout
           </span>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
             Win or go home
           </h2>
         </div>
-        <p className="hidden rounded-full border border-[#e6e3da] bg-[#faf9f6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 sm:block">
+        <p className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:block">
           Bracket {page + 1} / {totalPages}
         </p>
       </div>
@@ -461,14 +461,14 @@ function BracketScene({
           {rounds.map((round, roundIndex) => (
             <article
               key={round.name}
-              className="relative overflow-hidden rounded-2xl border border-[#e6e3da] bg-white shadow-sm"
+              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
               {roundIndex > 0 && (
                 <span className="material-symbols-outlined absolute -left-5 top-1/2 hidden -translate-y-1/2 text-4xl text-slate-400 xl:block">
                   arrow_forward
                 </span>
               )}
-              <div className="border-b border-[#e6e3da] bg-[#0c0d11] px-4 py-3 text-white">
+              <div className="border-b border-blue-900/20 bg-[#071c4d] px-4 py-3 text-white">
                 <p className="text-xs font-bold uppercase tracking-wider text-white">
                   {round.name}
                 </p>
@@ -481,8 +481,8 @@ function BracketScene({
                     <div
                       key={bracketMatch.id}
                       className={cx(
-                        "relative rounded-xl border border-[#e6e3da] p-3",
-                        live ? "bg-rose-50/50" : "bg-[#faf9f6]",
+                        "relative rounded-xl border border-slate-200 p-3",
+                        live ? "bg-rose-50/50" : "bg-slate-50/70",
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -508,14 +508,16 @@ function BracketScene({
                               <div
                                 key={`${bracketMatch.id}-${teamIndex}`}
                                 className={cx(
-                                  "flex items-center gap-2 rounded-lg border border-[#e6e3da] px-2 py-1.5",
-                                  winner ? "bg-[#f5eedb]" : "bg-white",
+                                  "flex items-center gap-2 rounded-lg border border-slate-200 px-2 py-1.5",
+                                  winner
+                                    ? "bg-amber-50 border-amber-200 text-amber-900"
+                                    : "bg-white",
                                 )}
                               >
                                 <span className="w-5 text-center text-[10px] font-bold text-slate-400">
                                   {team?.seed ?? "—"}
                                 </span>
-                                <span className="min-w-0 flex-1 truncate text-xs font-bold text-[#0c0d11]">
+                                <span className="min-w-0 flex-1 truncate text-xs font-bold text-slate-900">
                                   {team?.teamName ?? "TBD"}
                                 </span>
                                 {winner && (
@@ -550,7 +552,7 @@ function BracketScene({
       </div>
 
       {championTeamId && (
-        <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-xl border border-[#e6e3da] bg-[#0c0d11] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#f5eedb] shadow-sm">
+        <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-xl border border-blue-500 bg-blue-600 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-white shadow-md shadow-blue-500/25">
           <span className="material-symbols-outlined text-base">
             emoji_events
           </span>
@@ -753,12 +755,12 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (loading && !tournament) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FAF9F6] p-6 text-[#0C0D11]">
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] p-6 text-slate-900">
         <div className="text-center">
-          <span className="material-symbols-outlined admin-spin text-5xl text-[#0C0D11]">
+          <span className="material-symbols-outlined admin-spin text-5xl text-blue-600">
             progress_activity
           </span>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-[#8C877D]">
+          <p className="mt-5 text-xs font-bold uppercase tracking-widest text-slate-500">
             Opening tournament display
           </p>
         </div>
@@ -768,7 +770,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (!tournament) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FAF9F6] p-6">
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] p-6">
         <EmptyDisplay
           icon="tv_off"
           title="Display unavailable"
@@ -780,7 +782,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   return (
     <main
-      className="flex min-h-screen flex-col overflow-x-hidden bg-[#FAF9F6] pb-20"
+      className="flex min-h-screen flex-col overflow-x-hidden bg-[#f6f8fc] pb-20"
       onTouchStart={(event) => {
         if (
           event.target instanceof Element &&
@@ -803,7 +805,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
         touchStartX.current = null;
       }}
     >
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0c0d11] text-white shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#071c4d] text-white shadow-sm">
         <div className="mx-auto flex max-w-[1800px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
@@ -818,7 +820,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
                 <p className="truncate text-sm font-bold uppercase tracking-wide">
                   {tournament.name}
                 </p>
-                <span className="hidden rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase text-[#f5eedb] sm:inline-flex">
+                <span className="hidden rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase text-blue-200 sm:inline-flex">
                   Live display
                 </span>
               </div>
@@ -840,9 +842,9 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => jumpToScene(scene)}
                   className={cx(
-                    "flex h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold uppercase tracking-wider transition",
+                    "flex h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-bold uppercase tracking-wider transition",
                     selected
-                      ? "border-white bg-white text-[#0c0d11]"
+                      ? "border-white bg-white text-blue-900 shadow-sm"
                       : "border-white/20 bg-white/10 text-white hover:bg-white/15",
                   )}
                 >
@@ -915,7 +917,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
         </div>
       </div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e6e3da] bg-white px-4 py-3 shadow-sm sm:px-6">
+      <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
         <div className="mx-auto flex max-w-[1800px] flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             {slides.map((slide, index) => (
@@ -924,14 +926,14 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
                 type="button"
                 onClick={() => setActiveSlide(index)}
                 className={cx(
-                  "relative h-2 min-w-4 flex-1 overflow-hidden rounded-full border border-[#e6e3da]",
-                  index === activeSlide ? "bg-[#f5eedb]" : "bg-slate-100",
+                  "relative h-2 min-w-4 flex-1 overflow-hidden rounded-full border border-slate-200",
+                  index === activeSlide ? "bg-blue-100" : "bg-slate-100",
                 )}
                 aria-label={`${sceneMeta[slide.scene].label}, slide ${slide.page + 1}`}
               >
                 {index === activeSlide && !paused && (
                   <span
-                    className="display-progress absolute inset-y-0 left-0 bg-[#0c0d11]"
+                    className="display-progress absolute inset-y-0 left-0 bg-blue-600"
                     style={{
                       animationDuration: `${String(intervalSeconds)}s`,
                     }}
@@ -942,14 +944,14 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
           </div>
 
           <div className="flex items-center justify-between gap-2 sm:justify-end">
-            <span className="mr-2 hidden text-[10px] font-semibold uppercase tracking-wider text-slate-500 md:block">
+            <span className="mr-2 hidden text-[10px] font-bold uppercase tracking-wider text-slate-500 md:block">
               {sceneMeta[active.scene].label} · {activeSlide + 1}/
               {slides.length}
             </span>
             <button
               type="button"
               onClick={previousSlide}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e6e3da] bg-white text-[#0c0d11] transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
               aria-label="Previous slide"
             >
               <span className="material-symbols-outlined text-lg">
@@ -959,7 +961,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
             <button
               type="button"
               onClick={() => setPaused((current) => !current)}
-              className="flex h-9 items-center gap-1.5 rounded-xl border border-[#0c0d11] bg-[#0c0d11] px-3.5 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black active:scale-95"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
             >
               <span className="material-symbols-outlined text-base">
                 {paused ? "play_arrow" : "pause"}
@@ -969,7 +971,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
             <button
               type="button"
               onClick={nextSlide}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e6e3da] bg-white text-[#0c0d11] transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
               aria-label="Next slide"
             >
               <span className="material-symbols-outlined text-lg">
@@ -979,7 +981,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
             <button
               type="button"
               onClick={() => void toggleFullscreen()}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e6e3da] bg-white text-[#0c0d11] transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
               aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
               <span className="material-symbols-outlined text-lg">

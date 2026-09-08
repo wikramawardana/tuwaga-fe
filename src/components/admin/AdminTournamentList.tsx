@@ -18,7 +18,7 @@ const badgeToneStyles: Record<BadgeTone, string> = {
   green: "border-emerald-200 bg-emerald-50 text-emerald-800",
   magenta: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-800",
   red: "border-rose-200 bg-rose-50 text-rose-800",
-  neutral: "border-[#e6e3da] bg-[#faf9f6] text-slate-700",
+  neutral: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
 const statusMeta = {
@@ -42,7 +42,7 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold uppercase tracking-wider ${badgeToneStyles[tone]}`}
+      className={`inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-bold uppercase tracking-wider ${badgeToneStyles[tone]}`}
     >
       <span className="material-symbols-outlined text-[13px]">{icon}</span>
       {label}
@@ -83,12 +83,12 @@ function TournamentCard({
   onRequestDelete: (tournament: AdminTournament) => void;
 }) {
   return (
-    <article className="admin-rise group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#e6e3da] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <article className="admin-rise group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div>
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-lg font-bold tracking-tight text-[#0c0d11]">
+              <p className="text-lg font-black tracking-tight text-slate-900">
                 {tournament.name}
               </p>
             </div>
@@ -101,28 +101,28 @@ function TournamentCard({
         <p className="mt-3 min-h-10 text-xs leading-relaxed text-slate-600">
           {tournament.description}
         </p>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
-            <p className="text-base font-bold text-[#0c0d11]">
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl bg-blue-50/70 p-3">
+            <p className="text-lg font-black text-blue-800">
               {tournament.settings.maxPlayers}
             </p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Max
             </p>
           </div>
-          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
-            <p className="text-base font-bold text-[#0c0d11]">
+          <div className="rounded-xl bg-blue-50/70 p-3">
+            <p className="text-lg font-black text-blue-800">
               {tournament.settings.courts}
             </p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Courts
             </p>
           </div>
-          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
-            <p className="text-base font-bold text-[#0c0d11]">
+          <div className="rounded-xl bg-blue-50/70 p-3">
+            <p className="text-lg font-black text-blue-800">
               {tournament.settings.matchDuration}
             </p>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
               Mins
             </p>
           </div>
@@ -131,10 +131,10 @@ function TournamentCard({
       <div className="mt-5 flex items-center justify-between gap-3">
         <Link
           href={`/admin/tournaments/${tournament.id}`}
-          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#0c0d11] bg-[#0c0d11] px-4 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black active:scale-95"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           Open control room
-          <span className="material-symbols-outlined text-base">
+          <span className="material-symbols-outlined text-lg">
             arrow_forward
           </span>
         </Link>
@@ -218,13 +218,13 @@ export default function AdminTournamentList() {
     <section className="mx-auto max-w-[1400px] px-6 py-8 md:px-10 md:py-10">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e6e3da] bg-[#faf9f6] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-700">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
             Your workspace
-          </span>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#0c0d11] sm:text-3xl">
+          </p>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
             Tournament command centers
           </h2>
-          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+          <p className="mt-1 text-sm text-slate-500">
             Resume operations or start a new tournament from a guided setup.
           </p>
         </div>
@@ -232,7 +232,7 @@ export default function AdminTournamentList() {
           {session?.user?.role === "admin" && (
             <Link
               href="/admin/users"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e6e3da] bg-white px-4 text-xs font-semibold uppercase tracking-wider text-[#0c0d11] transition hover:bg-slate-50 active:scale-95"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <span className="material-symbols-outlined text-base">group</span>
               Crew & Roles
@@ -240,9 +240,9 @@ export default function AdminTournamentList() {
           )}
           <Link
             href="/admin/tournaments/new"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#0c0d11] bg-[#0c0d11] px-4 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black active:scale-95"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
           >
-            <span className="material-symbols-outlined text-base">add</span>
+            <span className="material-symbols-outlined text-lg">add</span>
             New tournament
           </Link>
         </div>

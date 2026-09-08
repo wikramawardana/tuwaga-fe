@@ -1,20 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Brand palette (Matched to Logo Identity: Deep Charcoal & Warm Cream) ── */
-  --color-primary: #0c0d11;
-  --color-on-primary: #f5eedb;
-  --color-primary-container: #1c202a;
-  --color-on-primary-container: #f5eedb;
-  --color-primary-fixed: #f5eedb;
-  --color-primary-fixed-dim: #e6dfce;
-  --color-on-primary-fixed: #0c0d11;
-  --color-on-primary-fixed-variant: #252834;
-  --color-inverse-primary: #f5eedb;
-  --color-surface-tint: #0c0d11;
-
-  --color-cream: #f5eedb;
-  --color-cream-light: #faf7f0;
+  /* ── Brand palette ─────────────────────────────────────────── */
+  --color-primary: #1a56db;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #2563eb;
+  --color-on-primary-container: #eeefff;
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-dim: #b4c5ff;
+  --color-on-primary-fixed: #00174b;
+  --color-on-primary-fixed-variant: #003ea8;
+  --color-inverse-primary: #b4c5ff;
+  --color-surface-tint: #0053db;
 
   --color-secondary: #047857;
   --color-on-secondary: #ffffff;
@@ -39,25 +36,25 @@
   --color-error-container: #ffd6d6;
   --color-on-error-container: #93000a;
 
-  /* ── Neutral surfaces (Warm, clean minimalist tones) ───────── */
-  --color-background: #faf9f6;
-  --color-on-background: #0c0d11;
-  --color-surface: #ffffff;
-  --color-on-surface: #0c0d11;
-  --color-surface-variant: #f0ede6;
+  /* ── Neutral surfaces (warm-grey tinted) ──────────────────── */
+  --color-background: #fafafa;
+  --color-on-background: #111827;
+  --color-surface: #fafafa;
+  --color-on-surface: #111827;
+  --color-surface-variant: #e5e7eb;
   --color-on-surface-variant: #4b5563;
   --color-surface-bright: #ffffff;
-  --color-surface-dim: #e6e3da;
+  --color-surface-dim: #d1d5db;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #faf9f6;
-  --color-surface-container: #f0ede6;
-  --color-surface-container-high: #e6e3da;
-  --color-surface-container-highest: #dcd8cf;
-  --color-inverse-surface: #0c0d11;
-  --color-inverse-on-surface: #faf9f6;
+  --color-surface-container-low: #f3f4f6;
+  --color-surface-container: #e5e7eb;
+  --color-surface-container-high: #d1d5db;
+  --color-surface-container-highest: #c7cad3;
+  --color-inverse-surface: #111827;
+  --color-inverse-on-surface: #f9fafb;
 
-  --color-outline: #9ca3af;
-  --color-outline-variant: #e6e3da;
+  --color-outline: #6b7280;
+  --color-outline-variant: #d1d5db;
 
   /* ── Typography ─────────────────────────────────────────────── */
   --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
@@ -370,9 +367,9 @@ html {
 /* Clean Minimalist Hero Grid Pattern */
 .hero-grid {
   background-image:
-    linear-gradient(115deg, rgba(12, 13, 17, 0.025) 0, transparent 36%),
-    linear-gradient(90deg, rgba(230, 227, 218, 0.55) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(230, 227, 218, 0.55) 1px, transparent 1px);
+    linear-gradient(115deg, rgba(26, 86, 219, 0.06) 0, transparent 36%),
+    linear-gradient(90deg, rgba(209, 213, 219, 0.35) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(209, 213, 219, 0.28) 1px, transparent 1px);
   background-size:
     auto,
     72px 72px,

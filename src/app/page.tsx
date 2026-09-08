@@ -128,26 +128,28 @@ export default function HomePage() {
           <div
             ref={(el) => addParallaxRef(el, 0)}
             data-speed="0.04"
-            className="hero-grid parallax-layer pointer-events-none absolute inset-x-0 top-0 h-full opacity-60"
-          />
+            className="parallax-layer pointer-events-none absolute inset-x-0 top-0 h-full opacity-70"
+          >
+            <div className="hero-grid absolute inset-0" />
+          </div>
           <div className="mx-auto max-w-[1200px] px-6 py-20 md:px-10 md:py-28">
             <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
               {/* Left — Copy */}
               <div className="relative z-10">
-                <div className="hero-reveal hero-reveal-1 mb-6 inline-flex items-center gap-2 rounded-full border border-[#E6E3DA] bg-[#0C0D11]/[0.04] px-4 py-1.5 motion-chip">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#0C0D11] animate-pulse" />
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[#0C0D11]">
+                <div className="hero-reveal hero-reveal-1 mb-6 inline-flex items-center gap-2 rounded-full bg-primary/[0.06] px-4 py-1.5 text-primary motion-chip">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">
                     Tournament operations MVP
                   </span>
                 </div>
 
-                <h1 className="hero-reveal hero-reveal-2 mb-6 text-4xl font-extrabold leading-[1.15] tracking-tight text-[#0C0D11] md:text-[52px]">
+                <h1 className="hero-reveal hero-reveal-2 mb-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-on-surface md:text-[52px]">
                   Live scoring.
                   <br />
-                  <span className="text-[#8C877D]">Brackets. Referees.</span>
+                  <span className="text-primary">Brackets. Referees.</span>
                 </h1>
 
-                <p className="hero-reveal hero-reveal-3 mb-8 max-w-md text-base leading-relaxed text-[#5A5751] md:text-lg">
+                <p className="hero-reveal hero-reveal-3 mb-8 max-w-md text-base leading-relaxed text-on-surface-variant md:text-lg">
                   TUWAGA helps organizers run match scoring, bracket updates,
                   and referee workflows from one sport-ready platform.
                 </p>
@@ -155,7 +157,7 @@ export default function HomePage() {
                 <div className="hero-reveal hero-reveal-3 flex flex-wrap gap-3">
                   <Link
                     href="/tournaments/live"
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#0C0D11] px-6 text-sm font-semibold text-[#F5EEDB] shadow-xs transition-colors hover:bg-neutral-800"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-on-primary shadow-xs transition-colors hover:bg-primary/90"
                   >
                     <span className="material-symbols-outlined text-lg">
                       scoreboard
@@ -163,8 +165,17 @@ export default function HomePage() {
                     Live Scoring
                   </Link>
                   <Link
+                    href="/tournaments/bracket"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface shadow-xs transition-colors hover:bg-surface-container-low"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      account_tree
+                    </span>
+                    Bracket
+                  </Link>
+                  <Link
                     href="/register"
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-6 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-[#FAF9F6]"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface shadow-xs transition-colors hover:bg-surface-container-low"
                   >
                     <span className="material-symbols-outlined text-lg">
                       how_to_reg
@@ -180,7 +191,7 @@ export default function HomePage() {
                 data-speed="-0.075"
                 className="parallax-layer relative z-10"
               >
-                <div className="hero-image-reveal relative overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-[0px_20px_50px_rgba(12,13,17,0.08)] animate-hero-card">
+                <div className="hero-image-reveal relative overflow-hidden rounded-2xl shadow-[0px_24px_80px_rgba(17,24,39,0.16)] animate-hero-card">
                   <Image
                     src="/tuwaga-hero.png"
                     alt="TUWAGA live tournament operations platform"
@@ -191,21 +202,21 @@ export default function HomePage() {
                     priority
                     unoptimized
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0C0D11]/5 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
                 </div>
-                <div className="motion-float motion-pop-in absolute -left-4 top-8 hidden rounded-xl border border-[#E6E3DA] bg-white/95 px-4 py-3 shadow-[0px_10px_30px_rgba(12,13,17,0.06)] backdrop-blur md:block">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C877D]">
+                <div className="motion-float motion-pop-in absolute -left-4 top-8 hidden rounded-xl border border-outline-variant/40 bg-white/90 px-4 py-3 shadow-[0px_14px_40px_rgba(17,24,39,0.12)] backdrop-blur md:block">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
                     Live court
                   </p>
-                  <p className="mt-1 text-xl font-extrabold text-[#0C0D11]">
+                  <p className="mt-1 text-xl font-extrabold text-primary">
                     24 - 21
                   </p>
                 </div>
-                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-[#E6E3DA] bg-white/95 px-4 py-3 shadow-[0px_10px_30px_rgba(12,13,17,0.06)] backdrop-blur md:block">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C877D]">
+                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-outline-variant/40 bg-white/90 px-4 py-3 shadow-[0px_14px_40px_rgba(17,24,39,0.12)] backdrop-blur md:block">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
                     Bracket
                   </p>
-                  <p className="mt-1 text-sm font-extrabold text-[#0C0D11]">
+                  <p className="mt-1 text-sm font-extrabold text-on-surface">
                     Final ready
                   </p>
                 </div>
@@ -217,18 +228,18 @@ export default function HomePage() {
         {/* ── Current Tournament ─────────────────────────────────── */}
         <section
           ref={(el) => addRef(el, 0)}
-          className="border-t border-[#E6E3DA] bg-[#FAF9F6] py-20 md:py-28"
+          className="py-20 md:py-28 bg-background"
         >
           <div className="mx-auto max-w-[1200px] px-6 md:px-10">
             <div className="mb-10">
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
                   Tournaments
                 </p>
-                <h2 className="text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+                <h2 className="text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
                   Available tournament rooms
                 </h2>
-                <p className="mt-3 max-w-2xl text-base leading-relaxed text-[#5A5751]">
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-on-surface-variant">
                   Browse every tournament currently available from the backend
                   and jump into registration, live scoring, or bracket view.
                 </p>
@@ -236,7 +247,7 @@ export default function HomePage() {
             </div>
 
             {tournaments.length === 0 ? (
-              <div className="rounded-xl border border-[#E6E3DA] bg-white p-8 text-sm font-semibold text-[#5A5751] shadow-xs">
+              <div className="rounded-xl border border-outline-variant/30 bg-white p-8 text-sm font-semibold text-on-surface-variant shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
                 No tournament loaded from the backend yet.
               </div>
             ) : (
@@ -246,9 +257,9 @@ export default function HomePage() {
                     key={tournament.id}
                     ref={(el) => addParallaxRef(el, 2 + index)}
                     data-speed="-0.035"
-                    className="parallax-layer overflow-hidden rounded-xl border border-[#E6E3DA] bg-white shadow-xs transition-shadow hover:shadow-md motion-card"
+                    className="parallax-layer overflow-hidden rounded-xl border border-outline-variant/30 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)] motion-card"
                   >
-                    <div className="relative min-h-56 overflow-hidden border-b border-[#E6E3DA]">
+                    <div className="relative min-h-56 overflow-hidden">
                       <Image
                         src={tournament.heroImageUrl ?? "/arena.png"}
                         alt={tournament.name}
@@ -257,22 +268,22 @@ export default function HomePage() {
                         unoptimized
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                      <span className="absolute left-4 top-4 rounded-md bg-[#0C0D11] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#F5EEDB]">
+                      <span className="absolute left-4 top-4 rounded-md bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-on-primary">
                         {tournament.status}
                       </span>
                     </div>
 
                     <div className="p-6 md:p-7">
-                      <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-[#8C877D]">
+                      <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
                         <span className="material-symbols-outlined text-sm">
                           calendar_today
                         </span>
                         {tournament.dateLabel}
                       </div>
-                      <h4 className="mb-2 text-2xl font-bold leading-tight text-[#0C0D11]">
+                      <h4 className="mb-2 text-2xl font-extrabold leading-tight text-on-surface">
                         {tournament.name}
                       </h4>
-                      <p className="mb-5 flex items-center gap-1 text-sm text-[#5A5751]">
+                      <p className="mb-5 flex items-center gap-1 text-sm text-on-surface-variant">
                         <span className="material-symbols-outlined text-sm">
                           location_on
                         </span>
@@ -280,14 +291,14 @@ export default function HomePage() {
                       </p>
 
                       <div className="mb-6 grid grid-cols-1 gap-3">
-                        <div className="rounded-lg border border-[#E6E3DA] bg-[#FAF9F6] p-4">
-                          <span className="material-symbols-outlined mb-2 text-[#0C0D11]">
+                        <div className="rounded-lg bg-surface-container-low p-4">
+                          <span className="material-symbols-outlined mb-2 text-secondary">
                             verified
                           </span>
-                          <p className="text-xs font-bold uppercase tracking-wider text-[#8C877D]">
+                          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                             Format
                           </p>
-                          <p className="text-lg font-bold text-[#0C0D11]">
+                          <p className="text-lg font-bold text-on-surface">
                             {tournament.settings.format}
                           </p>
                         </div>
@@ -296,7 +307,7 @@ export default function HomePage() {
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                           href="/tournaments/live"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#0C0D11] px-5 text-sm font-semibold text-[#F5EEDB] transition-colors hover:bg-neutral-800"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary/90"
                         >
                           <span className="material-symbols-outlined text-lg">
                             scoreboard
@@ -305,7 +316,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           href="/tournaments/bracket"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-5 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-neutral-50"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
                         >
                           <span className="material-symbols-outlined text-lg">
                             account_tree
@@ -314,7 +325,7 @@ export default function HomePage() {
                         </Link>
                         <Link
                           href="/register"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-5 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-neutral-50"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant px-5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
                         >
                           <span className="material-symbols-outlined text-lg">
                             how_to_reg
@@ -333,17 +344,17 @@ export default function HomePage() {
         {/* ── Platform Workflow ──────────────────────────────────── */}
         <section
           ref={(el) => addRef(el, 1)}
-          className="border-y border-[#E6E3DA] bg-white py-20 md:py-28"
+          className="py-20 md:py-28 bg-white border-y border-outline-variant/20"
         >
           <div className="mx-auto max-w-[1200px] px-6 md:px-10">
             <div className="mx-auto mb-16 max-w-2xl text-center">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
                 How it works
               </p>
-              <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+              <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
                 Built for tournament operations
               </h2>
-              <p className="text-base leading-relaxed text-[#5A5751]">
+              <p className="text-base leading-relaxed text-on-surface-variant">
                 Start with the operational core: referees score matches,
                 audiences follow live results, and brackets move forward without
                 manual recaps.
@@ -354,22 +365,22 @@ export default function HomePage() {
               {steps.map((s) => (
                 <div
                   key={s.step}
-                  className="group relative rounded-xl border border-[#E6E3DA] bg-[#FAF9F6] p-8 text-center motion-card transition-all duration-300 hover:border-[#0C0D11]/30 hover:shadow-md"
+                  className="group relative rounded-xl border border-outline-variant/20 bg-background p-8 text-center motion-card transition-all duration-300 hover:border-primary/20 hover:shadow-md"
                 >
                   <div className="relative mb-6 inline-flex items-center justify-center">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#0C0D11]/[0.05] transition-colors group-hover:bg-[#0C0D11]/10">
-                      <span className="material-symbols-outlined text-3xl text-[#0C0D11] transition-transform duration-300 group-hover:scale-110">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/[0.06] transition-colors group-hover:bg-primary/10">
+                      <span className="material-symbols-outlined text-3xl text-primary transition-transform duration-300 group-hover:scale-110">
                         {s.icon}
                       </span>
                     </div>
-                    <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-[#0C0D11] text-[10px] font-extrabold text-[#F5EEDB]">
+                    <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-primary text-[10px] font-extrabold text-on-primary">
                       {s.step}
                     </span>
                   </div>
-                  <h3 className="mb-2 text-lg font-bold text-[#0C0D11]">
+                  <h3 className="mb-2 text-lg font-bold text-on-surface">
                     {s.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-[#5A5751]">
+                  <p className="text-sm leading-relaxed text-on-surface-variant">
                     {s.description}
                   </p>
                 </div>

@@ -45,14 +45,14 @@ export default function RegistrationShell({
                 isCentered ? "mx-auto text-center" : ""
               }`}
             >
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
                 Player registration
               </p>
-              <h1 className="text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
+              <h1 className="text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
                 {title}
               </h1>
               {description ? (
-                <p className="mt-2 text-base font-normal leading-relaxed text-[#5A5751]">
+                <p className="mt-2 text-base font-normal leading-relaxed text-on-surface-variant">
                   {description}
                 </p>
               ) : null}

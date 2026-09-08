@@ -103,33 +103,36 @@ function LoginContent() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#FAF9F6] px-4 py-5 text-[#0C0D11] sm:px-6 lg:p-8">
-      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-sm lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="relative hidden overflow-hidden border-r border-white/10 bg-[#0C0D11] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+    <main className="relative min-h-screen overflow-hidden bg-[#f6f8fc] px-4 py-5 text-slate-900 sm:px-6 lg:p-8">
+      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="relative hidden overflow-hidden border-r border-blue-900/10 bg-[#071c4d] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
+
           <div className="relative z-10 flex items-center justify-between">
             <Link href="/" className="transition hover:opacity-80">
               <Image
-                src="/tuwaga-logo-cream.png"
+                src="/tuwaga-logo.png"
                 alt="TUWAGA"
                 width={132}
                 height={32}
                 priority
-                className="h-8 w-auto"
+                className="h-8 w-auto brightness-0 invert"
               />
             </Link>
-            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]">
+            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
               Admin only
             </span>
           </div>
 
           <div className="relative z-10 max-w-3xl py-12">
-            <p className="mb-4 inline-flex text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]/70">
+            <p className="mb-4 inline-flex text-xs font-bold uppercase tracking-wider text-blue-300">
               Tournament OS · 2026
             </p>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">
+            <h1 className="text-4xl font-black leading-tight tracking-[-0.035em] text-white xl:text-5xl">
               Run the whole tournament.
             </h1>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-300">
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-blue-100/70">
               Draws, schedules, courts, scoring, and results. One focused
               workspace for a sharp tournament crew.
             </p>
@@ -143,10 +146,10 @@ function LoginContent() {
             ].map(([number, label]) => (
               <div
                 key={number}
-                className="rounded-xl border border-white/15 bg-white/5 p-4 text-white transition hover:border-[#F5EEDB]/40"
+                className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur transition hover:border-blue-400/40"
               >
-                <p className="text-2xl font-black text-[#F5EEDB]">{number}</p>
-                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/80">
+                <p className="text-2xl font-black text-blue-300">{number}</p>
+                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-blue-100/80">
                   {label}
                 </p>
               </div>
@@ -154,7 +157,7 @@ function LoginContent() {
           </div>
         </div>
 
-        <div className="relative flex min-w-0 items-center justify-center bg-[#FAF9F6] p-5 sm:p-10 xl:p-16">
+        <div className="relative flex min-w-0 items-center justify-center bg-[#f8fafc] p-5 sm:p-10 xl:p-16">
           <div className="min-w-0 w-full max-w-[440px]">
             <div className="mb-8 flex items-center justify-between lg:hidden">
               <Link href="/">
@@ -167,32 +170,32 @@ function LoginContent() {
                   className="h-7 w-auto"
                 />
               </Link>
-              <span className="rounded-full border border-[#E6E3DA] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
                 Admin
               </span>
             </div>
 
-            <div className="relative rounded-2xl border border-[#E6E3DA] bg-white p-6 shadow-xs sm:p-9">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-9">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Secure crew entrance
               </span>
 
-              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-[#0C0D11] sm:text-4xl">
+              <h2 className="mt-6 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
                 Ready to run the show?
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[#5A5751]">
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 Sign in with your authorized Google account to open the Tuwaga
                 admin command center.
               </p>
 
-              <hr className="my-6 border-0 border-t border-[#E6E3DA]" />
+              <hr className="my-6 border-0 border-t border-slate-200" />
 
               <button
                 type="button"
                 onClick={handleSignIn}
                 disabled={isLoading}
-                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg bg-[#0C0D11] px-4 text-sm font-semibold text-[#F5EEDB] shadow-xs transition hover:bg-neutral-800 disabled:cursor-wait disabled:opacity-60"
+                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
               >
                 {isLoading ? (
                   <>
@@ -203,7 +206,7 @@ function LoginContent() {
                   </>
                 ) : (
                   <>
-                    <span className="flex h-7 w-7 items-center justify-center rounded bg-white shadow-xs">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-xs">
                       <GoogleIcon className="h-4 w-4" />
                     </span>
                     <span>Sign in with Google</span>
@@ -217,7 +220,7 @@ function LoginContent() {
               {accessError && (
                 <div
                   role="alert"
-                  className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800"
+                  className="mt-5 rounded-lg border border-error/20 bg-error-container px-4 py-3 text-xs font-semibold text-on-error-container"
                 >
                   <div className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-lg">
