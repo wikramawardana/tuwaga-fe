@@ -23,14 +23,14 @@ function SetScoreRow({
   if (sets.length === 0) return null;
 
   return (
-    <div className="mt-2 flex flex-wrap gap-1">
+    <div className="mt-2 flex flex-wrap gap-1.5">
       {sets.map((set) => (
         <span
           key={`${set.teamA}-${set.teamB}`}
-          className={`inline-flex h-8 min-w-12 items-center justify-center border-2 border-[#07142f] px-2 text-sm font-black tabular-nums shadow-[2px_2px_0_#07142f] ${
+          className={`inline-flex h-7 min-w-10 items-center justify-center rounded-md border px-2 text-xs font-bold tabular-nums ${
             set[teamIndex] > set[teamIndex === "teamA" ? "teamB" : "teamA"]
-              ? "bg-secondary/10 text-secondary"
-              : "bg-surface-container text-on-surface-variant"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+              : "border-[#e6e3da] bg-white text-slate-600"
           }`}
         >
           {set[teamIndex]}-{set[teamIndex === "teamA" ? "teamB" : "teamA"]}
@@ -54,9 +54,9 @@ export default function ScoreCard({
   const sets = scoreSets ?? [];
 
   return (
-    <article className="public-panel relative overflow-hidden bg-white p-4 sm:p-6">
+    <article className="relative overflow-hidden rounded-2xl border border-[#e6e3da] bg-white p-4 shadow-sm sm:p-6">
       {isLive && (
-        <div className="admin-live-sweep absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-rose-500 via-yellow-300 to-rose-500" />
+        <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-amber-300 to-rose-500" />
       )}
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -107,22 +107,22 @@ export default function ScoreCard({
       {/* Pair details with set scores */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         {/* Team A */}
-        <div className="rounded-lg bg-surface-container-low p-3">
-          <p className="break-words text-base font-extrabold text-on-surface sm:text-lg">
+        <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3">
+          <p className="break-words text-base font-bold text-[#0c0d11]">
             {teamA.player1}
           </p>
-          <p className="mt-0.5 break-words text-sm text-on-surface-variant">
+          <p className="mt-0.5 break-words text-xs font-medium text-slate-500">
             {teamA.player2}
           </p>
           <SetScoreRow sets={sets} teamIndex="teamA" />
         </div>
 
         {/* Team B */}
-        <div className="rounded-lg bg-surface-container-low p-3">
-          <p className="break-words text-base font-extrabold text-on-surface sm:text-lg">
+        <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3">
+          <p className="break-words text-base font-bold text-[#0c0d11]">
             {teamB.player1}
           </p>
-          <p className="mt-0.5 break-words text-sm text-on-surface-variant">
+          <p className="mt-0.5 break-words text-xs font-medium text-slate-500">
             {teamB.player2}
           </p>
           <SetScoreRow sets={sets} teamIndex="teamB" />

@@ -14,11 +14,11 @@ import AiDirectorCopilot from "./AiDirectorCopilot";
 type BadgeTone = "blue" | "green" | "magenta" | "red" | "neutral";
 
 const badgeToneStyles: Record<BadgeTone, string> = {
-  blue: "border-[#07142f] bg-blue-100 text-blue-800",
-  green: "border-[#07142f] bg-emerald-200 text-emerald-950",
-  magenta: "border-[#07142f] bg-fuchsia-200 text-fuchsia-950",
-  red: "border-[#07142f] bg-rose-200 text-rose-950",
-  neutral: "border-[#07142f] bg-slate-200 text-slate-950",
+  blue: "border-blue-200 bg-blue-50 text-blue-800",
+  green: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  magenta: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-800",
+  red: "border-rose-200 bg-rose-50 text-rose-800",
+  neutral: "border-[#e6e3da] bg-[#faf9f6] text-slate-700",
 };
 
 const statusMeta = {
@@ -42,9 +42,9 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex h-7 items-center gap-1.5 rounded border-2 px-2.5 text-xs font-black uppercase shadow-[2px_2px_0_#07142f] ${badgeToneStyles[tone]}`}
+      className={`inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-semibold uppercase tracking-wider ${badgeToneStyles[tone]}`}
     >
-      <span className="material-symbols-outlined text-[15px]">{icon}</span>
+      <span className="material-symbols-outlined text-[13px]">{icon}</span>
       {label}
     </span>
   );
@@ -83,57 +83,58 @@ function TournamentCard({
   onRequestDelete: (tournament: AdminTournament) => void;
 }) {
   return (
-    <article className="neo-panel admin-rise group relative overflow-hidden bg-white p-5 transition-all duration-200 hover:-translate-y-1">
-      <div className="absolute inset-x-0 top-0 h-2 border-b-2 border-[#07142f] bg-cyan-300" />
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xl font-black tracking-tight text-slate-950">
-              {tournament.name}
+    <article className="admin-rise group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#e6e3da] bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-lg font-bold tracking-tight text-[#0c0d11]">
+                {tournament.name}
+              </p>
+            </div>
+            <p className="mt-1 text-xs font-medium text-slate-500">
+              {tournament.venue} · {tournament.date}
             </p>
           </div>
-          <p className="mt-1 text-sm font-semibold text-slate-500">
-            {tournament.venue} · {tournament.date}
-          </p>
+          <StatusBadge {...statusMeta[tournament.status]} />
         </div>
-        <StatusBadge {...statusMeta[tournament.status]} />
-      </div>
-      <p className="mt-4 min-h-12 text-sm leading-relaxed text-slate-500">
-        {tournament.description}
-      </p>
-      <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded border-2 border-[#07142f] bg-blue-100 p-3">
-          <p className="text-lg font-black text-blue-800">
-            {tournament.settings.maxPlayers}
-          </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-            Max
-          </p>
-        </div>
-        <div className="rounded border-2 border-[#07142f] bg-cyan-100 p-3">
-          <p className="text-lg font-black text-blue-800">
-            {tournament.settings.courts}
-          </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-            Courts
-          </p>
-        </div>
-        <div className="rounded border-2 border-[#07142f] bg-yellow-100 p-3">
-          <p className="text-lg font-black text-blue-800">
-            {tournament.settings.matchDuration}
-          </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">
-            Mins
-          </p>
+        <p className="mt-3 min-h-10 text-xs leading-relaxed text-slate-600">
+          {tournament.description}
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+            <p className="text-base font-bold text-[#0c0d11]">
+              {tournament.settings.maxPlayers}
+            </p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Max
+            </p>
+          </div>
+          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+            <p className="text-base font-bold text-[#0c0d11]">
+              {tournament.settings.courts}
+            </p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Courts
+            </p>
+          </div>
+          <div className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-2.5">
+            <p className="text-base font-bold text-[#0c0d11]">
+              {tournament.settings.matchDuration}
+            </p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Mins
+            </p>
+          </div>
         </div>
       </div>
       <div className="mt-5 flex items-center justify-between gap-3">
         <Link
           href={`/admin/tournaments/${tournament.id}`}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-black uppercase text-white hover:bg-blue-700"
+          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#0c0d11] bg-[#0c0d11] px-4 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black active:scale-95"
         >
           Open control room
-          <span className="material-symbols-outlined text-lg">
+          <span className="material-symbols-outlined text-base">
             arrow_forward
           </span>
         </Link>
@@ -217,11 +218,13 @@ export default function AdminTournamentList() {
     <section className="mx-auto max-w-[1400px] px-6 py-8 md:px-10 md:py-10">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="neo-sticker rotate-1">Your workspace</p>
-          <h2 className="neo-title mt-4 text-3xl font-black text-slate-950">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e6e3da] bg-[#faf9f6] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-700">
+            Your workspace
+          </span>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#0c0d11] sm:text-3xl">
             Tournament command centers
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
             Resume operations or start a new tournament from a guided setup.
           </p>
         </div>
@@ -229,17 +232,17 @@ export default function AdminTournamentList() {
           {session?.user?.role === "admin" && (
             <Link
               href="/admin/users"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-black bg-amber-300 px-5 text-sm font-black uppercase text-slate-900 shadow-[2px_2px_0_#000] hover:bg-amber-400"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#e6e3da] bg-white px-4 text-xs font-semibold uppercase tracking-wider text-[#0c0d11] transition hover:bg-slate-50 active:scale-95"
             >
-              <span className="material-symbols-outlined text-lg">group</span>
+              <span className="material-symbols-outlined text-base">group</span>
               Crew & Roles
             </Link>
           )}
           <Link
             href="/admin/tournaments/new"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#0c0d11] bg-[#0c0d11] px-4 text-xs font-semibold uppercase tracking-wider text-[#f5eedb] transition hover:bg-black active:scale-95"
           >
-            <span className="material-symbols-outlined text-lg">add</span>
+            <span className="material-symbols-outlined text-base">add</span>
             New tournament
           </Link>
         </div>

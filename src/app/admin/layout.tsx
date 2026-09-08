@@ -40,43 +40,43 @@ export default function AdminLayout({
 
   if (!session || !isAllowed) {
     return (
-      <main className="neo-admin flex min-h-screen items-center justify-center bg-[#f4f0ea] px-6 py-12 text-slate-950">
-        <div className="w-full max-w-xl rounded-2xl border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000] sm:p-10">
+      <main className="neo-admin flex min-h-screen items-center justify-center bg-[#faf9f6] px-6 py-12 text-slate-950">
+        <div className="w-full max-w-xl rounded-2xl border border-[#e6e3da] bg-white p-8 shadow-sm sm:p-10">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-3 border-black bg-rose-500 text-white shadow-[4px_4px_0_#000]">
-              <span className="material-symbols-outlined text-4xl">block</span>
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600">
+              <span className="material-symbols-outlined text-3xl">block</span>
             </div>
-            <span className="neo-sticker -rotate-1 bg-rose-200 text-rose-950">
+            <span className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
               Error 403 · Akses Ditolak
             </span>
           </div>
 
-          <h1 className="mt-6 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+          <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
             Khusus Panitia (Organizer) & Admin
           </h1>
 
-          <p className="mt-3 text-base leading-relaxed text-slate-600">
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
             Halaman ini khusus untuk manajemen turnamen dan hanya dapat diakses
             oleh akun dengan peran{" "}
-            <strong className="text-slate-950 underline decoration-amber-400 decoration-4">
+            <strong className="font-semibold text-slate-900">
               Organizer / Panitia Turnamen
             </strong>{" "}
             atau{" "}
-            <strong className="text-slate-950 underline decoration-blue-400 decoration-4">
+            <strong className="font-semibold text-slate-900">
               Administrator
             </strong>
             .
           </p>
 
-          <div className="mt-6 rounded-xl border-2 border-black bg-slate-50 p-4">
-            <div className="text-xs font-black uppercase tracking-wider text-slate-500">
+          <div className="mt-6 rounded-xl border border-[#e6e3da] bg-[#faf9f6] p-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Status Akun Anda
             </div>
             <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-              <span className="font-extrabold text-slate-950">
+              <span className="font-semibold text-slate-900">
                 {session?.user?.email ?? "Belum Masuk (Unauthenticated)"}
               </span>
-              <span className="rounded-md border border-black bg-slate-200 px-2 py-0.5 text-xs font-black uppercase text-slate-800">
+              <span className="rounded-md border border-[#e6e3da] bg-white px-2.5 py-0.5 text-xs font-semibold uppercase text-slate-700">
                 Role: {role ?? "none"}
               </span>
             </div>
@@ -85,14 +85,14 @@ export default function AdminLayout({
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/"
-              className="flex h-12 flex-1 items-center justify-center rounded-xl border-2 border-black bg-slate-100 px-4 text-center text-sm font-black text-slate-900 shadow-[2px_2px_0_#000] transition hover:bg-slate-200"
+              className="flex h-11 flex-1 items-center justify-center rounded-lg border border-[#e6e3da] bg-white px-4 text-center text-xs font-bold uppercase tracking-wider text-slate-800 transition hover:bg-slate-50"
             >
               Kembali ke Beranda
             </Link>
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex h-12 flex-1 items-center justify-center rounded-xl border-2 border-black bg-[#246bfe] px-4 text-center text-sm font-black text-white shadow-[2px_2px_0_#000] transition hover:bg-blue-600"
+              className="flex h-11 flex-1 items-center justify-center rounded-lg bg-[#111318] px-4 text-center text-xs font-bold uppercase tracking-wider text-[#f5eedb] transition hover:bg-neutral-800"
             >
               Ganti Akun / Keluar
             </button>

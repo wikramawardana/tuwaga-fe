@@ -128,7 +128,7 @@ export default function NewTournamentPage() {
             <h1 className="neo-title mt-6 text-4xl font-black md:text-6xl">
               Create a new command center
             </h1>
-            <p className="mt-5 max-w-2xl border-l-4 border-cyan-300 pl-4 text-sm font-semibold leading-7 text-white md:text-base">
+            <p className="mt-5 max-w-2xl border-l-2 border-[#f5eedb] pl-4 text-sm font-medium leading-relaxed text-white/80 md:text-base">
               Set the tournament identity, operating capacity and match
               divisions. You can refine every rule later from the setup panel.
             </p>

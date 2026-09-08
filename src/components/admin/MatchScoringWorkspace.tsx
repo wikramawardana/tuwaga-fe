@@ -352,7 +352,7 @@ export default function MatchScoringWorkspace({
 
   return (
     <main className="neo-admin min-h-screen text-slate-950">
-      <header className="sticky top-0 z-40 border-b-4 border-[#07142f] bg-[#246bfe] text-white shadow-[0_6px_0_#07142f]">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0c0d11] text-white shadow-sm">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <button
@@ -361,10 +361,10 @@ export default function MatchScoringWorkspace({
                 if (window.opener) window.close();
                 else window.history.back();
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-blue-100 transition hover:bg-white/10"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               aria-label="Close scoring workspace"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-lg">close</span>
             </button>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -529,23 +529,23 @@ export default function MatchScoringWorkspace({
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <section className="neo-panel overflow-hidden bg-white">
-            <div className="border-b-4 border-[#07142f] bg-[#246bfe] px-5 py-5 text-center text-white">
+            <div className="border-b border-[#e6e3da] bg-[#0c0d11] px-5 py-5 text-center text-white">
               <div className="flex items-center justify-center gap-2">
-                <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
+                <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#f5eedb]">
                   {tournament?.settings.sport
                     ?.replace("_", " ")
                     .toUpperCase() ?? "BADMINTON"}
                 </span>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-100">
+                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#f5eedb]/80">
                   {match.category} · {match.round}
                 </p>
               </div>
               <div className="mt-2 flex items-center justify-center gap-4">
-                <span className="text-4xl font-black">{setWins.teamA}</span>
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-extrabold text-blue-100">
+                <span className="text-4xl font-bold">{setWins.teamA}</span>
+                <span className="rounded-full border border-white/20 bg-white/10 px-3 py-0.5 text-xs font-semibold text-white/80">
                   SETS
                 </span>
-                <span className="text-4xl font-black">{setWins.teamB}</span>
+                <span className="text-4xl font-bold">{setWins.teamB}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 border-b border-slate-200">

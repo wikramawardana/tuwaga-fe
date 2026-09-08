@@ -34,7 +34,7 @@ function CountdownBadge({ time }: { time: string }) {
   if (diffMin > 120) return null;
 
   return (
-    <span className="border-2 border-[#07142f] bg-yellow-200 px-2 py-0.5 text-[11px] font-black text-[#07142f] shadow-[2px_2px_0_#07142f]">
+    <span className="rounded-md border border-[#e6e3da] bg-[#f5eedb] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#0c0d11]">
       in ~{diffMin} min
     </span>
   );
@@ -98,16 +98,17 @@ export default function LiveScoresPage() {
             <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="public-kicker">Live scores</p>
-                <h1 className="public-title mt-5 max-w-4xl text-4xl text-white md:text-6xl">
+                <h1 className="public-title mt-5 max-w-4xl text-3xl font-bold tracking-tight text-white md:text-5xl">
                   {tournament?.name ?? "Tournament Live Scores"}
                 </h1>
-                <p className="mt-4 border-l-4 border-cyan-300 pl-4 text-sm font-bold text-white">
+                <p className="mt-4 border-l-2 border-[#f5eedb] pl-4 text-sm font-medium text-white/80">
                   {tournament
                     ? `${tournament.venue} · ${tournament.dateLabel}`
                     : "Loading backend tournament data."}
                 </p>
               </div>
-              <div className="public-stat bg-white px-4 py-3 text-sm font-black uppercase text-[#07142f]">
+              <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                 {loading
                   ? "Syncing…"
                   : `${live?.activeMatches.length ?? 0} active matches`}
@@ -152,15 +153,15 @@ export default function LiveScoresPage() {
 
               <aside className="space-y-6">
                 {/* Next up with EST countdown */}
-                <section className="public-panel bg-white p-5">
-                  <h2 className="text-lg font-extrabold text-on-surface">
+                <section className="rounded-2xl border border-[#e6e3da] bg-white p-5 shadow-sm">
+                  <h2 className="text-base font-bold text-[#0c0d11]">
                     Next up
                   </h2>
                   <div className="mt-4 space-y-3">
                     {live?.nextUp.map((match) => (
                       <div
                         key={match.id}
-                        className="rounded-lg border-2 border-[#07142f] bg-blue-50 p-3"
+                        className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3"
                       >
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold uppercase text-primary">
@@ -185,15 +186,15 @@ export default function LiveScoresPage() {
                 </section>
 
                 {/* Recent results */}
-                <section className="public-panel bg-white p-5">
-                  <h2 className="text-lg font-extrabold text-on-surface">
+                <section className="rounded-2xl border border-[#e6e3da] bg-white p-5 shadow-sm">
+                  <h2 className="text-base font-bold text-[#0c0d11]">
                     Recent results
                   </h2>
                   <div className="mt-4 space-y-3">
                     {live?.recentResults.map((result) => (
                       <div
                         key={result.id}
-                        className="rounded-lg border-2 border-[#07142f] bg-cyan-50 p-3"
+                        className="rounded-xl border border-[#f0ede6] bg-[#faf9f6] p-3"
                       >
                         <p className="text-sm font-bold text-on-surface">
                           {result.winner}

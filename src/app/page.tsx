@@ -128,44 +128,42 @@ export default function HomePage() {
           <div
             ref={(el) => addParallaxRef(el, 0)}
             data-speed="0.04"
-            className="parallax-layer public-dots pointer-events-none absolute inset-x-0 top-0 h-full opacity-20"
-          >
-            <div className="absolute -bottom-20 left-[42%] h-56 w-56 -rotate-12 border-4 border-[#07142f] bg-[#ffe45c]" />
-          </div>
+            className="parallax-layer public-dots pointer-events-none absolute inset-x-0 top-0 h-full opacity-30"
+          />
           <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
             <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
               {/* Left — Copy */}
               <div className="relative z-10">
-                <div className="public-kicker hero-reveal hero-reveal-1 mb-7 motion-chip">
-                  <span className="h-2 w-2 rounded-full bg-[#07142f]" />
+                <div className="public-kicker hero-reveal hero-reveal-1 mb-6">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#f5eedb]" />
                   Indonesia&apos;s tournament playground
                 </div>
 
-                <h1 className="public-title hero-reveal hero-reveal-2 mb-7 text-5xl uppercase text-white md:text-7xl xl:text-8xl">
+                <h1 className="public-title hero-reveal hero-reveal-2 mb-7 text-5xl uppercase tracking-tight text-white md:text-7xl xl:text-8xl">
                   Your match.
-                  <span className="mt-2 block w-fit -rotate-1 border-4 border-[#07142f] bg-[#55dfff] px-3 py-2 text-[#07142f] shadow-[7px_7px_0_#07142f]">
-                    Live now.
-                  </span>
+                  <span className="mt-2 block text-[#f5eedb]">Live now.</span>
                 </h1>
 
-                <p className="hero-reveal hero-reveal-3 mb-8 max-w-xl border-l-4 border-[#ffe45c] pl-5 text-base font-bold leading-relaxed text-white md:text-lg">
+                <p className="hero-reveal hero-reveal-3 mb-8 max-w-xl border-l-2 border-[#f5eedb]/30 pl-5 text-base leading-relaxed text-white/80 md:text-lg">
                   Follow scores, see who plays next, track the bracket, and
                   register your team from one loud, clear tournament hub.
                 </p>
                 <div className="hero-reveal hero-reveal-3 flex flex-wrap gap-3">
                   <Link
                     href="/tournaments/live"
-                    className="public-button inline-flex h-12 items-center gap-2 bg-[#ffe45c] px-5 text-sm font-black uppercase text-[#07142f]"
+                    className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#f5eedb] px-6 text-xs font-bold uppercase tracking-wider text-[#0c0d11] transition hover:bg-white hover:shadow-sm"
                   >
-                    <span className="material-symbols-outlined">sensors</span>
+                    <span className="material-symbols-outlined text-lg">
+                      sensors
+                    </span>
                     Watch live
                   </Link>
                   <Link
                     href="/register"
-                    className="public-button inline-flex h-12 items-center gap-2 bg-white px-5 text-sm font-black uppercase text-[#07142f]"
+                    className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 text-xs font-bold uppercase tracking-wider text-white transition hover:border-white/35 hover:bg-white/10"
                   >
                     Register team
-                    <span className="material-symbols-outlined">
+                    <span className="material-symbols-outlined text-base">
                       arrow_forward
                     </span>
                   </Link>
@@ -189,21 +187,23 @@ export default function HomePage() {
                     priority
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/15 via-transparent to-cyan-300/10" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
                 </div>
-                <div className="motion-float motion-pop-in absolute -left-5 top-8 hidden rotate-[-3deg] border-3 border-[#07142f] bg-white px-4 py-3 text-[#07142f] shadow-[5px_5px_0_#07142f] md:block">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                <div className="motion-float motion-pop-in absolute -left-5 top-8 hidden rounded-xl border border-white/15 bg-[#12141a]/90 p-4 text-white shadow-xl backdrop-blur-md md:block">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#f5eedb]/60">
                     Live court
                   </p>
-                  <p className="mt-1 text-2xl font-black text-blue-700">
+                  <p className="mt-1 text-2xl font-black text-[#f5eedb]">
                     24 - 21
                   </p>
                 </div>
-                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rotate-2 border-3 border-[#07142f] bg-[#ffe45c] px-4 py-3 text-[#07142f] shadow-[5px_5px_0_#07142f] md:block">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-600">
+                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-white/15 bg-[#12141a]/90 p-4 text-white shadow-xl backdrop-blur-md md:block">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#f5eedb]/60">
                     Bracket
                   </p>
-                  <p className="mt-1 text-sm font-black">Final ready</p>
+                  <p className="mt-1 text-sm font-bold text-white">
+                    Final ready
+                  </p>
                 </div>
               </div>
             </div>
@@ -215,7 +215,9 @@ export default function HomePage() {
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <div className="mb-10">
               <div>
-                <p className="public-kicker mb-4">Tournaments</p>
+                <p className="public-kicker mb-4 !border-[#e6e3da] !bg-[#f5f4ef] !text-[#12141a]">
+                  Tournaments
+                </p>
                 <h2 className="public-title text-4xl text-slate-950 md:text-5xl">
                   Available tournament rooms
                 </h2>
@@ -239,7 +241,7 @@ export default function HomePage() {
                     data-speed="-0.035"
                     className="public-panel parallax-layer overflow-hidden bg-white motion-card"
                   >
-                    <div className="relative min-h-56 overflow-hidden border-b-3 border-[#07142f]">
+                    <div className="relative min-h-56 overflow-hidden border-b border-[#e6e3da]">
                       <Image
                         src={tournament.heroImageUrl ?? "/arena.png"}
                         alt={tournament.name}
@@ -247,8 +249,8 @@ export default function HomePage() {
                         className="object-cover"
                         unoptimized
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                      <span className="absolute left-4 top-4 border-2 border-[#07142f] bg-[#55dfff] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#07142f] shadow-[3px_3px_0_#07142f]">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                      <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-[#12141a]/85 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#f5eedb] backdrop-blur-md">
                         {tournament.status}
                       </span>
                     </div>
@@ -271,8 +273,8 @@ export default function HomePage() {
                       </p>
 
                       <div className="mb-6 grid grid-cols-1 gap-3">
-                        <div className="public-stat bg-blue-50 p-4">
-                          <span className="material-symbols-outlined mb-2 text-secondary">
+                        <div className="public-stat bg-[#faf9f6] p-4">
+                          <span className="material-symbols-outlined mb-2 text-[#12141a]">
                             verified
                           </span>
                           <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -287,27 +289,27 @@ export default function HomePage() {
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                           href="/tournaments/live"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-black uppercase text-white hover:bg-blue-700"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#111318] px-5 text-xs font-bold uppercase tracking-wider text-[#f5eedb] hover:bg-neutral-800 transition"
                         >
-                          <span className="material-symbols-outlined text-lg">
+                          <span className="material-symbols-outlined text-base">
                             scoreboard
                           </span>
                           Live Scoring
                         </Link>
                         <Link
                           href="/tournaments/bracket"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-cyan-200 px-5 text-sm font-black uppercase text-[#07142f] hover:bg-cyan-300"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e6e3da] bg-white px-5 text-xs font-bold uppercase tracking-wider text-[#12141a] hover:bg-neutral-50 transition"
                         >
-                          <span className="material-symbols-outlined text-lg">
+                          <span className="material-symbols-outlined text-base">
                             account_tree
                           </span>
                           Bracket
                         </Link>
                         <Link
                           href="/register"
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-yellow-200 px-5 text-sm font-black uppercase text-[#07142f] hover:bg-yellow-300"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e6e3da] bg-white px-5 text-xs font-bold uppercase tracking-wider text-[#12141a] hover:bg-neutral-50 transition"
                         >
-                          <span className="material-symbols-outlined text-lg">
+                          <span className="material-symbols-outlined text-base">
                             how_to_reg
                           </span>
                           Register
@@ -324,11 +326,13 @@ export default function HomePage() {
         {/* ── Platform Workflow ──────────────────────────────────── */}
         <section
           ref={(el) => addRef(el, 1)}
-          className="border-y-4 border-[#07142f] bg-[#ffe45c] py-20 md:py-28"
+          className="border-y border-[#e6e3da] bg-[#faf9f6] py-20 md:py-28"
         >
           <div className="mx-auto max-w-[1400px] px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <p className="public-kicker mb-4 bg-cyan-200">How it works</p>
+              <p className="public-kicker mb-4 !border-[#e6e3da] !bg-white !text-[#12141a]">
+                How it works
+              </p>
               <h2 className="public-title mb-4 text-4xl text-slate-950 md:text-5xl">
                 Built for tournament operations
               </h2>
@@ -346,12 +350,12 @@ export default function HomePage() {
                   className="public-panel group relative bg-white p-8 text-center transition-all duration-200 hover:-translate-y-1 motion-card"
                 >
                   <div className="relative inline-flex items-center justify-center mb-6">
-                    <div className="flex h-16 w-16 items-center justify-center rounded border-3 border-[#07142f] bg-cyan-100 transition-colors group-hover:bg-cyan-200">
-                      <span className="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#e6e3da] bg-[#faf9f6] transition-colors group-hover:border-[#12141a]">
+                      <span className="material-symbols-outlined text-[#12141a] text-2xl group-hover:scale-110 transition-transform duration-300">
                         {s.icon}
                       </span>
                     </div>
-                    <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center border-2 border-[#07142f] bg-blue-600 text-[10px] font-black text-white shadow-[2px_2px_0_#07142f]">
+                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#111318] bg-[#111318] text-[10px] font-bold text-[#f5eedb]">
                       {s.step}
                     </span>
                   </div>
