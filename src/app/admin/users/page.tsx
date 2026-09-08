@@ -149,24 +149,24 @@ export default function AdminUsersPage() {
     return (
       <>
         <Navbar active="admin" />
-        <main className="neo-admin min-h-screen pt-24 px-6 bg-[#faf9f6]">
-          <div className="mx-auto max-w-xl rounded-2xl border border-[#e6e3da] bg-white p-8 shadow-sm">
+        <main className="min-h-screen pt-24 px-6 bg-[#FAF9F6]">
+          <div className="mx-auto max-w-xl rounded-2xl border border-[#E6E3DA] bg-white p-8 shadow-xs">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-4xl text-rose-500">
                 admin_panel_settings
               </span>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight text-[#0C0D11]">
                 Khusus Super Administrator
               </h1>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-slate-600">
+            <p className="mt-4 text-sm leading-relaxed text-[#5A5751]">
               Halaman penetapan hak akses kru dan admin hanya dapat dibuka oleh
               akun dengan role <strong>Admin</strong>.
             </p>
             <div className="mt-6">
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#111318] px-5 text-xs font-bold uppercase tracking-wider text-[#f5eedb] hover:bg-neutral-800"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#0C0D11] px-5 text-sm font-semibold text-[#F5EEDB] shadow-xs hover:bg-neutral-800 transition-colors"
               >
                 Kembali ke Dashboard Turnamen
               </Link>
@@ -182,18 +182,18 @@ export default function AdminUsersPage() {
     <>
       <Navbar active="admin" />
 
-      <main className="neo-admin min-h-screen pt-16 bg-[#faf9f6]">
-        <section className="neo-hero">
+      <main className="min-h-screen pt-16 bg-[#FAF9F6]">
+        <section className="relative overflow-hidden border-b border-[#E6E3DA] bg-[#0C0D11] text-white">
           <div className="relative mx-auto max-w-[1400px] px-6 py-12 md:px-10 md:py-14">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#f5eedb]">
+                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB] backdrop-blur-xs">
                   Admin Ops · Crew & Roles
                 </span>
-                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-5xl">
                   Manajemen Peran & Kru Turnamen
                 </h1>
-                <p className="mt-3 max-w-3xl border-l-2 border-[#f5eedb]/40 pl-4 text-sm font-medium leading-relaxed text-white/80 sm:text-base">
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-300 sm:text-base">
                   Atur hak akses operasional. <strong>Admin</strong> memiliki
                   kendali penuh termasuk asisten AI Hermes.{" "}
                   <strong>Organizer (Panitia)</strong> dapat mengelola turnamen,
@@ -204,12 +204,12 @@ export default function AdminUsersPage() {
 
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10 hover:border-white/30"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-white/10 hover:border-white/30"
               >
                 <span className="material-symbols-outlined text-lg">
                   arrow_back
                 </span>
-                Kembali ke Turnamen
+                Dashboard
               </Link>
             </div>
           </div>

@@ -87,39 +87,38 @@ export default function LiveScoresPage() {
   return (
     <>
       <Navbar />
-      <main className="neo-public min-h-screen pt-16">
-        <section className="public-hero">
-          <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 md:py-16">
-            <PageBreadcrumb
-              parentLabel="Home"
-              parentHref="/"
-              current="Live Scores"
-            />
-            <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="public-kicker">Live scores</p>
-                <h1 className="public-title mt-5 max-w-4xl text-3xl font-bold tracking-tight text-white md:text-5xl">
-                  {tournament?.name ?? "Tournament Live Scores"}
-                </h1>
-                <p className="mt-4 border-l-2 border-[#f5eedb] pl-4 text-sm font-medium text-white/80">
-                  {tournament
-                    ? `${tournament.venue} · ${tournament.dateLabel}`
-                    : "Loading backend tournament data."}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                {loading
-                  ? "Syncing…"
-                  : `${live?.activeMatches.length ?? 0} active matches`}
-              </div>
-            </div>
-          </div>
-        </section>
+      <main className="mx-auto min-h-screen max-w-[1440px] px-6 py-10 pt-24 md:px-10">
+        <PageBreadcrumb
+          parentLabel="Home"
+          parentHref="/"
+          current="Live Scores"
+        />
 
-        <div className="mx-auto max-w-[1440px] px-6 py-10 md:px-10">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+              Live scores
+            </p>
+            <h1 className="mt-2 text-3xl font-extrabold text-[#0C0D11] md:text-4xl">
+              {tournament?.name ?? "Tournament Live Scores"}
+            </h1>
+            <p className="mt-2 text-sm text-[#5A5751]">
+              {tournament
+                ? `${tournament.venue} · ${tournament.dateLabel}`
+                : "Loading backend tournament data."}
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-4 py-3 text-sm font-semibold text-[#0C0D11] shadow-xs">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            {loading
+              ? "Syncing…"
+              : `${live?.activeMatches.length ?? 0} active matches`}
+          </div>
+        </div>
+
+        <div>
           {error && (
-            <div className="rounded-lg border border-error/20 bg-error-container p-5 text-sm font-semibold text-on-error-container">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm font-semibold text-rose-800">
               {error}
             </div>
           )}
@@ -128,9 +127,7 @@ export default function LiveScoresPage() {
             <div className="grid gap-7 lg:grid-cols-[1fr_380px]">
               {/* Live now — using ScoreCard */}
               <section className="space-y-4">
-                <h2 className="public-title text-3xl text-slate-950">
-                  Live now
-                </h2>
+                <h2 className="text-2xl font-bold text-[#0C0D11]">Live now</h2>
                 {loading && !live && (
                   <div className="h-40 animate-pulse rounded-lg border border-outline-variant/30 bg-white" />
                 )}

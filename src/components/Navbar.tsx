@@ -36,16 +36,16 @@ export default function Navbar({
 
   return (
     <header
-      className={`${sticky ? "sticky" : "fixed"} top-0 z-50 w-full border-b border-[#e6e3da] bg-[#faf9f6]/90 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] backdrop-blur-md`}
+      className={`${sticky ? "sticky" : "fixed"} top-0 z-50 w-full border-b border-[#E6E3DA] bg-[#FAF9F6]/90 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] backdrop-blur-md`}
     >
-      <nav className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 md:px-10">
+      <nav className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-4 md:px-10">
         <Link
           href="/"
-          className="inline-flex shrink-0 items-center py-1 transition hover:opacity-80"
+          className="inline-flex shrink-0 items-center py-1 transition-opacity hover:opacity-80"
         >
           <Image
             src="/tuwaga-logo.png"
-            alt="tuwaga skor"
+            alt="TUWAGA"
             width={124}
             height={28}
             priority
@@ -55,10 +55,10 @@ export default function Navbar({
         <div className="flex min-w-0 items-center gap-2">
           <Link
             href="/"
-            className={`hidden h-9 items-center justify-center rounded-lg border px-3.5 text-xs font-bold uppercase tracking-wider transition sm:inline-flex ${
+            className={`hidden h-9 items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors sm:inline-flex ${
               active === "home"
-                ? "border-[#111318] bg-[#111318] text-[#f5eedb]"
-                : "border-transparent text-[#111318] hover:border-[#e6e3da] hover:bg-neutral-100/70"
+                ? "bg-[#0C0D11] text-[#F5EEDB]"
+                : "text-neutral-700 hover:bg-neutral-100/70"
             }`}
           >
             Home
@@ -66,15 +66,15 @@ export default function Navbar({
           {actions.map((action) => {
             const className =
               action.variant === "primary"
-                ? "bg-[#111318] text-[#f5eedb] hover:bg-neutral-800 border-[#111318]"
-                : "bg-white text-[#111318] hover:bg-neutral-50 border-[#e6e3da]";
+                ? "bg-[#0C0D11] text-[#F5EEDB] hover:bg-neutral-800"
+                : "border border-[#E6E3DA] bg-white text-neutral-800 hover:bg-neutral-50 shadow-xs";
 
             if (action.href) {
               return (
                 <Link
                   key={action.label}
                   href={action.href}
-                  className={`inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-bold uppercase tracking-wider transition hover:-translate-y-0.5 hover:shadow-xs sm:px-4 ${className}`}
+                  className={`inline-flex h-9 items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors ${className}`}
                 >
                   {action.label}
                 </Link>
@@ -85,7 +85,7 @@ export default function Navbar({
               <button
                 key={action.label}
                 type="button"
-                className={`h-9 cursor-pointer rounded-lg border px-3 text-xs font-bold uppercase tracking-wider transition hover:-translate-y-0.5 hover:shadow-xs sm:px-4 ${className}`}
+                className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-lg px-3.5 text-sm font-medium transition-colors ${className}`}
               >
                 {action.label}
               </button>
@@ -96,7 +96,7 @@ export default function Navbar({
               type="button"
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#e6e3da] bg-white px-3 text-xs font-bold uppercase text-rose-600 transition hover:bg-rose-50 hover:border-rose-200 disabled:cursor-wait disabled:opacity-70 sm:px-3.5"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#E6E3DA] bg-white px-3 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 hover:border-rose-200 disabled:cursor-wait disabled:opacity-70 sm:px-3.5"
             >
               <span className="material-symbols-outlined text-lg">logout</span>
               <span className="hidden sm:inline">

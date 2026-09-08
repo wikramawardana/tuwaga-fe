@@ -103,35 +103,33 @@ function LoginContent() {
   };
 
   return (
-    <main className="neo-login relative min-h-screen overflow-hidden bg-[#faf9f6] px-4 py-5 text-[#12141a] sm:px-6 lg:p-8">
-      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-2xl border border-[#e6e3da] bg-white shadow-xl lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="relative hidden overflow-hidden border-r border-white/10 bg-[#0c0d11] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+    <main className="relative min-h-screen overflow-hidden bg-[#FAF9F6] px-4 py-5 text-[#0C0D11] sm:px-6 lg:p-8">
+      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-sm lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="relative hidden overflow-hidden border-r border-white/10 bg-[#0C0D11] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div className="relative z-10 flex items-center justify-between">
             <Link href="/" className="transition hover:opacity-80">
               <Image
                 src="/tuwaga-logo-cream.png"
-                alt="tuwaga skor"
+                alt="TUWAGA"
                 width={132}
                 height={32}
                 priority
                 className="h-8 w-auto"
               />
             </Link>
-            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#f5eedb]">
+            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]">
               Admin only
             </span>
           </div>
 
           <div className="relative z-10 max-w-3xl py-12">
-            <p className="mb-4 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-[#f5eedb]/70">
-              Tournament OS / 2026
+            <p className="mb-4 inline-flex text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]/70">
+              Tournament OS · 2026
             </p>
-            <h1 className="text-5xl font-extrabold uppercase leading-tight tracking-tight xl:text-7xl">
-              Run the
-              <span className="my-2 block text-[#f5eedb]">whole</span>
-              tournament.
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">
+              Run the whole tournament.
             </h1>
-            <p className="mt-6 max-w-lg border-l-2 border-[#f5eedb]/30 pl-5 text-base leading-relaxed text-white/70">
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-neutral-300">
               Draws, schedules, courts, scoring, and results. One focused
               workspace for a sharp tournament crew.
             </p>
@@ -145,10 +143,10 @@ function LoginContent() {
             ].map(([number, label]) => (
               <div
                 key={number}
-                className="rounded-xl border border-white/15 bg-white/5 p-4 text-white transition hover:border-[#f5eedb]/40"
+                className="rounded-xl border border-white/15 bg-white/5 p-4 text-white transition hover:border-[#F5EEDB]/40"
               >
-                <p className="text-2xl font-black text-[#f5eedb]">{number}</p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-white/80">
+                <p className="text-2xl font-black text-[#F5EEDB]">{number}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/80">
                   {label}
                 </p>
               </div>
@@ -156,45 +154,45 @@ function LoginContent() {
           </div>
         </div>
 
-        <div className="relative flex min-w-0 items-center justify-center bg-[#faf9f6] p-5 sm:p-10 xl:p-16">
+        <div className="relative flex min-w-0 items-center justify-center bg-[#FAF9F6] p-5 sm:p-10 xl:p-16">
           <div className="min-w-0 w-full max-w-[440px]">
             <div className="mb-8 flex items-center justify-between lg:hidden">
               <Link href="/">
                 <Image
                   src="/tuwaga-logo.png"
-                  alt="tuwaga skor"
+                  alt="TUWAGA"
                   width={124}
                   height={28}
                   priority
                   className="h-7 w-auto"
                 />
               </Link>
-              <span className="rounded-full border border-[#e6e3da] bg-[#f5f4ef] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#12141a]">
+              <span className="rounded-full border border-[#E6E3DA] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
                 Admin
               </span>
             </div>
 
-            <div className="relative rounded-2xl border border-[#e6e3da] bg-white p-6 shadow-sm sm:p-9">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#e6e3da] bg-[#f5f4ef] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#12141a]">
+            <div className="relative rounded-2xl border border-[#E6E3DA] bg-white p-6 shadow-xs sm:p-9">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Secure crew entrance
               </span>
 
-              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-[#12141a] sm:text-4xl">
+              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-[#0C0D11] sm:text-4xl">
                 Ready to run the show?
               </h2>
-              <p className="mt-3 text-sm font-medium leading-relaxed text-slate-500">
+              <p className="mt-3 text-sm leading-relaxed text-[#5A5751]">
                 Sign in with your authorized Google account to open the Tuwaga
                 admin command center.
               </p>
 
-              <hr className="my-6 border-0 border-t border-[#e6e3da]" />
+              <hr className="my-6 border-0 border-t border-[#E6E3DA]" />
 
               <button
                 type="button"
                 onClick={handleSignIn}
                 disabled={isLoading}
-                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg bg-[#111318] px-4 text-xs font-bold uppercase tracking-wider text-[#f5eedb] transition hover:bg-neutral-800 disabled:cursor-wait disabled:opacity-60 shadow-sm"
+                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg bg-[#0C0D11] px-4 text-sm font-semibold text-[#F5EEDB] shadow-xs transition hover:bg-neutral-800 disabled:cursor-wait disabled:opacity-60"
               >
                 {isLoading ? (
                   <>

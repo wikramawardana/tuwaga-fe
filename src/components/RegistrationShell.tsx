@@ -24,7 +24,7 @@ export default function RegistrationShell({
   const isCentered = headerAlign === "center";
 
   return (
-    <div className="neo-public flex min-h-screen flex-col text-on-surface">
+    <div className="flex min-h-screen flex-col bg-background text-on-surface">
       <Navbar active="register" />
 
       <main className="flex-1 px-6 pb-16 pt-28 md:px-10">
@@ -41,16 +41,18 @@ export default function RegistrationShell({
 
           {title ? (
             <header
-              className={`mb-10 max-w-4xl border-l-4 border-blue-600 pl-5 ${
+              className={`mb-8 max-w-4xl ${
                 isCentered ? "mx-auto text-center" : ""
               }`}
             >
-              <p className="public-kicker mb-5">Player registration</p>
-              <h1 className="public-title text-[38px] text-slate-950 md:text-5xl">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+                Player registration
+              </p>
+              <h1 className="text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
                 {title}
               </h1>
               {description ? (
-                <p className="mt-3 text-[16px] font-semibold leading-[1.5] text-on-surface-variant">
+                <p className="mt-2 text-base font-normal leading-relaxed text-[#5A5751]">
                   {description}
                 </p>
               ) : null}

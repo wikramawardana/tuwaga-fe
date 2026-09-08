@@ -148,12 +148,12 @@ function getSportCue(
 
 function MatchScoringSkeleton() {
   return (
-    <div className="neo-admin flex min-h-screen items-center justify-center !bg-[#246bfe] !bg-none px-6 text-white">
+    <div className="flex min-h-screen items-center justify-center bg-[#FAF9F6] px-6 text-[#0C0D11]">
       <div className="text-center">
-        <span className="material-symbols-outlined admin-spin text-5xl text-blue-400">
+        <span className="material-symbols-outlined admin-spin text-5xl text-[#0C0D11]">
           progress_activity
         </span>
-        <p className="mt-4 text-sm font-extrabold uppercase tracking-[0.2em] text-blue-200">
+        <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-[#8C877D]">
           Opening scoring room
         </p>
       </div>
@@ -332,16 +332,18 @@ export default function MatchScoringWorkspace({
 
   if (!match) {
     return (
-      <main className="neo-admin flex min-h-screen items-center justify-center !bg-[#246bfe] !bg-none px-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#FAF9F6] px-6 text-[#0C0D11]">
         <div className="max-w-md text-center">
-          <span className="material-symbols-outlined text-6xl text-blue-300">
+          <span className="material-symbols-outlined text-6xl text-[#0C0D11]">
             search_off
           </span>
-          <h1 className="mt-5 text-3xl font-black">Match not found</h1>
-          <p className="mt-3 text-blue-100/70">{message}</p>
+          <h1 className="mt-5 text-3xl font-bold tracking-tight text-[#0C0D11]">
+            Match not found
+          </h1>
+          <p className="mt-3 text-sm text-[#5A5751]">{message}</p>
           <Link
             href={`/admin/tournaments/${tournamentId}`}
-            className="mt-6 inline-flex h-11 items-center rounded-xl bg-blue-500 px-5 text-sm font-extrabold text-white"
+            className="mt-6 inline-flex h-11 items-center rounded-lg bg-[#0C0D11] px-5 text-sm font-semibold text-[#F5EEDB] shadow-xs transition hover:bg-neutral-800"
           >
             Back to operations
           </Link>
@@ -351,7 +353,7 @@ export default function MatchScoringWorkspace({
   }
 
   return (
-    <main className="neo-admin min-h-screen text-slate-950">
+    <main className="min-h-screen bg-[#FAF9F6] text-[#0C0D11]">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0c0d11] text-white shadow-sm">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -528,7 +530,7 @@ export default function MatchScoringWorkspace({
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="neo-panel overflow-hidden bg-white">
+          <section className="overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-xs">
             <div className="border-b border-[#e6e3da] bg-[#0c0d11] px-5 py-5 text-center text-white">
               <div className="flex items-center justify-center gap-2">
                 <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#f5eedb]">

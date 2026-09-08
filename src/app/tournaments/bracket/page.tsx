@@ -64,61 +64,54 @@ export default function TournamentBracketPage() {
   return (
     <>
       <Navbar />
-      <main className="neo-public min-h-screen pt-16">
-        <section className="public-hero">
-          <div className="mx-auto max-w-[1440px] px-6 py-12 md:px-10 md:py-16">
-            <PageBreadcrumb
-              parentLabel="Home"
-              parentHref="/"
-              current="Bracket"
-            />
-            <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="public-kicker">Tournament bracket</p>
-                <h1 className="public-title mt-5 max-w-4xl text-3xl font-bold tracking-tight text-white md:text-5xl">
-                  {tournament?.name ?? "Loading tournament"}
-                </h1>
-                <p className="mt-4 border-l-2 border-[#f5eedb] pl-4 text-sm font-medium text-white/80">
-                  {tournament
-                    ? `${tournament.venue} · ${tournament.dateLabel}`
-                    : "Reading standings and bracket from the backend."}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
-                <div className="inline-flex rounded-xl border border-white/20 bg-white/10 p-1 backdrop-blur-sm">
-                  {(["groups", "bracket"] as const).map((view) => (
-                    <button
-                      key={view}
-                      type="button"
-                      onClick={() => setActiveView(view)}
-                      className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                        activeView === view
-                          ? "bg-white text-[#0c0d11]"
-                          : "text-white/70 hover:text-white"
-                      }`}
-                    >
-                      {view}
-                    </button>
-                  ))}
-                </div>
-                {tournament && (
-                  <Link
-                    href={`/tournaments/${tournament.slug}/display`}
-                    target="_blank"
-                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#e6e3da] bg-[#f5eedb] px-4 text-xs font-semibold uppercase tracking-wider text-[#0c0d11] transition hover:bg-white active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-base">
-                      tv
-                    </span>
-                    Open TV display
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+      <main className="mx-auto min-h-screen max-w-[1440px] px-6 py-10 pt-24 md:px-10">
+        <PageBreadcrumb parentLabel="Home" parentHref="/" current="Bracket" />
 
-        <div className="mx-auto max-w-[1440px] px-6 py-10 md:px-10">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
+              Tournament bracket
+            </p>
+            <h1 className="mt-2 text-3xl font-extrabold text-[#0C0D11] md:text-4xl">
+              {tournament?.name ?? "Loading tournament"}
+            </h1>
+            <p className="mt-2 text-sm text-[#5A5751]">
+              {tournament
+                ? `${tournament.venue} · ${tournament.dateLabel}`
+                : "Reading standings and bracket from the backend."}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+            <div className="inline-flex rounded-lg border border-[#E6E3DA] bg-[#FAF9F6] p-1">
+              {(["groups", "bracket"] as const).map((view) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => setActiveView(view)}
+                  className={`h-9 rounded-md px-4 text-sm font-semibold capitalize transition-colors ${
+                    activeView === view
+                      ? "bg-[#0C0D11] text-[#F5EEDB] shadow-xs"
+                      : "text-[#5A5751] hover:text-[#0C0D11]"
+                  }`}
+                >
+                  {view}
+                </button>
+              ))}
+            </div>
+            {tournament && (
+              <Link
+                href={`/tournaments/${tournament.slug}/display`}
+                target="_blank"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-4 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-[#FAF9F6]"
+              >
+                <span className="material-symbols-outlined text-lg">tv</span>
+                Open TV display
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <div>
           {loading && (
             <div className="h-48 animate-pulse rounded-2xl border border-outline-variant/30 bg-white" />
           )}

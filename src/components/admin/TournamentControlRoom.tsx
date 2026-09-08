@@ -979,8 +979,8 @@ export default function TournamentControlRoom({
   return (
     <>
       <Navbar active="admin" />
-      <main className="neo-admin min-h-screen pt-16 text-slate-950">
-        <section className="neo-hero">
+      <main className="min-h-screen bg-[#FAF9F6] pt-16 text-[#0C0D11]">
+        <section className="relative overflow-hidden border-b border-[#E6E3DA] bg-[#0C0D11] text-white">
           <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
             <PageBreadcrumb
               parentLabel="Admin"
@@ -990,7 +990,7 @@ export default function TournamentControlRoom({
             <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="neo-sticker -rotate-1">
+                  <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#F5EEDB]">
                     Tournament control room
                   </span>
                   <span
@@ -1002,10 +1002,10 @@ export default function TournamentControlRoom({
                     {settings.status}
                   </span>
                 </div>
-                <h1 className="neo-title mt-5 text-4xl font-black sm:text-5xl lg:text-6xl">
+                <h1 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
                   {tournament?.name ?? "Loading tournament"}
                 </h1>
-                <p className="mt-4 max-w-2xl border-l-4 border-cyan-300 pl-4 text-sm font-semibold leading-6 text-white sm:text-base">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-300 sm:text-base">
                   {tournament?.venue || "Venue not set"} ·{" "}
                   {tournament?.dateLabel || "Date not set"}. Run the full
                   tournament from one calm, shared operations surface.
@@ -2391,10 +2391,10 @@ export default function TournamentControlRoom({
                       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                           <div>
-                            <p className="neo-sticker rotate-1">
+                            <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
                               Order of Play
-                            </p>
-                            <h3 className="mt-4 text-2xl font-black text-slate-950">
+                            </span>
+                            <h3 className="mt-4 text-2xl font-bold text-[#0C0D11]">
                               {oopPlan.title}
                             </h3>
                             <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
@@ -2756,10 +2756,10 @@ export default function TournamentControlRoom({
 
                   <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <p className="neo-sticker neo-sticker-cyan">
+                      <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
                         Match control
-                      </p>
-                      <h3 className="mt-4 text-2xl font-black text-slate-950">
+                      </span>
+                      <h3 className="mt-4 text-2xl font-bold text-[#0C0D11]">
                         Find and operate a match
                       </h3>
                       <p className="mt-1 text-sm text-slate-500">

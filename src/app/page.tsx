@@ -122,50 +122,54 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      <main className="neo-public pt-16">
+      <main className="pt-16">
         {/* ── Hero ────────────────────────────────────────────────── */}
-        <section className="public-hero">
+        <section className="relative overflow-hidden bg-white">
           <div
             ref={(el) => addParallaxRef(el, 0)}
             data-speed="0.04"
-            className="parallax-layer public-dots pointer-events-none absolute inset-x-0 top-0 h-full opacity-30"
+            className="hero-grid parallax-layer pointer-events-none absolute inset-x-0 top-0 h-full opacity-60"
           />
-          <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
-            <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-20">
+          <div className="mx-auto max-w-[1200px] px-6 py-20 md:px-10 md:py-28">
+            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
               {/* Left — Copy */}
               <div className="relative z-10">
-                <div className="public-kicker hero-reveal hero-reveal-1 mb-6">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#f5eedb]" />
-                  Indonesia&apos;s tournament playground
+                <div className="hero-reveal hero-reveal-1 mb-6 inline-flex items-center gap-2 rounded-full border border-[#E6E3DA] bg-[#0C0D11]/[0.04] px-4 py-1.5 motion-chip">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#0C0D11] animate-pulse" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[#0C0D11]">
+                    Tournament operations MVP
+                  </span>
                 </div>
 
-                <h1 className="public-title hero-reveal hero-reveal-2 mb-7 text-5xl uppercase tracking-tight text-white md:text-7xl xl:text-8xl">
-                  Your match.
-                  <span className="mt-2 block text-[#f5eedb]">Live now.</span>
+                <h1 className="hero-reveal hero-reveal-2 mb-6 text-4xl font-extrabold leading-[1.15] tracking-tight text-[#0C0D11] md:text-[52px]">
+                  Live scoring.
+                  <br />
+                  <span className="text-[#8C877D]">Brackets. Referees.</span>
                 </h1>
 
-                <p className="hero-reveal hero-reveal-3 mb-8 max-w-xl border-l-2 border-[#f5eedb]/30 pl-5 text-base leading-relaxed text-white/80 md:text-lg">
-                  Follow scores, see who plays next, track the bracket, and
-                  register your team from one loud, clear tournament hub.
+                <p className="hero-reveal hero-reveal-3 mb-8 max-w-md text-base leading-relaxed text-[#5A5751] md:text-lg">
+                  TUWAGA helps organizers run match scoring, bracket updates,
+                  and referee workflows from one sport-ready platform.
                 </p>
+
                 <div className="hero-reveal hero-reveal-3 flex flex-wrap gap-3">
                   <Link
                     href="/tournaments/live"
-                    className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#f5eedb] px-6 text-xs font-bold uppercase tracking-wider text-[#0c0d11] transition hover:bg-white hover:shadow-sm"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#0C0D11] px-6 text-sm font-semibold text-[#F5EEDB] shadow-xs transition-colors hover:bg-neutral-800"
                   >
                     <span className="material-symbols-outlined text-lg">
-                      sensors
+                      scoreboard
                     </span>
-                    Watch live
+                    Live Scoring
                   </Link>
                   <Link
                     href="/register"
-                    className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 text-xs font-bold uppercase tracking-wider text-white transition hover:border-white/35 hover:bg-white/10"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-6 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-[#FAF9F6]"
                   >
-                    Register team
-                    <span className="material-symbols-outlined text-base">
-                      arrow_forward
+                    <span className="material-symbols-outlined text-lg">
+                      how_to_reg
                     </span>
+                    Register
                   </Link>
                 </div>
               </div>
@@ -176,7 +180,7 @@ export default function HomePage() {
                 data-speed="-0.075"
                 className="parallax-layer relative z-10"
               >
-                <div className="public-image-frame hero-image-reveal relative overflow-hidden animate-hero-card">
+                <div className="hero-image-reveal relative overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-[0px_20px_50px_rgba(12,13,17,0.08)] animate-hero-card">
                   <Image
                     src="/tuwaga-hero.png"
                     alt="TUWAGA live tournament operations platform"
@@ -187,21 +191,21 @@ export default function HomePage() {
                     priority
                     unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-[#0C0D11]/5 via-transparent to-transparent" />
                 </div>
-                <div className="motion-float motion-pop-in absolute -left-5 top-8 hidden rounded-xl border border-white/15 bg-[#12141a]/90 p-4 text-white shadow-xl backdrop-blur-md md:block">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#f5eedb]/60">
+                <div className="motion-float motion-pop-in absolute -left-4 top-8 hidden rounded-xl border border-[#E6E3DA] bg-white/95 px-4 py-3 shadow-[0px_10px_30px_rgba(12,13,17,0.06)] backdrop-blur md:block">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C877D]">
                     Live court
                   </p>
-                  <p className="mt-1 text-2xl font-black text-[#f5eedb]">
+                  <p className="mt-1 text-xl font-extrabold text-[#0C0D11]">
                     24 - 21
                   </p>
                 </div>
-                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-white/15 bg-[#12141a]/90 p-4 text-white shadow-xl backdrop-blur-md md:block">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#f5eedb]/60">
+                <div className="motion-float motion-float-delay motion-pop-in motion-pop-delay absolute -right-3 bottom-8 hidden rounded-xl border border-[#E6E3DA] bg-white/95 px-4 py-3 shadow-[0px_10px_30px_rgba(12,13,17,0.06)] backdrop-blur md:block">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C877D]">
                     Bracket
                   </p>
-                  <p className="mt-1 text-sm font-bold text-white">
+                  <p className="mt-1 text-sm font-extrabold text-[#0C0D11]">
                     Final ready
                   </p>
                 </div>
@@ -211,17 +215,20 @@ export default function HomePage() {
         </section>
 
         {/* ── Current Tournament ─────────────────────────────────── */}
-        <section ref={(el) => addRef(el, 0)} className="py-20 md:py-28">
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+        <section
+          ref={(el) => addRef(el, 0)}
+          className="border-t border-[#E6E3DA] bg-[#FAF9F6] py-20 md:py-28"
+        >
+          <div className="mx-auto max-w-[1200px] px-6 md:px-10">
             <div className="mb-10">
               <div>
-                <p className="public-kicker mb-4 !border-[#e6e3da] !bg-[#f5f4ef] !text-[#12141a]">
+                <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
                   Tournaments
                 </p>
-                <h2 className="public-title text-4xl text-slate-950 md:text-5xl">
+                <h2 className="text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
                   Available tournament rooms
                 </h2>
-                <p className="text-base leading-relaxed text-on-surface-variant mt-3 max-w-2xl">
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-[#5A5751]">
                   Browse every tournament currently available from the backend
                   and jump into registration, live scoring, or bracket view.
                 </p>
@@ -229,7 +236,7 @@ export default function HomePage() {
             </div>
 
             {tournaments.length === 0 ? (
-              <div className="public-panel bg-white p-8 text-sm font-bold text-slate-600">
+              <div className="rounded-xl border border-[#E6E3DA] bg-white p-8 text-sm font-semibold text-[#5A5751] shadow-xs">
                 No tournament loaded from the backend yet.
               </div>
             ) : (
@@ -239,9 +246,9 @@ export default function HomePage() {
                     key={tournament.id}
                     ref={(el) => addParallaxRef(el, 2 + index)}
                     data-speed="-0.035"
-                    className="public-panel parallax-layer overflow-hidden bg-white motion-card"
+                    className="parallax-layer overflow-hidden rounded-xl border border-[#E6E3DA] bg-white shadow-xs transition-shadow hover:shadow-md motion-card"
                   >
-                    <div className="relative min-h-56 overflow-hidden border-b border-[#e6e3da]">
+                    <div className="relative min-h-56 overflow-hidden border-b border-[#E6E3DA]">
                       <Image
                         src={tournament.heroImageUrl ?? "/arena.png"}
                         alt={tournament.name}
@@ -249,23 +256,23 @@ export default function HomePage() {
                         className="object-cover"
                         unoptimized
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                      <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-[#12141a]/85 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#f5eedb] backdrop-blur-md">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+                      <span className="absolute left-4 top-4 rounded-md bg-[#0C0D11] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#F5EEDB]">
                         {tournament.status}
                       </span>
                     </div>
 
                     <div className="p-6 md:p-7">
-                      <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+                      <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-[#8C877D]">
                         <span className="material-symbols-outlined text-sm">
                           calendar_today
                         </span>
                         {tournament.dateLabel}
                       </div>
-                      <h4 className="mb-2 text-2xl font-extrabold leading-tight text-on-surface">
+                      <h4 className="mb-2 text-2xl font-bold leading-tight text-[#0C0D11]">
                         {tournament.name}
                       </h4>
-                      <p className="mb-5 flex items-center gap-1 text-sm text-on-surface-variant">
+                      <p className="mb-5 flex items-center gap-1 text-sm text-[#5A5751]">
                         <span className="material-symbols-outlined text-sm">
                           location_on
                         </span>
@@ -273,14 +280,14 @@ export default function HomePage() {
                       </p>
 
                       <div className="mb-6 grid grid-cols-1 gap-3">
-                        <div className="public-stat bg-[#faf9f6] p-4">
-                          <span className="material-symbols-outlined mb-2 text-[#12141a]">
+                        <div className="rounded-lg border border-[#E6E3DA] bg-[#FAF9F6] p-4">
+                          <span className="material-symbols-outlined mb-2 text-[#0C0D11]">
                             verified
                           </span>
-                          <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#8C877D]">
                             Format
                           </p>
-                          <p className="text-lg font-bold text-on-surface">
+                          <p className="text-lg font-bold text-[#0C0D11]">
                             {tournament.settings.format}
                           </p>
                         </div>
@@ -289,27 +296,27 @@ export default function HomePage() {
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                           href="/tournaments/live"
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#111318] px-5 text-xs font-bold uppercase tracking-wider text-[#f5eedb] hover:bg-neutral-800 transition"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#0C0D11] px-5 text-sm font-semibold text-[#F5EEDB] transition-colors hover:bg-neutral-800"
                         >
-                          <span className="material-symbols-outlined text-base">
+                          <span className="material-symbols-outlined text-lg">
                             scoreboard
                           </span>
                           Live Scoring
                         </Link>
                         <Link
                           href="/tournaments/bracket"
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e6e3da] bg-white px-5 text-xs font-bold uppercase tracking-wider text-[#12141a] hover:bg-neutral-50 transition"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-5 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-neutral-50"
                         >
-                          <span className="material-symbols-outlined text-base">
+                          <span className="material-symbols-outlined text-lg">
                             account_tree
                           </span>
                           Bracket
                         </Link>
                         <Link
                           href="/register"
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e6e3da] bg-white px-5 text-xs font-bold uppercase tracking-wider text-[#12141a] hover:bg-neutral-50 transition"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-[#E6E3DA] bg-white px-5 text-sm font-semibold text-[#0C0D11] shadow-xs transition-colors hover:bg-neutral-50"
                         >
-                          <span className="material-symbols-outlined text-base">
+                          <span className="material-symbols-outlined text-lg">
                             how_to_reg
                           </span>
                           Register
@@ -326,43 +333,43 @@ export default function HomePage() {
         {/* ── Platform Workflow ──────────────────────────────────── */}
         <section
           ref={(el) => addRef(el, 1)}
-          className="border-y border-[#e6e3da] bg-[#faf9f6] py-20 md:py-28"
+          className="border-y border-[#E6E3DA] bg-white py-20 md:py-28"
         >
-          <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <p className="public-kicker mb-4 !border-[#e6e3da] !bg-white !text-[#12141a]">
+          <div className="mx-auto max-w-[1200px] px-6 md:px-10">
+            <div className="mx-auto mb-16 max-w-2xl text-center">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#0C0D11]">
                 How it works
               </p>
-              <h2 className="public-title mb-4 text-4xl text-slate-950 md:text-5xl">
+              <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
                 Built for tournament operations
               </h2>
-              <p className="text-base leading-relaxed text-on-surface-variant">
+              <p className="text-base leading-relaxed text-[#5A5751]">
                 Start with the operational core: referees score matches,
                 audiences follow live results, and brackets move forward without
                 manual recaps.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {steps.map((s) => (
                 <div
                   key={s.step}
-                  className="public-panel group relative bg-white p-8 text-center transition-all duration-200 hover:-translate-y-1 motion-card"
+                  className="group relative rounded-xl border border-[#E6E3DA] bg-[#FAF9F6] p-8 text-center motion-card transition-all duration-300 hover:border-[#0C0D11]/30 hover:shadow-md"
                 >
-                  <div className="relative inline-flex items-center justify-center mb-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#e6e3da] bg-[#faf9f6] transition-colors group-hover:border-[#12141a]">
-                      <span className="material-symbols-outlined text-[#12141a] text-2xl group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative mb-6 inline-flex items-center justify-center">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#0C0D11]/[0.05] transition-colors group-hover:bg-[#0C0D11]/10">
+                      <span className="material-symbols-outlined text-3xl text-[#0C0D11] transition-transform duration-300 group-hover:scale-110">
                         {s.icon}
                       </span>
                     </div>
-                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-[#111318] bg-[#111318] text-[10px] font-bold text-[#f5eedb]">
+                    <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-[#0C0D11] text-[10px] font-extrabold text-[#F5EEDB]">
                       {s.step}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-on-surface mb-2">
+                  <h3 className="mb-2 text-lg font-bold text-[#0C0D11]">
                     {s.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-on-surface-variant">
+                  <p className="text-sm leading-relaxed text-[#5A5751]">
                     {s.description}
                   </p>
                 </div>

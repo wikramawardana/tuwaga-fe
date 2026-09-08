@@ -90,12 +90,14 @@ function EmptyDisplay({
 }) {
   return (
     <div className="display-scene-enter flex min-h-[55vh] items-center justify-center">
-      <div className="public-panel max-w-xl bg-white p-8 text-center">
-        <span className="material-symbols-outlined text-6xl text-blue-600">
+      <div className="max-w-xl rounded-2xl border border-[#E6E3DA] bg-white p-8 text-center shadow-xs">
+        <span className="material-symbols-outlined text-6xl text-[#0C0D11]">
           {icon}
         </span>
-        <h2 className="public-title mt-5 text-4xl text-slate-950">{title}</h2>
-        <p className="mt-4 text-base font-semibold leading-7 text-slate-500">
+        <h2 className="mt-5 text-3xl font-bold tracking-tight text-[#0C0D11]">
+          {title}
+        </h2>
+        <p className="mt-4 text-base leading-relaxed text-[#5A5751]">
           {description}
         </p>
       </div>
@@ -126,8 +128,10 @@ function GroupsScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="public-kicker">Scene 01 · Group stage</p>
-          <h2 className="public-title mt-4 text-4xl text-slate-950 md:text-5xl">
+          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+            Scene 01 · Group stage
+          </span>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
             Road to qualification
           </h2>
         </div>
@@ -267,25 +271,27 @@ function OopScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="public-kicker">Scene 02 · Order of Play</p>
-          <h2 className="public-title mt-4 text-4xl text-slate-950 md:text-5xl">
+          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+            Scene 02 · Order of Play
+          </span>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
             {publicOopTimeLabel(session.timeLabel)}
           </h2>
         </div>
-        <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase">
-          <span className="public-stat bg-white px-3 py-2">
+        <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wider">
+          <span className="rounded-md border border-[#E6E3DA] bg-white px-3 py-1.5 text-[#0C0D11]">
             Session {sessionIndex + 1}/{plan.sessions.length}
           </span>
-          <span className="public-stat bg-cyan-100 px-3 py-2">
+          <span className="rounded-md border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1.5 text-[#0C0D11]">
             {matchCount} matches
           </span>
-          <span className="public-stat bg-yellow-100 px-3 py-2">
+          <span className="rounded-md border border-[#E6E3DA] bg-[#FAF9F6] px-3 py-1.5 text-[#0C0D11]">
             {plan.courts} courts
           </span>
         </div>
       </div>
 
-      <div className="public-panel overflow-hidden bg-white">
+      <div className="overflow-hidden rounded-2xl border border-[#E6E3DA] bg-white shadow-xs">
         <div className="overflow-auto" data-display-scroll>
           <div
             className="grid"
@@ -432,8 +438,10 @@ function BracketScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="public-kicker">Scene 03 · Knockout</p>
-          <h2 className="public-title mt-4 text-4xl text-slate-950 md:text-5xl">
+          <span className="inline-flex items-center rounded-full border border-[#E6E3DA] bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#0C0D11]">
+            Scene 03 · Knockout
+          </span>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-[#0C0D11] md:text-4xl">
             Win or go home
           </h2>
         </div>
@@ -745,12 +753,12 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (loading && !tournament) {
     return (
-      <main className="neo-public flex min-h-screen items-center justify-center !bg-[#246bfe] !bg-none p-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#FAF9F6] p-6 text-[#0C0D11]">
         <div className="text-center">
-          <span className="material-symbols-outlined admin-spin text-6xl text-cyan-300">
+          <span className="material-symbols-outlined admin-spin text-5xl text-[#0C0D11]">
             progress_activity
           </span>
-          <p className="mt-5 text-sm font-black uppercase tracking-[0.2em]">
+          <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-[#8C877D]">
             Opening tournament display
           </p>
         </div>
@@ -760,7 +768,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (!tournament) {
     return (
-      <main className="neo-public flex min-h-screen items-center justify-center p-6">
+      <main className="flex min-h-screen items-center justify-center bg-[#FAF9F6] p-6">
         <EmptyDisplay
           icon="tv_off"
           title="Display unavailable"
@@ -772,7 +780,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   return (
     <main
-      className="neo-public flex min-h-screen flex-col overflow-x-hidden pb-20"
+      className="flex min-h-screen flex-col overflow-x-hidden bg-[#FAF9F6] pb-20"
       onTouchStart={(event) => {
         if (
           event.target instanceof Element &&

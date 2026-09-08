@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Brand palette ─────────────────────────────────────────── */
-  --color-primary: #1a56db;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #2563eb;
-  --color-on-primary-container: #eeefff;
-  --color-primary-fixed: #dbe1ff;
-  --color-primary-fixed-dim: #b4c5ff;
-  --color-on-primary-fixed: #00174b;
-  --color-on-primary-fixed-variant: #003ea8;
-  --color-inverse-primary: #b4c5ff;
-  --color-surface-tint: #0053db;
+  /* ── Brand palette (Matched to Logo Identity: Deep Charcoal & Warm Cream) ── */
+  --color-primary: #0c0d11;
+  --color-on-primary: #f5eedb;
+  --color-primary-container: #1c202a;
+  --color-on-primary-container: #f5eedb;
+  --color-primary-fixed: #f5eedb;
+  --color-primary-fixed-dim: #e6dfce;
+  --color-on-primary-fixed: #0c0d11;
+  --color-on-primary-fixed-variant: #252834;
+  --color-inverse-primary: #f5eedb;
+  --color-surface-tint: #0c0d11;
+
+  --color-cream: #f5eedb;
+  --color-cream-light: #faf7f0;
 
   --color-secondary: #047857;
   --color-on-secondary: #ffffff;
@@ -36,34 +39,34 @@
   --color-error-container: #ffd6d6;
   --color-on-error-container: #93000a;
 
-  /* ── Neutral surfaces (warm-grey tinted) ──────────────────── */
-  --color-background: #fafafa;
-  --color-on-background: #111827;
-  --color-surface: #fafafa;
-  --color-on-surface: #111827;
-  --color-surface-variant: #e5e7eb;
+  /* ── Neutral surfaces (Warm, clean minimalist tones) ───────── */
+  --color-background: #faf9f6;
+  --color-on-background: #0c0d11;
+  --color-surface: #ffffff;
+  --color-on-surface: #0c0d11;
+  --color-surface-variant: #f0ede6;
   --color-on-surface-variant: #4b5563;
   --color-surface-bright: #ffffff;
-  --color-surface-dim: #d1d5db;
+  --color-surface-dim: #e6e3da;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f3f4f6;
-  --color-surface-container: #e5e7eb;
-  --color-surface-container-high: #d1d5db;
-  --color-surface-container-highest: #c7cad3;
-  --color-inverse-surface: #111827;
-  --color-inverse-on-surface: #f9fafb;
+  --color-surface-container-low: #faf9f6;
+  --color-surface-container: #f0ede6;
+  --color-surface-container-high: #e6e3da;
+  --color-surface-container-highest: #dcd8cf;
+  --color-inverse-surface: #0c0d11;
+  --color-inverse-on-surface: #faf9f6;
 
-  --color-outline: #6b7280;
-  --color-outline-variant: #d1d5db;
+  --color-outline: #9ca3af;
+  --color-outline-variant: #e6e3da;
 
   /* ── Typography ─────────────────────────────────────────────── */
   --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
   --font-inter: var(--font-inter), system-ui, sans-serif;
 
   /* ── Border radius ──────────────────────────────────────────── */
-  --radius: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 
   /* ── Spacing tokens ─────────────────────────────────────────── */
   --spacing-gutter: 24px;
@@ -364,217 +367,19 @@ html {
   }
 }
 
-/* Modern Minimalist System - Outline Aesthetics (Color scheme matched to logo identity) */
-.neo-admin,
-.neo-login,
-.neo-public {
-  --neo-ink: #111318;
-  --neo-cream: #f5eedb;
-  --neo-cream-light: #faf7f0;
-  --neo-paper: #faf9f6;
-  --neo-surface: #ffffff;
-  --neo-border: #e6e3da;
-  --neo-border-subtle: #f0ede6;
-  --neo-dark: #0c0d11;
-  --neo-dark-surface: #14161e;
-  --neo-blue: #1c2230;
-  --neo-cyan: #ede7d5;
-  --neo-yellow: #f5eedb;
-  --neo-white: #ffffff;
-  color: var(--neo-ink);
-  background-color: var(--neo-paper);
-  background-image: none;
+/* Clean Minimalist Hero Grid Pattern */
+.hero-grid {
+  background-image:
+    linear-gradient(115deg, rgba(12, 13, 17, 0.025) 0, transparent 36%),
+    linear-gradient(90deg, rgba(230, 227, 218, 0.55) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(230, 227, 218, 0.55) 1px, transparent 1px);
+  background-size:
+    auto,
+    72px 72px,
+    72px 72px;
 }
 
-.neo-public {
-  min-height: 100vh;
-}
-
-.public-hero {
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: #0c0d11;
-  color: #ffffff;
-  box-shadow: none;
-}
-
-.public-hero::before {
-  content: "";
-  position: absolute;
-  top: -15%;
-  right: -10%;
-  width: 550px;
-  height: 550px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(245, 238, 219, 0.06) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.public-hero > * {
-  position: relative;
-  z-index: 2;
-}
-
-.public-hero nav,
-.public-hero nav a,
-.public-hero nav span {
-  color: white;
-}
-
-.public-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border: 1px solid rgba(245, 238, 219, 0.22);
-  border-radius: 9999px;
-  background: rgba(245, 238, 219, 0.06);
-  padding: 0.35rem 0.85rem;
-  color: #f5eedb;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  box-shadow: none;
-  transform: none;
-}
-
-.public-title {
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  text-wrap: balance;
-}
-
-.public-hero .public-title {
-  text-shadow: none;
-}
-
-.public-panel,
-.neo-public .rounded-xl.bg-white,
-.neo-public .rounded-lg.bg-white,
-.neo-public .rounded-xl.bg-surface-container-lowest,
-.neo-public .rounded-lg.bg-surface-container-lowest {
-  border: 1px solid var(--neo-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.public-panel:hover,
-.neo-public .rounded-xl.bg-white:hover {
-  border-color: #cfcac0;
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
-}
-
-.neo-public
-  :is(
-    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea
-  ) {
-  border: 1px solid var(--neo-border);
-  border-radius: 8px;
-  box-shadow: none;
-  background-color: #ffffff;
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.neo-public
-  :is(
-    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea
-  ):focus {
-  border-color: #111318;
-  box-shadow: 0 0 0 1px #111318;
-  outline: none;
-  transform: none;
-}
-
-.neo-public button.rounded-lg,
-.neo-public button.rounded-xl,
-.neo-public a.rounded-lg,
-.neo-public a.rounded-xl,
-.public-button {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  transform: none;
-  transition: all 150ms ease;
-}
-
-.neo-public button.rounded-lg:hover,
-.neo-public button.rounded-xl:hover,
-.neo-public a.rounded-lg:hover,
-.neo-public a.rounded-xl:hover,
-.public-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.08);
-}
-
-.neo-public button.rounded-lg:active,
-.neo-public button.rounded-xl:active,
-.neo-public a.rounded-lg:active,
-.neo-public a.rounded-xl:active,
-.public-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-}
-
-.neo-public button:disabled,
-.neo-public a[aria-disabled="true"] {
-  box-shadow: none;
-  transform: none;
-  opacity: 0.5;
-}
-
-.public-image-frame {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
-  transform: none;
-}
-
-.public-stat {
-  border: 1px solid var(--neo-border);
-  border-radius: 10px;
-  background: white;
-  box-shadow: none;
-}
-
-.neo-public table thead {
-  border-bottom: 1px solid var(--neo-border);
-  background: #f7f5ef;
-  color: var(--neo-ink);
-}
-
-.neo-public table tbody tr + tr {
-  border-top: 1px solid var(--neo-border-subtle);
-}
-
-.neo-public .bg-error-container {
-  border: 1px solid #fca5a5;
-  border-radius: 8px;
-  box-shadow: none;
-}
-
-.public-dots {
-  background-image: radial-gradient(
-    rgba(245, 238, 219, 0.08) 1px,
-    transparent 1px
-  );
-  background-size: 20px 20px;
-}
-
+/* TV Presentation Display Scene Animation */
 @keyframes display-scene-enter {
   from {
     opacity: 0;
@@ -608,211 +413,6 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .display-scene-enter,
   .display-progress {
-    animation: none;
-  }
-}
-
-.neo-hero {
-  position: relative;
-  overflow: hidden;
-  color: white;
-  background: #0c0d11;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-}
-
-.neo-hero::before,
-.neo-hero::after {
-  display: none;
-}
-
-.neo-hero > * {
-  position: relative;
-  z-index: 2;
-}
-
-.neo-hero nav,
-.neo-hero nav a,
-.neo-hero nav span {
-  color: white;
-}
-
-.neo-panel,
-.neo-admin .rounded-2xl.bg-white,
-.neo-admin .rounded-3xl.bg-white {
-  border: 1px solid var(--neo-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-}
-
-.neo-admin .rounded-2xl.bg-white:hover,
-.neo-admin .rounded-3xl.bg-white:hover {
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
-}
-
-.neo-admin
-  :is(
-    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea
-  ) {
-  border: 1px solid var(--neo-border);
-  border-radius: 8px;
-  box-shadow: none;
-}
-
-.neo-admin
-  :is(
-    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea
-  ):focus {
-  border-color: #111318;
-  box-shadow: 0 0 0 1px #111318;
-  transform: none;
-}
-
-.neo-admin [role="dialog"],
-.neo-login [role="alert"] {
-  border: 1px solid var(--neo-border);
-  border-radius: 12px;
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
-}
-
-.neo-rule {
-  height: 1px;
-  border: 0;
-  background: var(--neo-border);
-}
-
-.neo-admin button.rounded-xl,
-.neo-admin a.rounded-xl,
-.neo-login button.rounded-xl,
-.neo-login a.rounded-xl,
-.neo-button {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  transform: none;
-  transition: all 150ms ease;
-}
-
-.neo-admin button.rounded-xl:hover,
-.neo-admin a.rounded-xl:hover,
-.neo-login button.rounded-xl:hover,
-.neo-login a.rounded-xl:hover,
-.neo-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.08);
-}
-
-.neo-admin button.rounded-xl:active,
-.neo-admin a.rounded-xl:active,
-.neo-login button.rounded-xl:active,
-.neo-login a.rounded-xl:active,
-.neo-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-}
-
-.neo-admin .admin-input,
-.neo-login .admin-input {
-  border: 1px solid var(--neo-border);
-  border-radius: 8px;
-  box-shadow: none;
-  font-weight: 600;
-}
-
-.neo-admin .admin-input:focus,
-.neo-login .admin-input:focus {
-  border-color: #111318;
-  box-shadow: 0 0 0 1px #111318;
-  transform: none;
-}
-
-.neo-admin .admin-label,
-.neo-login .admin-label {
-  color: #4b5563;
-  font-weight: 700;
-}
-
-.neo-sticker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--neo-border);
-  border-radius: 9999px;
-  background: #f5f4ef;
-  padding: 0.25rem 0.65rem;
-  color: var(--neo-ink);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  box-shadow: none;
-  transform: none;
-}
-
-.neo-sticker-cyan {
-  background: #ede7d5;
-  transform: none;
-}
-
-.neo-title {
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  text-wrap: balance;
-}
-
-.neo-hero .neo-title {
-  text-shadow: none;
-}
-
-.neo-number {
-  -webkit-text-stroke: 0;
-  color: #111318;
-  text-shadow: none;
-  font-weight: 800;
-}
-
-.neo-ticker {
-  overflow: hidden;
-  border-block: 1px solid var(--neo-border);
-  background: #f7f5ef;
-  color: var(--neo-ink);
-  white-space: nowrap;
-}
-
-.neo-ticker-track {
-  display: inline-flex;
-  min-width: max-content;
-  gap: 2rem;
-  padding: 0.5rem 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  animation: neo-ticker 24s linear infinite;
-}
-
-.neo-dot-field {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-  background-size: 16px 16px;
-}
-
-.neo-corner-mark::before,
-.neo-corner-mark::after {
-  display: none;
-}
-
-.neo-wiggle {
-  animation: neo-wiggle 2.8s steps(2, end) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .neo-ticker-track,
-  .neo-wiggle {
     animation: none;
   }
 }
