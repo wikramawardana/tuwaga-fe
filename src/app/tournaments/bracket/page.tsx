@@ -62,9 +62,9 @@ export default function TournamentBracketPage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <main className="mx-auto min-h-screen max-w-[1440px] px-6 py-10 pt-24 md:px-10">
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar active="bracket" />
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-10 pt-24 md:px-10">
         <PageBreadcrumb parentLabel="Home" parentHref="/" current="Bracket" />
 
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -270,6 +270,6 @@ export default function TournamentBracketPage() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

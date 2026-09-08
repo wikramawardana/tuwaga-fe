@@ -105,36 +105,33 @@ function LoginContent() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#f6f8fc] px-4 py-5 text-slate-900 sm:px-6 lg:p-8">
       <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="relative hidden overflow-hidden border-r border-blue-900/10 bg-[#071c4d] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
-          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
-
+        <div className="relative hidden overflow-hidden border-r border-blue-900/10 bg-gradient-to-br from-[#0c2461] via-[#1a56db] to-[#1e40af] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div className="relative z-10 flex items-center justify-between">
             <Link href="/" className="transition hover:opacity-80">
               <Image
                 src="/tuwaga-logo.png"
-                alt="TUWAGA"
+                alt="TUWAGA SKOR"
                 width={132}
                 height={32}
                 priority
                 className="h-8 w-auto brightness-0 invert"
               />
             </Link>
-            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
-              Admin only
+            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-100 backdrop-blur">
+              Tuwaga Skor
             </span>
           </div>
 
           <div className="relative z-10 max-w-3xl py-12">
-            <p className="mb-4 inline-flex text-xs font-bold uppercase tracking-wider text-blue-300">
+            <p className="mb-4 inline-flex text-xs font-bold uppercase tracking-wider text-blue-200">
               Tournament OS · 2026
             </p>
-            <h1 className="text-4xl font-black leading-tight tracking-[-0.035em] text-white xl:text-5xl">
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">
               Run the whole tournament.
             </h1>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-blue-100/70">
-              Draws, schedules, courts, scoring, and results. One focused
-              workspace for a sharp tournament crew.
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-blue-100/80">
+              Draws, schedules, courts, scoring, and results. One unified
+              workspace for directors, organizers, and court crew.
             </p>
           </div>
 
@@ -146,9 +143,9 @@ function LoginContent() {
             ].map(([number, label]) => (
               <div
                 key={number}
-                className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur transition hover:border-blue-400/40"
+                className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur transition hover:border-white/30"
               >
-                <p className="text-2xl font-black text-blue-300">{number}</p>
+                <p className="text-2xl font-black text-white">{number}</p>
                 <p className="mt-1 text-xs font-bold uppercase tracking-wider text-blue-100/80">
                   {label}
                 </p>
@@ -163,30 +160,30 @@ function LoginContent() {
               <Link href="/">
                 <Image
                   src="/tuwaga-logo.png"
-                  alt="TUWAGA"
+                  alt="TUWAGA SKOR"
                   width={124}
                   height={28}
                   priority
                   className="h-7 w-auto"
                 />
               </Link>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
-                Admin
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+                Workspace
               </span>
             </div>
 
             <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-9">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Secure crew entrance
+                Secure sign-in
               </span>
 
-              <h2 className="mt-6 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                 Ready to run the show?
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                Sign in with your authorized Google account to open the Tuwaga
-                admin command center.
+                Sign in with your Google account to access your Tuwaga Skor
+                workspace and command center.
               </p>
 
               <hr className="my-6 border-0 border-t border-slate-200" />

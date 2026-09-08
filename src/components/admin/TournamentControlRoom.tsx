@@ -980,34 +980,33 @@ export default function TournamentControlRoom({
     <>
       <Navbar active="admin" />
       <main className="min-h-screen bg-[#f6f8fc] pt-16 text-on-surface">
-        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
-          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
-          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
-          <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <section className="border-b border-slate-200 bg-white">
+          <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-8">
             <PageBreadcrumb
               parentLabel="Admin"
               parentHref="/admin"
               current={tournament?.name ?? "Tournament"}
             />
-            <div className="mt-5 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+            <div className="mt-4 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     Tournament control room
                   </span>
                   <span
                     className={cx(
-                      "rounded-full border px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em]",
+                      "rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider",
                       statusStyle[settings.status],
                     )}
                   >
                     {settings.status}
                   </span>
                 </div>
-                <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl lg:text-5xl">
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                   {tournament?.name ?? "Loading tournament"}
                 </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-blue-100/70 sm:text-base">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
                   {tournament?.venue || "Venue not set"} ·{" "}
                   {tournament?.dateLabel || "Date not set"}. Run the full
                   tournament from one calm, shared operations surface.
@@ -1017,26 +1016,26 @@ export default function TournamentControlRoom({
                 <Link
                   href="/tournaments/live"
                   target="_blank"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
                 >
-                  <span className="material-symbols-outlined text-lg">
+                  <span className="material-symbols-outlined text-lg text-slate-500">
                     sensors
                   </span>
                   Public live
-                  <span className="material-symbols-outlined text-sm">
+                  <span className="material-symbols-outlined text-sm text-slate-400">
                     open_in_new
                   </span>
                 </Link>
                 <Link
                   href="/tournaments/bracket"
                   target="_blank"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-500 px-4 text-sm font-bold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-400"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-primary/90"
                 >
                   <span className="material-symbols-outlined text-lg">
                     account_tree
                   </span>
                   Public bracket
-                  <span className="material-symbols-outlined text-sm">
+                  <span className="material-symbols-outlined text-sm opacity-80">
                     open_in_new
                   </span>
                 </Link>
@@ -1174,11 +1173,11 @@ export default function TournamentControlRoom({
                   );
                 })}
               </nav>
-              <div className="m-2 hidden rounded-xl bg-[#071c4d] p-4 text-white lg:block">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-200">
+              <div className="m-2 hidden rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-slate-800 lg:block">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
                   Operating tip
                 </p>
-                <p className="mt-2 text-xs leading-5 text-blue-100/80">
+                <p className="mt-1.5 text-xs leading-5 text-slate-600">
                   Open each scoring workspace in a new tab. Keep this board open
                   as the shared tournament overview.
                 </p>
@@ -3221,7 +3220,7 @@ export default function TournamentControlRoom({
           </div>
         </div>
       </main>
-      <Footer showAdminPortal={false} />
+      <Footer />
 
       {drawDialog && (
         <div

@@ -147,9 +147,9 @@ export default function AdminUsersPage() {
 
   if (!isAdmin) {
     return (
-      <>
+      <div className="flex min-h-screen flex-col bg-[#f6f8fc]">
         <Navbar active="admin" />
-        <main className="min-h-screen bg-[#f6f8fc] px-6 pt-24">
+        <main className="flex-1 px-6 pt-24">
           <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-4xl text-rose-500">
@@ -173,29 +173,28 @@ export default function AdminUsersPage() {
             </div>
           </div>
         </main>
-        <Footer showAdminPortal={false} />
-      </>
+        <Footer />
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-[#f6f8fc]">
       <Navbar active="admin" />
 
-      <main className="min-h-screen bg-[#f6f8fc] pt-16">
-        <section className="relative overflow-hidden border-b border-blue-900/10 bg-[#071c4d] text-white">
-          <div className="admin-orb absolute -right-24 -top-40 h-96 w-96 rounded-full bg-blue-500/25 blur-3xl" />
-          <div className="admin-orb admin-orb-delay absolute -bottom-56 left-1/3 h-96 w-96 rounded-full bg-cyan-400/15 blur-3xl" />
-          <div className="relative mx-auto max-w-[1400px] px-6 py-12 md:px-10 md:py-14">
+      <main className="flex-1 pt-16">
+        <section className="border-b border-slate-200 bg-white">
+          <div className="relative mx-auto max-w-[1400px] px-6 py-10 md:px-10 md:py-12">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-100 backdrop-blur">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   Admin Ops · Crew & Roles
                 </span>
-                <h1 className="mt-4 text-3xl font-black tracking-[-0.035em] text-white sm:text-5xl">
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
                   Manajemen Peran & Kru Turnamen
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-blue-100/70 sm:text-base">
+                <p className="mt-2.5 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
                   Atur hak akses operasional. <strong>Admin</strong> memiliki
                   kendali penuh termasuk asisten AI Hermes.{" "}
                   <strong>Organizer (Panitia)</strong> dapat mengelola turnamen,
@@ -206,7 +205,7 @@ export default function AdminUsersPage() {
 
               <Link
                 href="/admin"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white shadow-sm backdrop-blur transition hover:bg-white/15"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
               >
                 <span className="material-symbols-outlined text-lg">
                   arrow_back
@@ -479,7 +478,7 @@ export default function AdminUsersPage() {
         </div>
       </main>
 
-      <Footer showAdminPortal={false} />
-    </>
+      <Footer />
+    </div>
   );
 }
