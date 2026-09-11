@@ -444,8 +444,8 @@ html {
     background-color 180ms ease;
 }
 
-.admin-input-icon {
-  padding-left: 2.75rem !important;
+.admin-input.admin-input-icon {
+  padding-left: 2.75rem;
 }
 
 .admin-input:hover {

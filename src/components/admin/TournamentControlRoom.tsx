@@ -3144,8 +3144,7 @@ export default function TournamentControlRoom({
                                     value={match.status}
                                     onChange={(event) =>
                                       quickMatchUpdate(match, {
-                                        status: event
-                                          .target
+                                        status: event.target
                                           .value as MatchStatus,
                                       })
                                     }

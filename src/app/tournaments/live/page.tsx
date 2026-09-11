@@ -9,8 +9,8 @@ import ScoreCard from "@/components/ScoreCard";
 import {
   getCurrentTournament,
   getLive,
-  listTournaments,
   type LiveResponse,
+  listTournaments,
   type Tournament,
 } from "@/lib/tuwagaApi";
 
@@ -129,7 +129,8 @@ function LiveScoresContent() {
             </div>
 
             <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
-              {tournament?.name ?? (loading ? "Loading live scores…" : "Live Scores")}
+              {tournament?.name ??
+                (loading ? "Loading live scores…" : "Live Scores")}
             </h1>
 
             <p className="mt-1.5 text-sm text-on-surface-variant">
@@ -196,8 +197,13 @@ function LiveScoresContent() {
                     <span className="material-symbols-outlined text-3xl text-slate-400">
                       schedule
                     </span>
-                    <p className="mt-2 text-slate-700 font-bold">No active matches right now</p>
-                    <p className="text-xs text-slate-400 mt-1">Live scores will stream here once matches are marked in play.</p>
+                    <p className="mt-2 text-slate-700 font-bold">
+                      No active matches right now
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Live scores will stream here once matches are marked in
+                      play.
+                    </p>
                   </div>
                 )}
                 {live?.activeMatches.map((match) => (

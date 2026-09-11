@@ -89,7 +89,9 @@ function TournamentBracketContent() {
       } catch (err) {
         if (!active) return;
         setError(
-          err instanceof Error ? err.message : "Failed to load tournament data.",
+          err instanceof Error
+            ? err.message
+            : "Failed to load tournament data.",
         );
       } finally {
         if (active) setLoading(false);
@@ -129,7 +131,9 @@ function TournamentBracketContent() {
   }, [bracket, selectedDivision]);
 
   function switchTournament(slugOrId: string) {
-    router.push(`/tournaments/bracket?tournament=${slugOrId}&view=${activeView}`);
+    router.push(
+      `/tournaments/bracket?tournament=${slugOrId}&view=${activeView}`,
+    );
   }
 
   const hasGroups = (standings?.groups.length ?? 0) > 0;
@@ -157,7 +161,8 @@ function TournamentBracketContent() {
             </div>
 
             <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
-              {tournament?.name ?? (loading ? "Loading bracket…" : "Tournament")}
+              {tournament?.name ??
+                (loading ? "Loading bracket…" : "Tournament")}
             </h1>
 
             <p className="mt-1.5 text-sm text-on-surface-variant">
