@@ -534,10 +534,18 @@ export default function TournamentControlRoom({
           (matchDivision === "all" || match.category === matchDivision)
         );
       })
-      .sort(
-        (a, b) =>
-          (oopOrderMap.get(a.id) ?? 99999) - (oopOrderMap.get(b.id) ?? 99999),
-      );
+      .sort((a, b) => {
+        const oopA = oopOrderMap.get(a.id) ?? 99999;
+        const oopB = oopOrderMap.get(b.id) ?? 99999;
+        if (oopA !== oopB) return oopA - oopB;
+        if (a.time && b.time && a.time !== b.time) {
+          return a.time.localeCompare(b.time);
+        }
+        if ((a.courtId ?? 0) !== (b.courtId ?? 0)) {
+          return (a.courtId ?? 0) - (b.courtId ?? 0);
+        }
+        return a.id.localeCompare(b.id);
+      });
   }, [
     matchDivision,
     matchPhase,
@@ -2108,20 +2116,33 @@ export default function TournamentControlRoom({
                     />
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_180px_220px]">
-                      <label className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_180px_220px]">
+                      <div className="relative block sm:col-span-2 lg:col-span-1">
+                        <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-slate-400">
                           search
                         </span>
                         <input
+                          type="text"
                           value={teamSearch}
                           onChange={(event) =>
                             setTeamSearch(event.target.value)
                           }
-                          placeholder="Search team, city or ID"
-                          className="admin-input pl-10"
+                          placeholder="Search team, city or ID..."
+                          className="admin-input admin-input-icon !pl-10 pr-9"
                         />
-                      </label>
+                        {teamSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setTeamSearch("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                            title="Clear search"
+                          >
+                            <span className="material-symbols-outlined block text-base leading-none">
+                              close
+                            </span>
+                          </button>
+                        )}
+                      </div>
                       <select
                         value={teamFilter}
                         onChange={(event) =>
@@ -2129,7 +2150,7 @@ export default function TournamentControlRoom({
                             event.target.value as RegistrationFilter,
                           )
                         }
-                        className="admin-input"
+                        className="admin-input cursor-pointer"
                       >
                         <option value="all">All statuses</option>
                         <option value="pending">Needs review</option>
@@ -2141,7 +2162,7 @@ export default function TournamentControlRoom({
                         onChange={(event) =>
                           setTeamDivision(event.target.value)
                         }
-                        className="admin-input"
+                        className="admin-input cursor-pointer"
                       >
                         <option value="all">All divisions</option>
                         {settings.categories.map((division) => (
@@ -2774,20 +2795,33 @@ export default function TournamentControlRoom({
                   </div>
 
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_170px_170px_220px]">
-                      <label className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-slate-400">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_160px_160px_200px]">
+                      <div className="relative block sm:col-span-2 lg:col-span-1">
+                        <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-slate-400">
                           search
                         </span>
                         <input
+                          type="text"
                           value={matchSearch}
                           onChange={(event) =>
                             setMatchSearch(event.target.value)
                           }
-                          placeholder="Search match or team"
-                          className="admin-input pl-10"
+                          placeholder="Search match, team or player..."
+                          className="admin-input admin-input-icon !pl-10 pr-9"
                         />
-                      </label>
+                        {matchSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setMatchSearch("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                            title="Clear search"
+                          >
+                            <span className="material-symbols-outlined block text-base leading-none">
+                              close
+                            </span>
+                          </button>
+                        )}
+                      </div>
                       <select
                         value={matchStatus}
                         onChange={(event) =>
@@ -2795,7 +2829,7 @@ export default function TournamentControlRoom({
                             event.target.value as "all" | MatchStatus,
                           )
                         }
-                        className="admin-input"
+                        className="admin-input cursor-pointer"
                       >
                         <option value="all">All states</option>
                         <option value="live">Live</option>
@@ -2807,7 +2841,7 @@ export default function TournamentControlRoom({
                         onChange={(event) =>
                           setMatchPhase(event.target.value as "all" | Phase)
                         }
-                        className="admin-input"
+                        className="admin-input cursor-pointer"
                       >
                         <option value="all">All phases</option>
                         <option value="group">Group stage</option>
@@ -2818,7 +2852,7 @@ export default function TournamentControlRoom({
                         onChange={(event) =>
                           setMatchDivision(event.target.value)
                         }
-                        className="admin-input"
+                        className="admin-input cursor-pointer"
                       >
                         <option value="all">All divisions</option>
                         {settings.categories.map((division) => (
@@ -2828,6 +2862,85 @@ export default function TournamentControlRoom({
                         ))}
                       </select>
                     </div>
+
+                    {(matchSearch ||
+                      matchStatus !== "all" ||
+                      matchPhase !== "all" ||
+                      matchDivision !== "all") && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs">
+                        <span className="font-bold text-slate-500">
+                          Active filters:
+                        </span>
+                        {matchSearch && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                            Search: &quot;{matchSearch}&quot;
+                            <button
+                              type="button"
+                              onClick={() => setMatchSearch("")}
+                              className="hover:text-blue-900"
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                close
+                              </span>
+                            </button>
+                          </span>
+                        )}
+                        {matchStatus !== "all" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                            State: {matchStatus}
+                            <button
+                              type="button"
+                              onClick={() => setMatchStatus("all")}
+                              className="hover:text-blue-900"
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                close
+                              </span>
+                            </button>
+                          </span>
+                        )}
+                        {matchPhase !== "all" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                            Phase: {matchPhase}
+                            <button
+                              type="button"
+                              onClick={() => setMatchPhase("all")}
+                              className="hover:text-blue-900"
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                close
+                              </span>
+                            </button>
+                          </span>
+                        )}
+                        {matchDivision !== "all" && (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                            Division: {matchDivision}
+                            <button
+                              type="button"
+                              onClick={() => setMatchDivision("all")}
+                              className="hover:text-blue-900"
+                            >
+                              <span className="material-symbols-outlined text-xs">
+                                close
+                              </span>
+                            </button>
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMatchSearch("");
+                            setMatchStatus("all");
+                            setMatchPhase("all");
+                            setMatchDivision("all");
+                          }}
+                          className="ml-auto text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          Reset all filters
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {filteredMatches.length === 0 ? (
@@ -2845,174 +2958,250 @@ export default function TournamentControlRoom({
                       }
                     />
                   ) : (
-                    <div className="grid gap-4 2xl:grid-cols-2">
-                      {filteredMatches.map((match, index) => (
-                        <article
-                          key={match.id}
-                          style={{
-                            animationDelay: `${String(Math.min(index * 35, 280))}ms`,
-                          }}
-                          className={cx(
-                            "admin-rise group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg",
-                            match.status === "live"
-                              ? "border-rose-200 ring-2 ring-rose-100"
-                              : "border-slate-200 hover:border-blue-200",
-                          )}
-                        >
-                          {match.status === "live" && (
-                            <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-orange-400 to-rose-500" />
-                          )}
-                          <div className="p-5">
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span
-                                    className={cx(
-                                      "rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider",
-                                      matchStatusStyle[match.status],
-                                    )}
-                                  >
-                                    {match.status}
-                                  </span>
-                                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                                    {match.phase}
-                                  </span>
-                                  <span className="text-xs font-black text-slate-400">
-                                    #{match.id}
-                                  </span>
-                                </div>
-                                <h3 className="mt-3 font-black text-slate-950">
-                                  {match.category}
-                                </h3>
-                                <p className="mt-1 text-xs font-semibold text-slate-500">
-                                  {match.group ? `${match.group} · ` : ""}
-                                  {match.round}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-2xl font-black tracking-tight text-blue-700">
-                                  {match.score || "0-0"}
-                                </p>
-                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                  Current score
-                                </p>
-                              </div>
-                            </div>
-                            <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl bg-slate-50 p-4">
-                              <div>
-                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
-                                  Team A
-                                </p>
-                                <p className="mt-1 text-sm font-black leading-5 text-slate-950">
-                                  {getTeamName(teams, match.teamAId)}
-                                </p>
-                              </div>
-                              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[10px] font-black text-slate-400 shadow-sm">
-                                VS
-                              </span>
-                              <div className="text-right">
-                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
-                                  Team B
-                                </p>
-                                <p className="mt-1 text-sm font-black leading-5 text-slate-950">
-                                  {getTeamName(teams, match.teamBId)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                              <label>
-                                <span className="admin-label">Court</span>
-                                <select
-                                  value={match.courtId ?? ""}
-                                  onChange={(event) =>
-                                    quickMatchUpdate(match, {
-                                      courtId: event.target.value
-                                        ? Number(event.target.value)
-                                        : null,
-                                    })
-                                  }
-                                  className="admin-input"
-                                >
-                                  <option value="">Unassigned</option>
-                                  {Array.from(
-                                    { length: settings.courts },
-                                    (_, court) => court + 1,
-                                  ).map((court) => (
-                                    <option key={court} value={court}>
-                                      Court {court}
-                                    </option>
-                                  ))}
-                                </select>
-                              </label>
-                              <label>
-                                <span className="admin-label">Match state</span>
-                                <select
-                                  value={match.status}
-                                  onChange={(event) =>
-                                    quickMatchUpdate(match, {
-                                      status: event.target.value as MatchStatus,
-                                    })
-                                  }
-                                  className="admin-input"
-                                >
-                                  <option value="scheduled">Scheduled</option>
-                                  <option value="live">Live</option>
-                                  {match.status === "completed" && (
-                                    <option value="completed">Completed</option>
+                    <div className="grid gap-4 xl:grid-cols-2">
+                      {filteredMatches.map((match, index) => {
+                        const teamA = teams.find(
+                          (item) => item.id === match.teamAId,
+                        );
+                        const teamB = teams.find(
+                          (item) => item.id === match.teamBId,
+                        );
+                        return (
+                          <article
+                            key={match.id}
+                            style={{
+                              animationDelay: `${String(Math.min(index * 35, 280))}ms`,
+                            }}
+                            className={cx(
+                              "admin-rise group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg",
+                              match.status === "live"
+                                ? "border-rose-200 ring-2 ring-rose-100"
+                                : "border-slate-200 hover:border-blue-200",
+                            )}
+                          >
+                            {match.status === "live" && (
+                              <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-orange-400 to-rose-500" />
+                            )}
+                            <div className="p-5">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={cx(
+                                    "rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider",
+                                    matchStatusStyle[match.status],
                                   )}
-                                </select>
-                              </label>
-                              <div>
-                                <span className="admin-label">Referee</span>
-                                <div className="flex h-11 items-center truncate rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">
-                                  {match.referee || "Unassigned"}
+                                >
+                                  {match.status}
+                                </span>
+                                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+                                  {match.phase}
+                                </span>
+                                {match.time && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[10px] font-extrabold text-blue-700">
+                                    <span className="material-symbols-outlined text-[12px] leading-none">
+                                      schedule
+                                    </span>
+                                    {match.time}
+                                  </span>
+                                )}
+                                {match.courtId && (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/80 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-800">
+                                    <span className="material-symbols-outlined text-[12px] leading-none">
+                                      sports_tennis
+                                    </span>
+                                    {settings.sport === "table_tennis"
+                                      ? `Meja ${match.courtId}`
+                                      : `Court ${match.courtId}`}
+                                  </span>
+                                )}
+                                <span className="ml-auto font-mono text-[11px] font-extrabold text-slate-400">
+                                  #{match.id.replace(`${tournamentId}-`, "")}
+                                </span>
+                              </div>
+
+                              <div className="mt-3 flex items-baseline justify-between gap-3">
+                                <div className="min-w-0">
+                                  <h3 className="truncate text-base font-black text-slate-950">
+                                    {match.category}
+                                  </h3>
+                                  <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                                    {match.group ? `${match.group} · ` : ""}
+                                    {match.round}
+                                  </p>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  <p className="text-2xl font-black tracking-tight text-blue-700">
+                                    {match.score || "0-0"}
+                                  </p>
+                                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    Current score
+                                  </p>
                                 </div>
                               </div>
-                            </div>
-                            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                              <Link
-                                href={
-                                  "/admin/tournaments/" +
-                                  tournamentId +
-                                  "/matches/" +
-                                  match.id
-                                }
-                                target="_blank"
-                                className={cx(
-                                  "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5",
-                                  match.status === "live"
-                                    ? "bg-rose-500 shadow-rose-200 hover:bg-rose-600"
-                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700",
-                                )}
-                              >
-                                <span className="material-symbols-outlined text-lg">
-                                  scoreboard
+
+                              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5 sm:gap-3 sm:p-4">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                      Team A
+                                    </p>
+                                    {teamA?.seed && (
+                                      <span className="rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-black text-blue-700">
+                                        #{teamA.seed}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p
+                                    className="mt-1 truncate text-sm font-black leading-snug text-slate-950"
+                                    title={
+                                      teamA
+                                        ? teamName(teamA)
+                                        : "Waiting for team"
+                                    }
+                                  >
+                                    {teamA
+                                      ? teamName(teamA)
+                                      : "Waiting for team"}
+                                  </p>
+                                </div>
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-black text-slate-400 shadow-sm">
+                                  VS
                                 </span>
-                                {match.status === "completed"
-                                  ? "Review scoring"
-                                  : "Open scoring"}
-                                <span className="material-symbols-outlined text-sm">
-                                  open_in_new
-                                </span>
-                              </Link>
-                              {match.status === "scheduled" && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    quickMatchUpdate(match, { status: "live" })
+                                <div className="min-w-0 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {teamB?.seed && (
+                                      <span className="rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-black text-blue-700">
+                                        #{teamB.seed}
+                                      </span>
+                                    )}
+                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                      Team B
+                                    </p>
+                                  </div>
+                                  <p
+                                    className="mt-1 truncate text-sm font-black leading-snug text-slate-950"
+                                    title={
+                                      teamB
+                                        ? teamName(teamB)
+                                        : "Waiting for team"
+                                    }
+                                  >
+                                    {teamB
+                                      ? teamName(teamB)
+                                      : "Waiting for team"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                <label className="block">
+                                  <span className="admin-label">
+                                    {settings.sport === "table_tennis"
+                                      ? "Meja"
+                                      : "Court"}
+                                  </span>
+                                  <select
+                                    value={match.courtId ?? ""}
+                                    onChange={(event) =>
+                                      quickMatchUpdate(match, {
+                                        courtId: event.target.value
+                                          ? Number(event.target.value)
+                                          : null,
+                                      })
+                                    }
+                                    className="admin-input cursor-pointer"
+                                  >
+                                    <option value="">Unassigned</option>
+                                    {Array.from(
+                                      { length: settings.courts },
+                                      (_, court) => court + 1,
+                                    ).map((court) => (
+                                      <option key={court} value={court}>
+                                        {settings.sport === "table_tennis"
+                                          ? `Meja ${court}`
+                                          : `Court ${court}`}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <label className="block">
+                                  <span className="admin-label">
+                                    Match state
+                                  </span>
+                                  <select
+                                    value={match.status}
+                                    onChange={(event) =>
+                                      quickMatchUpdate(match, {
+                                        status: event
+                                          .target
+                                          .value as MatchStatus,
+                                      })
+                                    }
+                                    className="admin-input cursor-pointer"
+                                  >
+                                    <option value="scheduled">Scheduled</option>
+                                    <option value="live">Live</option>
+                                    {match.status === "completed" && (
+                                      <option value="completed">
+                                        Completed
+                                      </option>
+                                    )}
+                                  </select>
+                                </label>
+                                <div>
+                                  <span className="admin-label">Referee</span>
+                                  <div className="flex h-11 items-center truncate rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">
+                                    {match.referee || "Unassigned"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                                <Link
+                                  href={
+                                    "/admin/tournaments/" +
+                                    tournamentId +
+                                    "/matches/" +
+                                    match.id
                                   }
-                                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                  target="_blank"
+                                  className={cx(
+                                    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5",
+                                    match.status === "live"
+                                      ? "bg-rose-500 shadow-rose-200 hover:bg-rose-600"
+                                      : "bg-blue-600 shadow-blue-200 hover:bg-blue-700",
+                                  )}
                                 >
                                   <span className="material-symbols-outlined text-lg">
-                                    play_arrow
+                                    scoreboard
                                   </span>
-                                  Start match
-                                </button>
-                              )}
+                                  {match.status === "completed"
+                                    ? "Review scoring"
+                                    : "Open scoring"}
+                                  <span className="material-symbols-outlined text-sm">
+                                    open_in_new
+                                  </span>
+                                </Link>
+                                {match.status === "scheduled" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      quickMatchUpdate(match, {
+                                        status: "live",
+                                      })
+                                    }
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                  >
+                                    <span className="material-symbols-outlined text-lg">
+                                      play_arrow
+                                    </span>
+                                    Start match
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </article>
-                      ))}
+                          </article>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

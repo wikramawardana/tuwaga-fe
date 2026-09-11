@@ -431,7 +431,8 @@ html {
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   background: #fff;
-  padding: 0 0.8rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
   color: #0f172a;
   font-size: 0.875rem;
   font-weight: 650;
@@ -441,6 +442,10 @@ html {
     box-shadow 180ms ease,
     transform 180ms ease,
     background-color 180ms ease;
+}
+
+.admin-input-icon {
+  padding-left: 2.75rem !important;
 }
 
 .admin-input:hover {
