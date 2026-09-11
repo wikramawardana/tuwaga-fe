@@ -445,9 +445,48 @@ export async function getTournamentBySlug(slug: string) {
   return data.tournament;
 }
 
-export async function getCurrentTournament() {
+export async function getCurrentTournament(slugOrId?: string | null) {
+  if (slugOrId) {
+    try {
+      return await getTournamentBySlug(slugOrId);
+    } catch {
+      try {
+        return await getTournament(slugOrId);
+      } catch {
+        // Fall back to searching listTournaments below
+      }
+    }
+  }
+
   const tournaments = await listTournaments();
-  return tournaments.find((t) => t.status !== "setup") ?? null;
+  if (tournaments.length === 0) return null;
+
+  if (slugOrId) {
+    const found = tournaments.find(
+      (t) => t.id === slugOrId || t.slug === slugOrId,
+    );
+    if (found) return found;
+  }
+
+  // Prioritize active tournaments: live > registration > setup > completed,
+  // and break ties by most recent startsAt or updatedAt/createdAt
+  const priorityMap: Record<string, number> = {
+    live: 4,
+    registration: 3,
+    setup: 2,
+    completed: 1,
+  };
+
+  const sorted = [...tournaments].sort((a, b) => {
+    const pA = priorityMap[a.status] ?? 0;
+    const pB = priorityMap[b.status] ?? 0;
+    if (pA !== pB) return pB - pA;
+    const dateA = a.startsAt || a.updatedAt || a.createdAt || "";
+    const dateB = b.startsAt || b.updatedAt || b.createdAt || "";
+    return dateB.localeCompare(dateA);
+  });
+
+  return sorted[0] ?? null;
 }
 
 export async function createTournament(input: {

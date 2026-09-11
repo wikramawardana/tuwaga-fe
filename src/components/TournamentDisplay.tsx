@@ -809,7 +809,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
         <div className="mx-auto flex max-w-[1800px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
-              href="/tournaments/bracket"
+              href={`/tournaments/bracket?tournament=${tournament.slug || tournament.id}&view=bracket`}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               aria-label="Exit tournament display"
             >

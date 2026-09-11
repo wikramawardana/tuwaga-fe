@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
@@ -8,6 +9,7 @@ import ScoreCard from "@/components/ScoreCard";
 import {
   getCurrentTournament,
   getLive,
+  listTournaments,
   type LiveResponse,
   type Tournament,
 } from "@/lib/tuwagaApi";
@@ -34,14 +36,20 @@ function CountdownBadge({ time }: { time: string }) {
   if (diffMin > 120) return null;
 
   return (
-    <span className="rounded-md border border-primary/20 bg-primary/8 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+    <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
       in ~{diffMin} min
     </span>
   );
 }
 
-export default function LiveScoresPage() {
+function LiveScoresContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tournamentParam =
+    searchParams.get("tournament") || searchParams.get("slug");
+
   const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [live, setLive] = useState<LiveResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -50,13 +58,20 @@ export default function LiveScoresPage() {
     let active = true;
 
     async function loadLiveScores() {
-      setLoading(true);
       try {
-        const current = await getCurrentTournament();
+        const [tournamentsList, current] = await Promise.all([
+          listTournaments().catch(() => []),
+          getCurrentTournament(tournamentParam),
+        ]);
+
+        if (!active) return;
+        setAllTournaments(tournamentsList);
+
         if (!current) {
           setTournament(null);
           setLive(null);
           setError("No tournament found in the backend.");
+          setLoading(false);
           return;
         }
 
@@ -82,7 +97,11 @@ export default function LiveScoresPage() {
       active = false;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [tournamentParam]);
+
+  function switchTournament(slugOrId: string) {
+    router.push(`/tournaments/live?tournament=${slugOrId}`);
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -95,20 +114,56 @@ export default function LiveScoresPage() {
         />
 
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">
-              Live scores
-            </p>
-            <h1 className="mt-2 text-3xl font-extrabold text-on-surface md:text-4xl">
-              {tournament?.name ?? "Tournament Live Scores"}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                {tournament?.settings?.sport === "table_tennis"
+                  ? "🏓 Table Tennis"
+                  : "🎾 Tournament"}
+              </span>
+              {tournament?.settings?.format && (
+                <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                  {tournament.settings.format}
+                </span>
+              )}
+            </div>
+
+            <h1 className="mt-2.5 text-3xl font-extrabold tracking-tight text-on-surface md:text-4xl">
+              {tournament?.name ?? (loading ? "Loading live scores…" : "Live Scores")}
             </h1>
-            <p className="mt-2 text-sm text-on-surface-variant">
+
+            <p className="mt-1.5 text-sm text-on-surface-variant">
               {tournament
                 ? `${tournament.venue} · ${tournament.dateLabel}`
-                : "Loading backend tournament data."}
+                : "Real-time match scoring and upcoming order of play."}
             </p>
+
+            {/* Tournament switcher if multiple exist */}
+            {allTournaments.length > 1 && (
+              <div className="mt-3 inline-flex items-center gap-2">
+                <label
+                  htmlFor="live-tournament-switcher"
+                  className="text-xs font-semibold text-slate-500"
+                >
+                  Switch tournament:
+                </label>
+                <select
+                  id="live-tournament-switcher"
+                  value={tournament?.slug || tournament?.id || ""}
+                  onChange={(e) => switchTournament(e.target.value)}
+                  className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-slate-300 focus:border-primary focus:outline-none"
+                >
+                  {allTournaments.map((t) => (
+                    <option key={t.id} value={t.slug || t.id}>
+                      {t.name} ({t.dateLabel})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-          <div className="inline-flex items-center gap-2 rounded-lg border border-outline-variant/30 bg-white px-4 py-3 text-sm font-bold text-on-surface shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+
+          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             {loading
               ? "Syncing…"
@@ -118,8 +173,13 @@ export default function LiveScoresPage() {
 
         <div>
           {error && (
-            <div className="rounded-lg border border-error/20 bg-error-container p-5 text-sm font-semibold text-on-error-container">
-              {error}
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm font-semibold text-rose-800">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-rose-600">
+                  error
+                </span>
+                {error}
+              </div>
             </div>
           )}
 
@@ -129,11 +189,15 @@ export default function LiveScoresPage() {
               <section className="space-y-4">
                 <h2 className="text-xl font-bold text-on-surface">Live now</h2>
                 {loading && !live && (
-                  <div className="h-40 animate-pulse rounded-lg border border-outline-variant/30 bg-white" />
+                  <div className="h-40 animate-pulse rounded-xl border border-slate-200 bg-white" />
                 )}
                 {live?.activeMatches.length === 0 && (
-                  <div className="rounded-lg border border-outline-variant/30 bg-white p-5 text-sm font-semibold text-on-surface-variant">
-                    No active matches right now.
+                  <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-500">
+                    <span className="material-symbols-outlined text-3xl text-slate-400">
+                      schedule
+                    </span>
+                    <p className="mt-2 text-slate-700 font-bold">No active matches right now</p>
+                    <p className="text-xs text-slate-400 mt-1">Live scores will stream here once matches are marked in play.</p>
                   </div>
                 )}
                 {live?.activeMatches.map((match) => (
@@ -150,15 +214,15 @@ export default function LiveScoresPage() {
 
               <aside className="space-y-6">
                 {/* Next up with EST countdown */}
-                <section className="rounded-xl border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <h2 className="text-base font-bold text-on-surface">
+                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+                  <h2 className="text-base font-extrabold text-slate-900">
                     Next up
                   </h2>
                   <div className="mt-4 space-y-3">
                     {live?.nextUp.map((match) => (
                       <div
                         key={match.id}
-                        className="rounded-lg bg-surface-container-low p-3"
+                        className="rounded-lg border border-slate-100 bg-slate-50 p-3"
                       >
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold uppercase text-primary">
@@ -175,7 +239,7 @@ export default function LiveScoresPage() {
                       </div>
                     ))}
                     {live?.nextUp.length === 0 && (
-                      <p className="text-sm text-on-surface-variant">
+                      <p className="text-sm text-slate-500">
                         No scheduled matches.
                       </p>
                     )}
@@ -183,15 +247,15 @@ export default function LiveScoresPage() {
                 </section>
 
                 {/* Recent results */}
-                <section className="rounded-xl border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-                  <h2 className="text-base font-bold text-on-surface">
+                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+                  <h2 className="text-base font-extrabold text-slate-900">
                     Recent results
                   </h2>
                   <div className="mt-4 space-y-3">
                     {live?.recentResults.map((result) => (
                       <div
                         key={result.id}
-                        className="rounded-lg bg-surface-container-low p-3"
+                        className="rounded-lg border border-slate-100 bg-slate-50 p-3"
                       >
                         <p className="text-sm font-bold text-on-surface">
                           {result.winner}
@@ -202,7 +266,7 @@ export default function LiveScoresPage() {
                       </div>
                     ))}
                     {live?.recentResults.length === 0 && (
-                      <p className="text-sm text-on-surface-variant">
+                      <p className="text-sm text-slate-500">
                         No completed results yet.
                       </p>
                     )}
@@ -215,5 +279,19 @@ export default function LiveScoresPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function LiveScoresPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      }
+    >
+      <LiveScoresContent />
+    </Suspense>
   );
 }

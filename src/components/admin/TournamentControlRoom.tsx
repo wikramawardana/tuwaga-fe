@@ -1022,7 +1022,7 @@ export default function TournamentControlRoom({
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link
-                  href="/tournaments/live"
+                  href={`/tournaments/live?tournament=${tournament?.slug || tournamentId}`}
                   target="_blank"
                   className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
                 >
@@ -1035,7 +1035,7 @@ export default function TournamentControlRoom({
                   </span>
                 </Link>
                 <Link
-                  href="/tournaments/bracket"
+                  href={`/tournaments/bracket?tournament=${tournament?.slug || tournamentId}&view=bracket`}
                   target="_blank"
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-primary/90"
                 >
@@ -1044,6 +1044,19 @@ export default function TournamentControlRoom({
                   </span>
                   Public bracket
                   <span className="material-symbols-outlined text-sm opacity-80">
+                    open_in_new
+                  </span>
+                </Link>
+                <Link
+                  href={`/tournaments/${tournament?.slug || tournamentId}/display?scene=bracket`}
+                  target="_blank"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <span className="material-symbols-outlined text-lg text-slate-500">
+                    tv
+                  </span>
+                  TV display
+                  <span className="material-symbols-outlined text-sm text-slate-400">
                     open_in_new
                   </span>
                 </Link>
@@ -3215,7 +3228,7 @@ export default function TournamentControlRoom({
                     description="A readable result center for group performance, completed matches and progression."
                     action={
                       <Link
-                        href="/tournaments/bracket"
+                        href={`/tournaments/bracket?tournament=${tournament?.slug || tournamentId}&view=bracket`}
                         target="_blank"
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
                       >
