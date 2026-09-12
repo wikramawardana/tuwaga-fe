@@ -11,6 +11,10 @@ import {
   useState,
 } from "react";
 import {
+  buildBaganSlides,
+  KnockoutBaganTree,
+} from "@/components/KnockoutBaganTree";
+import {
   type BracketResponse,
   getBracket,
   getOop,
@@ -296,12 +300,12 @@ function OopScene({
           <div
             className="grid"
             style={{
-              gridTemplateColumns: `70px repeat(${plan.courts}, minmax(230px, 1fr))`,
-              minWidth: `${String(70 + plan.courts * 230)}px`,
+              gridTemplateColumns: `84px repeat(${plan.courts}, minmax(230px, 1fr))`,
+              minWidth: `${String(84 + plan.courts * 230)}px`,
             }}
           >
             <div className="sticky left-0 z-20 flex items-center justify-center border-b border-slate-200 bg-slate-50 py-3 text-[10px] font-bold uppercase text-slate-700">
-              Run
+              Run · Time
             </div>
             {Array.from({ length: plan.courts }, (_, index) => index + 1).map(
               (court) => (
@@ -316,11 +320,22 @@ function OopScene({
 
             {session.slots.map((slot) => {
               const firstEntry = slot.courts.find(Boolean) ?? null;
+              const slotMatch = slot.courts
+                .flatMap((c) => (c?.kind === "match" ? c.matchIds : []))
+                .map((id) => matchesById.get(id))
+                .find((m) => Boolean(m?.time));
+              const slotTime = slotMatch?.time;
+
               if (firstEntry?.kind === "event") {
                 return (
                   <Fragment key={slot.number}>
-                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                      {String(slot.number).padStart(2, "0")}
+                    <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-slate-200 bg-slate-50 py-2 text-center text-xs font-bold text-slate-700">
+                      <span>{String(slot.number).padStart(2, "0")}</span>
+                      {slotTime && (
+                        <span className="mt-0.5 rounded bg-blue-100 px-1.5 py-0.5 text-[9.5px] font-black text-blue-900">
+                          {slotTime}
+                        </span>
+                      )}
                     </div>
                     <div
                       style={{ gridColumn: "2 / -1" }}
@@ -337,8 +352,15 @@ function OopScene({
 
               return (
                 <Fragment key={slot.number}>
-                  <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                    {String(slot.number).padStart(2, "0")}
+                  <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-slate-200 bg-slate-50 py-2 text-center text-xs font-bold text-slate-700">
+                    <span className="font-extrabold text-slate-900">
+                      {String(slot.number).padStart(2, "0")}
+                    </span>
+                    {slotTime && (
+                      <span className="mt-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[10px] font-black text-blue-800">
+                        {slotTime}
+                      </span>
+                    )}
                   </div>
                   {slot.courts.map((entry, courtIndex) => (
                     <div
@@ -673,13 +695,22 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
       }));
     });
   }, [bracket]);
+  const baganSlides = useMemo(() => {
+    if (matches.length > 0) {
+      return buildBaganSlides(matches);
+    }
+    return [];
+  }, [matches]);
+
   const slides = useMemo<DisplaySlide[]>(
     () => [
       ...groupPages.map((_, page) => ({ scene: "groups" as const, page })),
       ...oopSessions.map((_, page) => ({ scene: "oop" as const, page })),
-      ...bracketPages.map((_, page) => ({ scene: "bracket" as const, page })),
+      ...(baganSlides.length > 0
+        ? baganSlides.map((_, page) => ({ scene: "bracket" as const, page }))
+        : bracketPages.map((_, page) => ({ scene: "bracket" as const, page }))),
     ],
-    [bracketPages, groupPages, oopSessions],
+    [baganSlides, bracketPages, groupPages, oopSessions],
   );
 
   useEffect(() => {
@@ -905,15 +936,22 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
               matchesById={matchesById}
             />
           )}
-          {active.scene === "bracket" && (
-            <BracketScene
-              rounds={bracketPages[active.page]?.rounds ?? []}
-              matchesById={matchesById}
-              championTeamId={bracket?.championTeamId ?? null}
-              page={active.page}
-              totalPages={bracketPages.length}
-            />
-          )}
+          {active.scene === "bracket" &&
+            (baganSlides.length > 0 ? (
+              <KnockoutBaganTree
+                slide={baganSlides[active.page] ?? baganSlides[0]}
+                matchesById={matchesById}
+                championTeamId={bracket?.championTeamId ?? null}
+              />
+            ) : (
+              <BracketScene
+                rounds={bracketPages[active.page]?.rounds ?? []}
+                matchesById={matchesById}
+                championTeamId={bracket?.championTeamId ?? null}
+                page={active.page}
+                totalPages={bracketPages.length}
+              />
+            ))}
         </div>
       </div>
 
