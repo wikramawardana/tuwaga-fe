@@ -569,6 +569,21 @@ export async function deleteTournament(id: string) {
   });
 }
 
+export type RegistrationListSummary = {
+  approved: number;
+  pending: number;
+  waitlist: number;
+  paid: number;
+  capacityPercent: number;
+};
+
+export async function listPublicTeams(tournamentIdOrSlug: string) {
+  return apiRequest<{
+    teams: RegistrationTeam[];
+    summary: RegistrationListSummary;
+  }>(`/tournaments/${tournamentIdOrSlug}/teams`);
+}
+
 export async function listRegistrations(tournamentId: string) {
   const data = await apiRequest<{ teams: RegistrationTeam[] }>(
     `/admin/tournaments/${tournamentId}/registrations?status=all`,

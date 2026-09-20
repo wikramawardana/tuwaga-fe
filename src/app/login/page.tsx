@@ -109,12 +109,12 @@ function LoginContent() {
           <div className="relative z-10 flex items-center justify-between">
             <Link href="/" className="transition hover:opacity-80">
               <Image
-                src="/tuwaga-logo.png"
+                src="/tuwaga-logo-cream.png"
                 alt="TUWAGA SKOR"
-                width={132}
+                width={136}
                 height={32}
                 priority
-                className="h-8 w-auto brightness-0 invert"
+                className="h-8 w-auto"
               />
             </Link>
             <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-100 backdrop-blur">

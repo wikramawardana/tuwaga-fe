@@ -381,6 +381,7 @@ export default function TournamentRegisterPage() {
       const params = new URLSearchParams({
         registrationId: response.registration.id,
         tournamentName: tournament.name,
+        tournamentSlug: tournament.slug,
         category: selectedCategory,
         player: player1.fullName.trim(),
         partner: player2.fullName.trim(),

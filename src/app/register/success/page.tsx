@@ -11,6 +11,7 @@ function SuccessContent() {
   const registrationId = searchParams.get("registrationId") || "REG-TUWAGA";
   const tournamentName =
     searchParams.get("tournamentName") || "Tuwaga Open Tournament";
+  const tournamentSlug = searchParams.get("tournamentSlug");
   const category = searchParams.get("category") || "Match Division";
   const player = searchParams.get("player") || "Pemain Utama";
   const partner = searchParams.get("partner");
@@ -160,29 +161,53 @@ function SuccessContent() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-8 flex flex-col gap-3">
           <Link
-            href="/tournaments/bracket"
-            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-center text-xs font-bold uppercase tracking-wider text-on-primary shadow-sm transition hover:bg-primary/90 active:scale-95"
+            href={
+              tournamentSlug
+                ? `/tournaments/${tournamentSlug}?check=${registrationId}`
+                : `/tournaments/the-grand-caprival?check=${registrationId}`
+            }
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-center text-xs font-bold uppercase tracking-wider text-on-primary shadow-sm transition hover:bg-primary/90 active:scale-95"
           >
             <span className="material-symbols-outlined text-lg">
-              account_tree
+              verified_user
             </span>
-            Lihat Bagan Pertandingan
+            Pantau Live Status Pendaftaran Tim
           </Link>
-          <Link
-            href="/tournaments/live"
-            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant/40 bg-white px-4 text-center text-xs font-bold uppercase tracking-wider text-on-surface shadow-sm transition hover:bg-surface-container-low active:scale-95"
-          >
-            <span className="material-symbols-outlined text-lg">sensors</span>
-            Pantau Skor Live
-          </Link>
-          <Link
-            href="/"
-            className="flex h-11 items-center justify-center rounded-xl border border-outline-variant/40 bg-surface-container-low px-4 text-center text-xs font-bold uppercase tracking-wider text-on-surface transition hover:bg-white active:scale-95"
-          >
-            Beranda
-          </Link>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href={
+                tournamentSlug
+                  ? `/tournaments/bracket?tournament=${tournamentSlug}`
+                  : "/tournaments/bracket"
+              }
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant/40 bg-white px-4 text-center text-xs font-bold uppercase tracking-wider text-on-surface shadow-sm transition hover:bg-surface-container-low active:scale-95"
+            >
+              <span className="material-symbols-outlined text-lg">
+                account_tree
+              </span>
+              Bagan Turnamen
+            </Link>
+            <Link
+              href={
+                tournamentSlug
+                  ? `/tournaments/live?tournament=${tournamentSlug}`
+                  : "/tournaments/live"
+              }
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant/40 bg-white px-4 text-center text-xs font-bold uppercase tracking-wider text-on-surface shadow-sm transition hover:bg-surface-container-low active:scale-95"
+            >
+              <span className="material-symbols-outlined text-lg">sensors</span>
+              Pantau Skor Live
+            </Link>
+            <Link
+              href="/"
+              className="flex h-11 items-center justify-center rounded-xl border border-outline-variant/40 bg-surface-container-low px-4 text-center text-xs font-bold uppercase tracking-wider text-on-surface transition hover:bg-white active:scale-95"
+            >
+              Beranda
+            </Link>
+          </div>
         </div>
       </div>
     </div>

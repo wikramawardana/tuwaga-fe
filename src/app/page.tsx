@@ -238,13 +238,22 @@ export default function HomePage() {
                         Daftar Tim Sekarang
                       </Link>
                       <Link
+                        href={`/tournaments/${latestTournament.slug}`}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50/70 px-4 text-xs font-bold text-blue-700 transition hover:bg-blue-100/70 hover:text-blue-900"
+                      >
+                        <span className="material-symbols-outlined text-base">
+                          verified_user
+                        </span>
+                        Portal Turnamen & Cek Status
+                      </Link>
+                      <Link
                         href={`/tournaments/bracket?tournament=${latestTournament.slug}`}
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
                       >
                         <span className="material-symbols-outlined text-base text-slate-400">
                           account_tree
                         </span>
-                        Bagan & Info
+                        Bagan & Hasil
                       </Link>
                     </div>
                   </div>

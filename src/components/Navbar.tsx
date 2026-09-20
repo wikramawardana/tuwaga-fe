@@ -12,7 +12,7 @@ type NavbarAction = {
 };
 
 type NavbarProps = {
-  active?: "home" | "register" | "live" | "bracket" | "admin";
+  active?: "home" | "register" | "live" | "bracket" | "admin" | "tournaments";
   actions?: NavbarAction[];
   sticky?: boolean;
 };
