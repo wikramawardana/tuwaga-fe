@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import RegistrationProgress from "@/components/RegistrationProgress";
 import RegistrationShell from "@/components/RegistrationShell";
+import { useSession } from "@/lib/auth-client";
 import { divisionSkillLabel, divisionSkillLevel } from "@/lib/matchDivisions";
 import {
   createRegistration,
@@ -230,6 +232,19 @@ export default function TournamentRegisterPage() {
 
   const [paymentProofUrl, setPaymentProofUrl] = useState("");
 
+  const { data: session, isPending: sessionPending } = useSession();
+
+  // Auto pre-fill player 1 from authenticated user session
+  useEffect(() => {
+    if (session?.user) {
+      setPlayer1((prev) => ({
+        ...prev,
+        fullName: prev.fullName || session.user.name || "",
+        email: prev.email || session.user.email || "",
+      }));
+    }
+  }, [session]);
+
   useEffect(() => {
     if (!slug) return;
     let active = true;
@@ -344,6 +359,7 @@ export default function TournamentRegisterPage() {
       const response = await createRegistration(tournament.id, {
         acceptedTerms: true,
         category: selectedCategory,
+        userId: session?.user?.id,
         paymentProofUrl: paymentProofUrl || undefined,
         player: {
           fullName: player1.fullName.trim(),
@@ -429,6 +445,85 @@ export default function TournamentRegisterPage() {
       <RegistrationShell title="Turnamen Tidak Ditemukan" showProgress={false}>
         <div className="rounded-lg border border-error/20 bg-error-container p-6 text-sm font-semibold text-on-error-container">
           {message || "Informasi turnamen tidak dapat ditemukan."}
+        </div>
+      </RegistrationShell>
+    );
+  }
+
+  if (!sessionPending && !session?.user) {
+    const callbackUrl = encodeURIComponent(`/tournaments/${slug}/register`);
+    return (
+      <RegistrationShell
+        title={tournament.name}
+        description={`${tournament.venue} — ${tournament.dateLabel}`}
+        showProgress={false}
+      >
+        <div className="mx-auto max-w-xl">
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <span className="material-symbols-outlined text-3xl">lock</span>
+            </div>
+
+            <div className="mt-6">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                <span className="material-symbols-outlined text-sm">
+                  shield
+                </span>
+                Pendaftaran Terverifikasi & Aman
+              </span>
+              <h2 className="mt-3 text-2xl font-black text-slate-900 sm:text-3xl">
+                Masuk untuk Mendaftar Turnamen
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                Untuk menjaga keamanan data pribadi dan verifikasi tiket resmi
+                turnamen, seluruh calon peserta wajib masuk menggunakan akun
+                Tuwaga.
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-2.5 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-xs font-medium text-slate-700">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-emerald-600">
+                  check_circle
+                </span>
+                <span>Data pendaftaran langsung terhubung ke akun Anda</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-emerald-600">
+                  check_circle
+                </span>
+                <span>
+                  Privasi terjamin: nama dan detail tim Anda aman dari pihak
+                  luar
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-emerald-600">
+                  check_circle
+                </span>
+                <span>
+                  Pantau verifikasi pembayaran & jadwal tanding langsung di
+                  dashboard pribadi
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3">
+              <Link
+                href={`/login?callbackUrl=${callbackUrl}`}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700 active:scale-95"
+              >
+                <span className="material-symbols-outlined text-lg">login</span>
+                Masuk dengan Akun Anda
+              </Link>
+              <Link
+                href={`/tournaments/${slug}`}
+                className="flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+              >
+                Kembali ke Info Turnamen
+              </Link>
+            </div>
+          </div>
         </div>
       </RegistrationShell>
     );

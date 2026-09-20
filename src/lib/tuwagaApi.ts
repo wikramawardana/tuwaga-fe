@@ -374,7 +374,7 @@ let tokenExpiry = 0;
 const TOKEN_CACHE_DURATION = 5000;
 
 function requiresAuth(path: string) {
-  return path.startsWith("/admin/");
+  return path.startsWith("/admin/") || path.includes("/my-registrations");
 }
 
 function clearAuthTokenCache() {
@@ -584,6 +584,13 @@ export async function listPublicTeams(tournamentIdOrSlug: string) {
   }>(`/tournaments/${tournamentIdOrSlug}/teams`);
 }
 
+export async function listMyRegistrations(tournamentIdOrSlug: string) {
+  const data = await apiRequest<{ teams: RegistrationTeam[] }>(
+    `/tournaments/${tournamentIdOrSlug}/my-registrations`,
+  );
+  return data.teams;
+}
+
 export async function listRegistrations(tournamentId: string) {
   const data = await apiRequest<{ teams: RegistrationTeam[] }>(
     `/admin/tournaments/${tournamentId}/registrations?status=all`,
@@ -649,6 +656,7 @@ export async function createRegistration(
   input: {
     acceptedTerms: boolean;
     category: string;
+    userId?: string;
     qualificationUrl?: string;
     paymentProofUrl?: string;
     player: {
