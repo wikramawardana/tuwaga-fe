@@ -21,6 +21,7 @@ import {
   type DivisionSkillLevel,
   divisionSkillLevel,
 } from "@/lib/matchDivisions";
+import { formatMatchScore } from "@/lib/matchScore";
 import {
   buildOopWorkbook,
   type DrawMatchResult,
@@ -3273,8 +3274,24 @@ export default function TournamentControlRoom({
                                 </div>
                                 <div className="shrink-0 text-right">
                                   <p className="text-2xl font-black tracking-tight text-blue-700">
-                                    {match.score || "0-0"}
+                                    {formatMatchScore(
+                                      match.score,
+                                      match.scoreSets,
+                                    ).primary || "0-0"}
                                   </p>
+                                  {formatMatchScore(
+                                    match.score,
+                                    match.scoreSets,
+                                  ).details && (
+                                    <p className="text-[10px] font-semibold text-slate-400">
+                                      {
+                                        formatMatchScore(
+                                          match.score,
+                                          match.scoreSets,
+                                        ).details
+                                      }
+                                    </p>
+                                  )}
                                   <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
                                     Current score
                                   </p>
@@ -3621,8 +3638,24 @@ export default function TournamentControlRoom({
                               </div>
                               <div className="text-right">
                                 <p className="text-xl font-black text-blue-700">
-                                  {match.score}
+                                  {
+                                    formatMatchScore(
+                                      match.score,
+                                      match.scoreSets,
+                                    ).primary
+                                  }
                                 </p>
+                                {formatMatchScore(match.score, match.scoreSets)
+                                  .details && (
+                                  <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                                    {
+                                      formatMatchScore(
+                                        match.score,
+                                        match.scoreSets,
+                                      ).details
+                                    }
+                                  </p>
+                                )}
                                 <Link
                                   href={
                                     "/admin/tournaments/" +
@@ -3631,7 +3664,7 @@ export default function TournamentControlRoom({
                                     match.id
                                   }
                                   target="_blank"
-                                  className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600 hover:text-blue-800"
+                                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600 hover:text-blue-800"
                                 >
                                   Review{" "}
                                   <span className="material-symbols-outlined text-sm">

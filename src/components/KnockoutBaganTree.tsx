@@ -1,3 +1,4 @@
+import { simplifyScore } from "@/lib/matchScore";
 import type { Match } from "@/lib/tuwagaApi";
 
 export type ParticipantInfo = {
@@ -412,7 +413,7 @@ export function KnockoutBaganTree({
           {live
             ? "● Live"
             : completed && score
-              ? score
+              ? simplifyScore(score, match?.scoreSets)
               : time
                 ? time
                 : labelFallback || "—"}

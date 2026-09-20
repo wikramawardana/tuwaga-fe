@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import ScoreCard from "@/components/ScoreCard";
+import { simplifyScore } from "@/lib/matchScore";
 import {
   getCurrentTournament,
   getLive,
@@ -267,7 +268,7 @@ function LiveScoresContent() {
                           {result.winner}
                         </p>
                         <p className="text-xs text-on-surface-variant">
-                          def. {result.loser} — {result.score}
+                          def. {result.loser} — {simplifyScore(result.score)}
                         </p>
                       </div>
                     ))}

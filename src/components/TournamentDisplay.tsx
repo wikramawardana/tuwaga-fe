@@ -14,6 +14,7 @@ import {
   buildBaganSlides,
   KnockoutBaganTree,
 } from "@/components/KnockoutBaganTree";
+import { simplifyScore } from "@/lib/matchScore";
 import {
   type BracketResponse,
   getBracket,
@@ -407,7 +408,10 @@ function OopScene({
                                     </p>
                                     {match?.score && (
                                       <span className="shrink-0 text-[10px] font-black text-blue-800">
-                                        {match.score}
+                                        {simplifyScore(
+                                          match.score,
+                                          match.scoreSets,
+                                        )}
                                       </span>
                                     )}
                                   </div>
@@ -554,7 +558,7 @@ function BracketScene({
                       </div>
                       {match?.score && (
                         <p className="mt-2 text-right text-xs font-bold text-slate-700">
-                          {match.score}
+                          {simplifyScore(match.score, match.scoreSets)}
                         </p>
                       )}
                     </div>
