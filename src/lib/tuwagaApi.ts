@@ -87,6 +87,16 @@ export type TournamentSettings = {
   startsAt?: string;
   endsAt?: string;
   description?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountHolder?: string;
+  paymentInstructions?: string;
+  contactPerson?: string;
+  registrationNotes?: string;
+  disclaimerText?: string;
+  registrationClosedAt?: string;
+  jerseySizes?: string[];
+  entryFeePerPair?: number;
 };
 
 export type Tournament = {
@@ -108,6 +118,37 @@ export type Tournament = {
   updatedAt: string;
 };
 
+export type PlayerDetail = {
+  fullName: string;
+  email: string;
+  phone: string;
+  nationality?: string;
+  skillLevel: string;
+  city?: string | null;
+  membershipId?: string | null;
+  photoUrl?: string | null;
+  instagram?: string | null;
+  reclub?: string | null;
+  community?: string | null;
+  jerseySize?: string | null;
+  idCardUrl?: string | null;
+};
+
+export type PartnerDetail = {
+  fullName: string;
+  email?: string | null;
+  phone?: string | null;
+  skillLevel: string;
+  city?: string | null;
+  membershipId?: string | null;
+  photoUrl?: string | null;
+  instagram?: string | null;
+  reclub?: string | null;
+  community?: string | null;
+  jerseySize?: string | null;
+  idCardUrl?: string | null;
+};
+
 export type RegistrationTeam = {
   id: string;
   tournamentId: string;
@@ -123,6 +164,9 @@ export type RegistrationTeam = {
   group: string | null;
   seed: number | null;
   qualificationUrl: string | null;
+  paymentProofUrl?: string | null;
+  playerDetails?: PlayerDetail;
+  partnerDetails?: PartnerDetail | null;
 };
 
 export type Match = {
@@ -591,20 +635,35 @@ export async function createRegistration(
     acceptedTerms: boolean;
     category: string;
     qualificationUrl?: string;
+    paymentProofUrl?: string;
     player: {
       fullName: string;
       email: string;
       phone: string;
-      nationality: string;
-      skillLevel: string;
+      nationality?: string;
+      skillLevel?: string;
       city?: string | null;
       membershipId?: string | null;
+      photoUrl?: string | null;
+      instagram?: string | null;
+      reclub?: string | null;
+      community?: string | null;
+      jerseySize?: string | null;
+      idCardUrl?: string | null;
     };
     partner?: {
       fullName: string;
-      email: string;
-      skillLevel: string;
+      email?: string | null;
+      phone?: string | null;
+      skillLevel?: string;
+      city?: string | null;
       membershipId?: string | null;
+      photoUrl?: string | null;
+      instagram?: string | null;
+      reclub?: string | null;
+      community?: string | null;
+      jerseySize?: string | null;
+      idCardUrl?: string | null;
     };
   },
 ) {
@@ -622,21 +681,37 @@ export type AdminCreateRegistrationInput = {
     fullName: string;
     email: string;
     phone: string;
-    nationality: string;
-    skillLevel: string;
+    nationality?: string;
+    skillLevel?: string;
     city?: string | null;
     membershipId?: string | null;
+    photoUrl?: string | null;
+    instagram?: string | null;
+    reclub?: string | null;
+    community?: string | null;
+    jerseySize?: string | null;
+    idCardUrl?: string | null;
   };
   partner?: {
     fullName: string;
-    email: string;
-    skillLevel: string;
+    email?: string | null;
+    phone?: string | null;
+    skillLevel?: string;
+    city?: string | null;
     membershipId?: string | null;
+    photoUrl?: string | null;
+    instagram?: string | null;
+    reclub?: string | null;
+    community?: string | null;
+    jerseySize?: string | null;
+    idCardUrl?: string | null;
   };
   category?: string;
   paid?: boolean;
   paymentStatus?: "unpaid" | "pending" | "paid" | "failed" | "refunded";
   status?: TeamStatus;
+  qualificationUrl?: string;
+  paymentProofUrl?: string;
 };
 
 export async function adminCreateRegistration(
@@ -781,6 +856,10 @@ export async function uploadQualification(
   }
 
   return envelope.data;
+}
+
+export async function uploadFile(file: File): Promise<{ url: string }> {
+  return uploadQualification(file);
 }
 
 export type ChatMessage = {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   Fragment,
@@ -154,6 +155,16 @@ const emptySettings: EditableSettings = {
   startsAt: "",
   endsAt: "",
   description: "",
+  bankName: "",
+  accountNumber: "",
+  accountHolder: "",
+  paymentInstructions: "",
+  contactPerson: "",
+  registrationNotes: "",
+  disclaimerText: "",
+  registrationClosedAt: "",
+  jerseySizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+  entryFeePerPair: 600000,
 };
 
 const sectionItems: Array<{
@@ -377,6 +388,7 @@ export default function TournamentControlRoom({
   const [removeTarget, setRemoveTarget] = useState<RegistrationTeam | null>(
     null,
   );
+  const [viewingTeam, setViewingTeam] = useState<RegistrationTeam | null>(null);
   const [submittingTeam, setSubmittingTeam] = useState(false);
   const [formError, setFormError] = useState("");
   const [oopPlan, setOopPlan] = useState<OopPlan | null>(null);
@@ -1536,6 +1548,196 @@ export default function TournamentControlRoom({
                   </div>
 
                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                        <span className="material-symbols-outlined">
+                          account_balance
+                        </span>
+                      </span>
+                      <div>
+                        <h3 className="font-black text-slate-950">
+                          Registration & Bank Transfer
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          Bank details, entry fees, deadline, and screening
+                          disclaimer
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <label>
+                        <span className="admin-label">
+                          Entry Fee per Pair (IDR)
+                        </span>
+                        <input
+                          type="number"
+                          value={settings.entryFeePerPair ?? 600000}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              entryFeePerPair: Number(event.target.value),
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label>
+                        <span className="admin-label">Bank Name</span>
+                        <input
+                          placeholder="e.g. BNI, BCA, Mandiri"
+                          value={settings.bankName ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              bankName: event.target.value,
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label>
+                        <span className="admin-label">Account Number</span>
+                        <input
+                          placeholder="e.g. 1984042386"
+                          value={settings.accountNumber ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              accountNumber: event.target.value,
+                            }))
+                          }
+                          className="admin-input font-mono"
+                        />
+                      </label>
+                      <label>
+                        <span className="admin-label">
+                          Account Holder (Atas Nama)
+                        </span>
+                        <input
+                          placeholder="e.g. PT. LOKA TAMA KREASI"
+                          value={settings.accountHolder ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              accountHolder: event.target.value,
+                            }))
+                          }
+                          className="admin-input uppercase"
+                        />
+                      </label>
+                      <label>
+                        <span className="admin-label">Contact Person (CP)</span>
+                        <input
+                          placeholder="e.g. Richard (0881025139999)"
+                          value={settings.contactPerson ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              contactPerson: event.target.value,
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label>
+                        <span className="admin-label">
+                          Registration Deadline
+                        </span>
+                        <input
+                          placeholder="e.g. 11 Agustus 2026"
+                          value={settings.registrationClosedAt ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              registrationClosedAt: event.target.value,
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className="admin-label">
+                          Payment Instructions (Berita Transfer)
+                        </span>
+                        <input
+                          placeholder="e.g. Format berita: [Nama 1] & [Nama 2] / [Kategori]"
+                          value={settings.paymentInstructions ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              paymentInstructions: event.target.value,
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className="admin-label">
+                          Jersey Sizes (comma separated)
+                        </span>
+                        <input
+                          placeholder="XS, S, M, L, XL, XXL, XXXL"
+                          value={(
+                            settings.jerseySizes ?? [
+                              "XS",
+                              "S",
+                              "M",
+                              "L",
+                              "XL",
+                              "XXL",
+                              "XXXL",
+                            ]
+                          ).join(", ")}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              jerseySizes: event.target.value
+                                .split(",")
+                                .map((s) => s.trim())
+                                .filter(Boolean),
+                            }))
+                          }
+                          className="admin-input"
+                        />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className="admin-label">
+                          Registration Notes / Screening Rules
+                        </span>
+                        <textarea
+                          rows={2}
+                          placeholder="Kriteria peserta, screening level, atau kebijakan refund..."
+                          value={settings.registrationNotes ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              registrationNotes: event.target.value,
+                            }))
+                          }
+                          className="admin-input h-auto py-2.5"
+                        />
+                      </label>
+                      <label className="sm:col-span-2">
+                        <span className="admin-label">
+                          Disclaimer & Self-Assessment Text
+                        </span>
+                        <textarea
+                          rows={3}
+                          placeholder="Teks pernyataan yang wajib disetujui saat pendaftar mengonfirmasi form..."
+                          value={settings.disclaimerText ?? ""}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              disclaimerText: event.target.value,
+                            }))
+                          }
+                          className="admin-input h-auto py-2.5"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                       <div>
                         <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
@@ -2229,6 +2431,22 @@ export default function TournamentControlRoom({
                                     month: "short",
                                   })}
                                 </p>
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                  {team.paymentProofUrl && (
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                      <span className="material-symbols-outlined text-xs">
+                                        receipt_long
+                                      </span>
+                                      Bukti Transfer Ada
+                                    </span>
+                                  )}
+                                  {team.playerDetails?.jerseySize && (
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                      Jersey: {team.playerDetails.jerseySize} /{" "}
+                                      {team.partnerDetails?.jerseySize ?? "-"}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <div className="grid gap-2 sm:grid-cols-3 xl:w-[520px]">
@@ -2290,16 +2508,28 @@ export default function TournamentControlRoom({
                                 </div>
                               </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setRemoveTarget(team)}
-                              className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                            >
-                              <span className="material-symbols-outlined text-base">
-                                person_remove
-                              </span>
-                              Remove
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setViewingTeam(team)}
+                                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+                              >
+                                <span className="material-symbols-outlined text-base">
+                                  visibility
+                                </span>
+                                Detail
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setRemoveTarget(team)}
+                                className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                              >
+                                <span className="material-symbols-outlined text-base">
+                                  person_remove
+                                </span>
+                                Remove
+                              </button>
+                            </div>
                           </div>
                         </article>
                       ))}
@@ -3837,6 +4067,366 @@ export default function TournamentControlRoom({
           </div>
         </div>
       )}
+
+      {viewingTeam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="my-8 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                  <span className="material-symbols-outlined text-2xl">
+                    badge
+                  </span>
+                </span>
+                <div>
+                  <h3 className="text-lg font-black text-slate-950">
+                    Detail Registrasi Tim: {teamName(viewingTeam)}
+                  </h3>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <span className="font-bold text-blue-700">
+                      {viewingTeam.category}
+                    </span>
+                    <span>·</span>
+                    <span>ID: {viewingTeam.id}</span>
+                    <span>·</span>
+                    <span
+                      className={`font-bold uppercase ${
+                        viewingTeam.status === "approved"
+                          ? "text-emerald-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {viewingTeam.status}
+                    </span>
+                    <span>·</span>
+                    <span
+                      className={`font-bold ${
+                        viewingTeam.paid ? "text-emerald-600" : "text-rose-600"
+                      }`}
+                    >
+                      {viewingTeam.paid ? "Paid ✓" : "Unpaid"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingTeam(null)}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <span className="material-symbols-outlined block text-xl">
+                  close
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-6">
+              {/* Player 1 Details */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                    Pemain 1 (Utama)
+                  </h4>
+                  {viewingTeam.playerDetails?.jerseySize && (
+                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
+                      Jersey: {viewingTeam.playerDetails.jerseySize}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+                  {viewingTeam.playerDetails?.photoUrl ? (
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                      <Image
+                        src={viewingTeam.playerDetails.photoUrl}
+                        alt="Selfie Pemain 1"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-600">
+                      {viewingTeam.player.charAt(0)}
+                    </div>
+                  )}
+                  <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
+                    <div>
+                      <span className="text-slate-400">Nama Lengkap:</span>
+                      <p className="font-extrabold text-slate-900">
+                        {viewingTeam.playerDetails?.fullName ||
+                          viewingTeam.player}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Asal Kota:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.playerDetails?.city || viewingTeam.city}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">WhatsApp / HP:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.playerDetails?.phone ? (
+                          <a
+                            href={`https://wa.me/${viewingTeam.playerDetails.phone.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            +62 {viewingTeam.playerDetails.phone}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Instagram:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.playerDetails?.instagram || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Komunitas / Klub:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.playerDetails?.community || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Reclub:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.playerDetails?.reclub || "-"}
+                      </p>
+                    </div>
+                    {viewingTeam.playerDetails?.idCardUrl && (
+                      <div className="sm:col-span-2 mt-1">
+                        <a
+                          href={viewingTeam.playerDetails.idCardUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-slate-50"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            badge
+                          </span>
+                          Lihat Foto KTP Pemain 1 ↗
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Player 2 Details */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                    Pemain 2 (Pasangan)
+                  </h4>
+                  {viewingTeam.partnerDetails?.jerseySize && (
+                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
+                      Jersey: {viewingTeam.partnerDetails.jerseySize}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
+                  {viewingTeam.partnerDetails?.photoUrl ? (
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                      <Image
+                        src={viewingTeam.partnerDetails.photoUrl}
+                        alt="Selfie Pemain 2"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-600">
+                      {viewingTeam.partner?.charAt(0) || "P"}
+                    </div>
+                  )}
+                  <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
+                    <div>
+                      <span className="text-slate-400">Nama Lengkap:</span>
+                      <p className="font-extrabold text-slate-900">
+                        {viewingTeam.partnerDetails?.fullName ||
+                          viewingTeam.partner ||
+                          "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Asal Kota:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.partnerDetails?.city || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">WhatsApp / HP:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.partnerDetails?.phone ? (
+                          <a
+                            href={`https://wa.me/${viewingTeam.partnerDetails.phone.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            +62 {viewingTeam.partnerDetails.phone}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Instagram:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.partnerDetails?.instagram || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Komunitas / Klub:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.partnerDetails?.community || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Reclub:</span>
+                      <p className="font-bold text-slate-800">
+                        {viewingTeam.partnerDetails?.reclub || "-"}
+                      </p>
+                    </div>
+                    {viewingTeam.partnerDetails?.idCardUrl && (
+                      <div className="sm:col-span-2 mt-1">
+                        <a
+                          href={viewingTeam.partnerDetails.idCardUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-slate-50"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            badge
+                          </span>
+                          Lihat Foto KTP Pemain 2 ↗
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Proof Card */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                    Bukti Pembayaran & Transfer
+                  </h4>
+                  <span
+                    className={`rounded px-2 py-0.5 text-xs font-bold ${
+                      viewingTeam.paid
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-rose-100 text-rose-800"
+                    }`}
+                  >
+                    {viewingTeam.paid ? "Sudah Dibayar" : "Belum Bayar"}
+                  </span>
+                </div>
+                <div className="mt-3">
+                  {viewingTeam.paymentProofUrl ? (
+                    <div className="space-y-2">
+                      <div className="relative h-64 w-full overflow-hidden rounded-xl border border-slate-300 bg-white">
+                        <Image
+                          src={viewingTeam.paymentProofUrl}
+                          alt="Bukti Transfer"
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <a
+                        href={viewingTeam.paymentProofUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:underline"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          open_in_new
+                        </span>
+                        Buka Gambar Ukuran Penuh
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic">
+                      Tidak ada bukti transfer yang diunggah.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions Footer */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setViewingTeam(null)}
+                className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-extrabold text-slate-600 hover:bg-slate-50"
+              >
+                Tutup
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await patchTeam(viewingTeam, {
+                      paid: !viewingTeam.paid,
+                    });
+                    setViewingTeam((prev) =>
+                      prev ? { ...prev, paid: !prev.paid } : null,
+                    );
+                  }}
+                  className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-4 text-xs font-extrabold transition ${
+                    viewingTeam.paid
+                      ? "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">
+                    payments
+                  </span>
+                  {viewingTeam.paid ? "Tandai Unpaid" : "Tandai Lunas (Paid)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const nextStatus =
+                      viewingTeam.status === "approved"
+                        ? "pending"
+                        : "approved";
+                    await patchTeam(viewingTeam, {
+                      status: nextStatus,
+                    });
+                    setViewingTeam((prev) =>
+                      prev ? { ...prev, status: nextStatus } : null,
+                    );
+                  }}
+                  className={`inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-extrabold text-white shadow-md transition ${
+                    viewingTeam.status === "approved"
+                      ? "bg-slate-700 hover:bg-slate-800"
+                      : "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {viewingTeam.status === "approved" ? "undo" : "verified"}
+                  </span>
+                  {viewingTeam.status === "approved"
+                    ? "Batal Approve"
+                    : "Approve Tim"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AiDirectorCopilot
         tournament={tournament}
         onSettingsUpdated={() => window.location.reload()}

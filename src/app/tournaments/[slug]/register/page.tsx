@@ -11,31 +11,101 @@ import {
   getRegistrationSummary,
   getTournamentBySlug,
   type Tournament,
-  uploadQualification,
+  uploadFile,
 } from "@/lib/tuwagaApi";
 
 const WIZARD_STEPS = [
-  "Division",
-  "Player",
-  "Partner",
-  "Qualification",
+  "Kategori",
+  "Pemain 1",
+  "Pemain 2",
+  "Pembayaran",
   "Review",
 ];
+
+const DEFAULT_JERSEY_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
 
 function FieldLabel({
   children,
   htmlFor,
+  required = false,
 }: {
   children: string;
-  htmlFor: string;
+  htmlFor?: string;
+  required?: boolean;
 }) {
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-[14px] font-medium tracking-[0.01em] text-on-surface"
+      className="block text-[14px] font-bold tracking-[0.01em] text-on-surface"
     >
-      {children}
+      {children} {required && <span className="text-rose-500">*</span>}
     </label>
+  );
+}
+
+function FileUploadBox({
+  label,
+  description,
+  url,
+  required = false,
+  onUpload,
+  loading,
+}: {
+  label: string;
+  description: string;
+  url?: string;
+  required?: boolean;
+  onUpload: (file: File) => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <FieldLabel required={required}>{label}</FieldLabel>
+      <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/60 bg-white p-5 transition hover:border-primary hover:bg-surface-container-low/50">
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          disabled={loading}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onUpload(file);
+          }}
+        />
+        {url ? (
+          <div className="flex w-full items-center gap-4">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-outline-variant bg-slate-100">
+              <Image
+                src={url}
+                alt={label}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                <span className="material-symbols-outlined text-sm">check</span>
+                File terunggah
+              </span>
+              <p className="mt-1 text-xs text-on-surface-variant truncate">
+                Klik untuk mengganti gambar
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center">
+            <span className="material-symbols-outlined text-3xl text-on-surface-variant">
+              {loading ? "progress_activity" : "cloud_upload"}
+            </span>
+            <p className="mt-2 text-xs font-bold text-on-surface">
+              {loading ? "Mengunggah..." : "Pilih atau seret gambar ke sini"}
+            </p>
+            <p className="text-[11px] text-on-surface-variant">{description}</p>
+          </div>
+        )}
+      </label>
+    </div>
   );
 }
 
@@ -63,10 +133,10 @@ function StepActions({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-11 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-5 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
+          className="inline-flex h-11 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-5 text-sm font-bold text-on-surface transition hover:bg-surface-container-low"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
-          Back
+          Kembali
         </button>
       ) : (
         <div />
@@ -82,8 +152,10 @@ function StepActions({
               : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
           }`}
         >
-          <span className="material-symbols-outlined text-[20px]">lock</span>
-          {submitting ? "Submitting..." : "Submit Registration"}
+          <span className="material-symbols-outlined text-[20px]">
+            verified_user
+          </span>
+          {submitting ? "Memproses..." : "Konfirmasi & Kirim Pendaftaran"}
         </button>
       ) : (
         <button
@@ -96,7 +168,7 @@ function StepActions({
               : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
           }`}
         >
-          Next
+          Lanjut
           <span className="material-symbols-outlined text-lg">
             arrow_forward
           </span>
@@ -115,23 +187,48 @@ export default function TournamentRegisterPage() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [copiedBank, setCopiedBank] = useState(false);
 
-  // Form state
+  // Modal confirmation state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmedDisclaimer, setConfirmedDisclaimer] = useState(false);
+
+  // Uploading state flags
+  const [uploadingState, setUploadingState] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  // Form states
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [player, setPlayer] = useState({
+
+  const [player1, setPlayer1] = useState({
     fullName: "",
     email: "",
     phone: "",
+    instagram: "",
+    reclub: "",
+    community: "",
+    city: "",
+    jerseySize: "M",
+    photoUrl: "",
+    idCardUrl: "",
     nationality: "ID",
   });
-  const [partner, setPartner] = useState({
+
+  const [player2, setPlayer2] = useState({
     fullName: "",
     email: "",
+    phone: "",
+    instagram: "",
+    reclub: "",
+    community: "",
+    city: "",
+    jerseySize: "M",
+    photoUrl: "",
+    idCardUrl: "",
   });
-  const [qualificationFile, setQualificationFile] = useState<File | null>(null);
-  const [qualificationUrl, setQualificationUrl] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+
+  const [paymentProofUrl, setPaymentProofUrl] = useState("");
 
   useEffect(() => {
     if (!slug) return;
@@ -143,15 +240,15 @@ export default function TournamentRegisterPage() {
         const current = await getTournamentBySlug(slug);
         if (!active) return;
         setTournament(current);
-        if ((current.settings.categories ?? []).length > 0) {
-          setSelectedCategory((current.settings.categories ?? [])[0]);
+        const categories = current.settings.categories ?? [];
+        if (categories.length > 0) {
+          setSelectedCategory(categories[0]);
         }
         await getRegistrationSummary(current.id);
-        if (!active) return;
       } catch (err) {
         if (!active) return;
         setMessage(
-          err instanceof Error ? err.message : "Failed to load tournament.",
+          err instanceof Error ? err.message : "Gagal memuat info turnamen.",
         );
       } finally {
         if (active) setLoading(false);
@@ -164,40 +261,79 @@ export default function TournamentRegisterPage() {
     };
   }, [slug]);
 
+  const jerseyOptions = useMemo(() => {
+    return tournament?.settings.jerseySizes &&
+      tournament.settings.jerseySizes.length > 0
+      ? tournament.settings.jerseySizes
+      : DEFAULT_JERSEY_SIZES;
+  }, [tournament]);
+
+  const entryFeeLabel = useMemo(() => {
+    if (!tournament) return "Rp 600.000";
+    const fee =
+      tournament.settings.entryFeePerPair ??
+      tournament.entryFeePerPair ??
+      600000;
+    return `Rp ${fee.toLocaleString("id-ID")}`;
+  }, [tournament]);
+
+  const handleUploadKey = async (
+    key: string,
+    file: File,
+    onSuccess: (url: string) => void,
+  ) => {
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Ukuran file maksimal 5MB.");
+      return;
+    }
+    setUploadingState((prev) => ({ ...prev, [key]: true }));
+    try {
+      const res = await uploadFile(file);
+      onSuccess(res.url);
+      setMessage("");
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : "Gagal mengunggah gambar.",
+      );
+    } finally {
+      setUploadingState((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
   const canAdvance = useMemo(() => {
     switch (step) {
       case 0:
         return !!selectedCategory;
       case 1:
         return (
-          !!player.fullName.trim() &&
-          !!player.email.trim() &&
-          !!player.phone.trim()
+          !!player1.fullName.trim() &&
+          !!player1.phone.trim() &&
+          !!player1.instagram.trim() &&
+          !!player1.city.trim() &&
+          !!player1.jerseySize
         );
       case 2:
-        return !!partner.fullName.trim() && !!partner.email.trim();
+        return (
+          !!player2.fullName.trim() &&
+          !!player2.phone.trim() &&
+          !!player2.instagram.trim() &&
+          !!player2.city.trim() &&
+          !!player2.jerseySize
+        );
       case 3:
-        return true; // qualification is optional
+        return !!paymentProofUrl;
       case 4:
-        return agreed;
+        return true;
       default:
         return false;
     }
-  }, [step, selectedCategory, player, partner, agreed]);
+  }, [step, selectedCategory, player1, player2, paymentProofUrl]);
 
-  const handleUpload = async (file: File) => {
-    setQualificationFile(file);
-    setUploading(true);
-    try {
-      const result = await uploadQualification(file);
-      setQualificationUrl(result.url);
-    } catch {
-      setMessage(
-        "Failed to upload qualification image. You can still continue.",
-      );
-    } finally {
-      setUploading(false);
-    }
+  const handleCopyAccount = () => {
+    const accNumber = tournament?.settings.accountNumber || "1984042386";
+    navigator.clipboard.writeText(accNumber);
+    setCopiedBank(true);
+    setTimeout(() => setCopiedBank(false), 2000);
   };
 
   const handleSubmit = async () => {
@@ -206,36 +342,58 @@ export default function TournamentRegisterPage() {
     try {
       const divisionLevel = divisionSkillLevel(selectedCategory);
       const response = await createRegistration(tournament.id, {
-        acceptedTerms: agreed,
+        acceptedTerms: true,
         category: selectedCategory,
-        qualificationUrl: qualificationUrl || undefined,
+        paymentProofUrl: paymentProofUrl || undefined,
         player: {
-          fullName: player.fullName.trim(),
-          email: player.email.trim(),
-          phone: player.phone.trim(),
-          nationality: player.nationality,
+          fullName: player1.fullName.trim(),
+          email:
+            player1.email.trim() ||
+            `${player1.fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}@player.tuwaga.id`,
+          phone: player1.phone.trim(),
+          nationality: player1.nationality,
           skillLevel: divisionLevel,
+          city: player1.city.trim() || null,
+          photoUrl: player1.photoUrl || null,
+          instagram: player1.instagram.trim() || null,
+          reclub: player1.reclub.trim() || null,
+          community: player1.community.trim() || null,
+          jerseySize: player1.jerseySize || null,
+          idCardUrl: player1.idCardUrl || null,
         },
         partner: {
-          fullName: partner.fullName.trim(),
-          email: partner.email.trim(),
+          fullName: player2.fullName.trim(),
+          email:
+            player2.email.trim() ||
+            `${player2.fullName.toLowerCase().replace(/[^a-z0-9]/g, "")}@partner.tuwaga.id`,
+          phone: player2.phone.trim() || null,
           skillLevel: divisionLevel,
+          city: player2.city.trim() || null,
+          photoUrl: player2.photoUrl || null,
+          instagram: player2.instagram.trim() || null,
+          reclub: player2.reclub.trim() || null,
+          community: player2.community.trim() || null,
+          jerseySize: player2.jerseySize || null,
+          idCardUrl: player2.idCardUrl || null,
         },
       });
+
       const params = new URLSearchParams({
         registrationId: response.registration.id,
         tournamentName: tournament.name,
         category: selectedCategory,
-        player: player.fullName.trim(),
-        partner: partner.fullName.trim(),
+        player: player1.fullName.trim(),
+        partner: player2.fullName.trim(),
         venue: tournament.venue,
         date: tournament.dateLabel,
       });
+
       window.location.href = `/register/success?${params.toString()}`;
     } catch (err) {
       setMessage(
-        err instanceof Error ? err.message : "Failed to submit registration.",
+        err instanceof Error ? err.message : "Gagal mengirim pendaftaran.",
       );
+      setShowConfirmModal(false);
     } finally {
       setSubmitting(false);
     }
@@ -243,16 +401,21 @@ export default function TournamentRegisterPage() {
 
   const goNext = () => {
     if (step === WIZARD_STEPS.length - 1) {
-      handleSubmit();
+      setShowConfirmModal(true);
     } else {
       setStep((s) => Math.min(s + 1, WIZARD_STEPS.length - 1));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
-  const goBack = () => setStep((s) => Math.max(s - 1, 0));
+
+  const goBack = () => {
+    setStep((s) => Math.max(s - 1, 0));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (loading && !tournament) {
     return (
-      <RegistrationShell title="Loading..." showProgress={false}>
+      <RegistrationShell title="Memuat Turnamen..." showProgress={false}>
         <div className="flex h-64 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
@@ -262,9 +425,9 @@ export default function TournamentRegisterPage() {
 
   if (!tournament) {
     return (
-      <RegistrationShell title="Tournament Not Found" showProgress={false}>
+      <RegistrationShell title="Turnamen Tidak Ditemukan" showProgress={false}>
         <div className="rounded-lg border border-error/20 bg-error-container p-6 text-sm font-semibold text-on-error-container">
-          {message || "This tournament could not be found."}
+          {message || "Informasi turnamen tidak dapat ditemukan."}
         </div>
       </RegistrationShell>
     );
@@ -273,7 +436,7 @@ export default function TournamentRegisterPage() {
   return (
     <RegistrationShell
       current={step}
-      title={`Register for ${tournament.name}`}
+      title={tournament.name}
       description={`${tournament.venue} — ${tournament.dateLabel}`}
       showProgress
     >
@@ -281,12 +444,12 @@ export default function TournamentRegisterPage() {
 
       <div className="mx-auto max-w-2xl">
         {message && (
-          <div className="mb-6 rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm font-semibold text-primary">
+          <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
             {message}
           </div>
         )}
 
-        {/* Step 0: Category */}
+        {/* STEP 0: PILIH KATEGORI */}
         {step === 0 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
@@ -296,16 +459,49 @@ export default function TournamentRegisterPage() {
                 </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Match Division
+                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                  Pilihan Kategori
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Select one division. It defines the match category and skill
-                  level for both players.
+                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                  Pilih salah satu kategori turnamen untuk pasangan Anda.
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+            {/* Tournament brief banner info */}
+            <div className="mb-6 rounded-xl border border-outline-variant/30 bg-surface-container-low/60 p-4 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 pb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  Biaya Pendaftaran
+                </span>
+                <span className="text-base font-extrabold text-primary">
+                  {entryFeeLabel} / PAIR
+                </span>
+              </div>
+              {tournament.settings.registrationClosedAt && (
+                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                  <span>Batas Akhir Pendaftaran:</span>
+                  <span className="font-bold text-rose-600">
+                    {tournament.settings.registrationClosedAt}
+                  </span>
+                </div>
+              )}
+              {tournament.settings.contactPerson && (
+                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                  <span>Kontak Panitia (CP):</span>
+                  <span className="font-bold text-on-surface">
+                    {tournament.settings.contactPerson}
+                  </span>
+                </div>
+              )}
+              {tournament.settings.registrationNotes && (
+                <p className="pt-2 text-xs leading-relaxed text-on-surface-variant border-t border-outline-variant/20">
+                  📌 {tournament.settings.registrationNotes}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(tournament.settings.categories ?? []).map((cat) => {
                 const isSelected = selectedCategory === cat;
                 return (
@@ -319,19 +515,30 @@ export default function TournamentRegisterPage() {
                       className="sr-only"
                     />
                     <div
-                      className={`rounded-xl border bg-white p-5 transition-all ${isSelected ? "border-primary ring-2 ring-primary/10" : "border-outline-variant hover:border-primary/40"}`}
+                      className={`rounded-xl border bg-white p-5 transition-all ${
+                        isSelected
+                          ? "border-primary ring-2 ring-primary/10 shadow-sm"
+                          : "border-outline-variant hover:border-primary/40"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${isSelected ? "bg-primary opacity-100" : "opacity-0"}`}
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-on-primary transition-all ${
+                            isSelected ? "bg-primary opacity-100" : "opacity-0"
+                          }`}
                         >
                           <span className="material-symbols-outlined text-[16px]">
                             check
                           </span>
                         </span>
-                        <h3 className="text-[18px] font-semibold text-on-surface">
-                          {cat}
-                        </h3>
+                        <div>
+                          <h3 className="text-[17px] font-extrabold text-on-surface">
+                            {cat}
+                          </h3>
+                          <p className="text-xs font-semibold text-primary">
+                            {divisionSkillLabel(cat)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </label>
@@ -341,7 +548,7 @@ export default function TournamentRegisterPage() {
           </section>
         )}
 
-        {/* Step 1: Player */}
+        {/* STEP 1: PEMAIN 1 */}
         {step === 1 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
@@ -351,84 +558,173 @@ export default function TournamentRegisterPage() {
                 </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Player Information
+                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                  Data Pemain 1 (Player 1)
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Your details for tournament verification.
+                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                  Informasi lengkap pemain utama sesuai identitas KTP.
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+            <div className="space-y-5">
               <div className="space-y-2">
-                <FieldLabel htmlFor="full-name">Full Name *</FieldLabel>
+                <FieldLabel htmlFor="p1-name" required>
+                  Nama Pemain 1 (Sesuai KTP)
+                </FieldLabel>
                 <input
-                  id="full-name"
+                  id="p1-name"
                   type="text"
                   required
-                  value={player.fullName}
+                  value={player1.fullName}
                   onChange={(e) =>
-                    setPlayer((p) => ({ ...p, fullName: e.target.value }))
+                    setPlayer1((p) => ({ ...p, fullName: e.target.value }))
                   }
-                  placeholder="Bima Pratama"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                  placeholder="Contoh: Rudy Hartono"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="email">Email *</FieldLabel>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={player.email}
-                  onChange={(e) =>
-                    setPlayer((p) => ({ ...p, email: e.target.value }))
-                  }
-                  placeholder="bima@tuwaga.id"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="phone">Phone *</FieldLabel>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">
-                    +62
-                  </span>
+
+              <FileUploadBox
+                label="Foto Pemain 1 (Selfie terbaru)"
+                description="Format JPG, PNG atau WebP (Maks. 5MB)"
+                url={player1.photoUrl}
+                loading={!!uploadingState["p1-photo"]}
+                onUpload={(file) =>
+                  handleUploadKey("p1-photo", file, (url) =>
+                    setPlayer1((p) => ({ ...p, photoUrl: url })),
+                  )
+                }
+              />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-phone" required>
+                    Nomor WhatsApp
+                  </FieldLabel>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-on-surface-variant">
+                      +62
+                    </span>
+                    <input
+                      id="p1-phone"
+                      type="tel"
+                      required
+                      value={player1.phone}
+                      onChange={(e) =>
+                        setPlayer1((p) => ({ ...p, phone: e.target.value }))
+                      }
+                      placeholder="812 3456 7890"
+                      className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-ig" required>
+                    Instagram
+                  </FieldLabel>
                   <input
-                    id="phone"
-                    type="tel"
+                    id="p1-ig"
+                    type="text"
                     required
-                    value={player.phone}
+                    value={player1.instagram}
                     onChange={(e) =>
-                      setPlayer((p) => ({ ...p, phone: e.target.value }))
+                      setPlayer1((p) => ({ ...p, instagram: e.target.value }))
                     }
-                    placeholder="812 3456 7890"
-                    className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                    placeholder="@rudyhartono"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="nationality">Nationality</FieldLabel>
-                <select
-                  id="nationality"
-                  value={player.nationality}
-                  onChange={(e) =>
-                    setPlayer((p) => ({ ...p, nationality: e.target.value }))
-                  }
-                  className="w-full appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
-                >
-                  <option value="ID">Indonesia</option>
-                  <option value="MY">Malaysia</option>
-                  <option value="SG">Singapore</option>
-                  <option value="TH">Thailand</option>
-                  <option value="PH">Philippines</option>
-                </select>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-reclub">Reclub (Opsional)</FieldLabel>
+                  <input
+                    id="p1-reclub"
+                    type="text"
+                    value={player1.reclub}
+                    onChange={(e) =>
+                      setPlayer1((p) => ({ ...p, reclub: e.target.value }))
+                    }
+                    placeholder="Link profil Reclub"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-community">
+                    Nama Komunitas / Klub (Opsional)
+                  </FieldLabel>
+                  <input
+                    id="p1-community"
+                    type="text"
+                    value={player1.community}
+                    onChange={(e) =>
+                      setPlayer1((p) => ({ ...p, community: e.target.value }))
+                    }
+                    placeholder="Contoh: Padel Cah Semarang"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-city" required>
+                    Asal Kota Pemain 1
+                  </FieldLabel>
+                  <input
+                    id="p1-city"
+                    type="text"
+                    required
+                    value={player1.city}
+                    onChange={(e) =>
+                      setPlayer1((p) => ({ ...p, city: e.target.value }))
+                    }
+                    placeholder="Contoh: Semarang"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p1-jersey" required>
+                    Ukuran Jersey Pemain 1
+                  </FieldLabel>
+                  <select
+                    id="p1-jersey"
+                    value={player1.jerseySize}
+                    onChange={(e) =>
+                      setPlayer1((p) => ({ ...p, jerseySize: e.target.value }))
+                    }
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    {jerseyOptions.map((sz) => (
+                      <option key={sz} value={sz}>
+                        {sz}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <FileUploadBox
+                label="KTP Pemain 1"
+                description="Upload foto KTP untuk verifikasi identitas (Maks. 5MB)"
+                url={player1.idCardUrl}
+                loading={!!uploadingState["p1-ktp"]}
+                onUpload={(file) =>
+                  handleUploadKey("p1-ktp", file, (url) =>
+                    setPlayer1((p) => ({ ...p, idCardUrl: url })),
+                  )
+                }
+              />
             </div>
           </section>
         )}
 
-        {/* Step 2: Partner */}
+        {/* STEP 2: PEMAIN 2 / PASANGAN */}
         {step === 2 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
@@ -438,130 +734,282 @@ export default function TournamentRegisterPage() {
                 </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Partner Details
+                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                  Data Pemain 2 (Player 2 / Pasangan)
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Your doubles partner for this tournament.
+                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                  Informasi pasangan main sesuai identitas KTP.
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+            <div className="space-y-5">
               <div className="space-y-2">
-                <FieldLabel htmlFor="partner-name">
-                  Partner Full Name *
+                <FieldLabel htmlFor="p2-name" required>
+                  Nama Pemain 2 (Sesuai KTP)
                 </FieldLabel>
                 <input
-                  id="partner-name"
+                  id="p2-name"
                   type="text"
                   required
-                  value={partner.fullName}
+                  value={player2.fullName}
                   onChange={(e) =>
-                    setPartner((p) => ({ ...p, fullName: e.target.value }))
+                    setPlayer2((p) => ({ ...p, fullName: e.target.value }))
                   }
-                  placeholder="Raka Wijaya"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
+                  placeholder="Contoh: Kevin Sanjaya"
+                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
-              <div className="space-y-2">
-                <FieldLabel htmlFor="partner-email">Partner Email *</FieldLabel>
-                <input
-                  id="partner-email"
-                  type="email"
-                  required
-                  value={partner.email}
-                  onChange={(e) =>
-                    setPartner((p) => ({ ...p, email: e.target.value }))
-                  }
-                  placeholder="raka@tuwaga.id"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] outline-none focus:border-primary focus:ring-2 focus:ring-primary"
-                />
+
+              <FileUploadBox
+                label="Foto Pemain 2 (Selfie terbaru)"
+                description="Format JPG, PNG atau WebP (Maks. 5MB)"
+                url={player2.photoUrl}
+                loading={!!uploadingState["p2-photo"]}
+                onUpload={(file) =>
+                  handleUploadKey("p2-photo", file, (url) =>
+                    setPlayer2((p) => ({ ...p, photoUrl: url })),
+                  )
+                }
+              />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-phone" required>
+                    Nomor WhatsApp
+                  </FieldLabel>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-on-surface-variant">
+                      +62
+                    </span>
+                    <input
+                      id="p2-phone"
+                      type="tel"
+                      required
+                      value={player2.phone}
+                      onChange={(e) =>
+                        setPlayer2((p) => ({ ...p, phone: e.target.value }))
+                      }
+                      placeholder="813 9876 5432"
+                      className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-ig" required>
+                    Instagram
+                  </FieldLabel>
+                  <input
+                    id="p2-ig"
+                    type="text"
+                    required
+                    value={player2.instagram}
+                    onChange={(e) =>
+                      setPlayer2((p) => ({ ...p, instagram: e.target.value }))
+                    }
+                    placeholder="@kevinsanjaya"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-reclub">Reclub (Opsional)</FieldLabel>
+                  <input
+                    id="p2-reclub"
+                    type="text"
+                    value={player2.reclub}
+                    onChange={(e) =>
+                      setPlayer2((p) => ({ ...p, reclub: e.target.value }))
+                    }
+                    placeholder="Link profil Reclub"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-community">
+                    Nama Komunitas / Klub (Opsional)
+                  </FieldLabel>
+                  <input
+                    id="p2-community"
+                    type="text"
+                    value={player2.community}
+                    onChange={(e) =>
+                      setPlayer2((p) => ({ ...p, community: e.target.value }))
+                    }
+                    placeholder="Contoh: Padel Cah Semarang"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-city" required>
+                    Asal Kota Pemain 2
+                  </FieldLabel>
+                  <input
+                    id="p2-city"
+                    type="text"
+                    required
+                    value={player2.city}
+                    onChange={(e) =>
+                      setPlayer2((p) => ({ ...p, city: e.target.value }))
+                    }
+                    placeholder="Contoh: Semarang"
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <FieldLabel htmlFor="p2-jersey" required>
+                    Ukuran Jersey Pemain 2
+                  </FieldLabel>
+                  <select
+                    id="p2-jersey"
+                    value={player2.jerseySize}
+                    onChange={(e) =>
+                      setPlayer2((p) => ({ ...p, jerseySize: e.target.value }))
+                    }
+                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    {jerseyOptions.map((sz) => (
+                      <option key={sz} value={sz}>
+                        {sz}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <FileUploadBox
+                label="KTP Pemain 2"
+                description="Upload foto KTP untuk verifikasi identitas (Maks. 5MB)"
+                url={player2.idCardUrl}
+                loading={!!uploadingState["p2-ktp"]}
+                onUpload={(file) =>
+                  handleUploadKey("p2-ktp", file, (url) =>
+                    setPlayer2((p) => ({ ...p, idCardUrl: url })),
+                  )
+                }
+              />
             </div>
           </section>
         )}
 
-        {/* Step 3: Qualification */}
+        {/* STEP 3: PEMBAYARAN & REKENING */}
         {step === 3 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
                 <span className="material-symbols-outlined text-[22px]">
-                  upload_file
+                  payments
                 </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Qualification
+                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                  Informasi Transfer & Bukti Pembayaran
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Upload a qualification image (optional). Max 5MB.
+                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                  Silakan transfer biaya registrasi turnamen sesuai instruksi
+                  panitia berikut.
                 </p>
               </div>
             </div>
 
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/50 bg-white p-10 transition-colors hover:border-primary/40 hover:bg-surface-container-low">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleUpload(file);
-                }}
-              />
-              {qualificationFile ? (
-                <>
-                  <span className="material-symbols-outlined text-[40px] text-secondary">
-                    check_circle
-                  </span>
-                  <p className="mt-3 text-sm font-bold text-on-surface">
-                    {qualificationFile.name}
-                  </p>
-                  <p className="text-xs text-on-surface-variant">
-                    {(qualificationFile.size / 1024).toFixed(0)} KB
-                  </p>
-                  {uploading && (
-                    <p className="mt-2 text-xs font-bold text-primary">
-                      Uploading...
-                    </p>
-                  )}
-                  {qualificationUrl && (
-                    <p className="mt-1 text-xs font-bold text-secondary">
-                      Uploaded ✓
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined text-[40px] text-on-surface-variant">
-                    cloud_upload
-                  </span>
-                  <p className="mt-3 text-sm font-bold text-on-surface">
-                    Click to upload qualification image
-                  </p>
-                  <p className="text-xs text-on-surface-variant">
-                    JPG, PNG, or WebP — Max 5MB
-                  </p>
-                </>
-              )}
-            </label>
-
-            {qualificationUrl && (
-              <div className="relative mt-4 h-48 overflow-hidden rounded-lg border border-outline-variant/30">
-                <Image
-                  src={qualificationUrl}
-                  alt="Qualification"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+            {/* Bank Card */}
+            <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-white to-primary/10 p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="rounded-md bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-white">
+                  {tournament.settings.bankName || "BNI"}
+                </span>
+                <span className="text-xs font-bold text-on-surface-variant uppercase">
+                  Rekening Panitia
+                </span>
               </div>
-            )}
+
+              <div className="mt-5">
+                <p className="text-xs font-semibold text-on-surface-variant">
+                  Nomor Rekening
+                </p>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="font-mono text-2xl font-black tracking-wider text-on-surface sm:text-3xl">
+                    {tournament.settings.accountNumber || "1984042386"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyAccount}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/5 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      {copiedBank ? "check" : "content_copy"}
+                    </span>
+                    {copiedBank ? "Tersalin!" : "Salin No. Rekening"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 border-t border-primary/15 pt-4">
+                <p className="text-xs font-semibold text-on-surface-variant">
+                  Atas Nama (Account Holder)
+                </p>
+                <p className="mt-0.5 text-sm font-extrabold uppercase text-on-surface">
+                  {tournament.settings.accountHolder || "PT. LOKA TAMA KREASI"}
+                </p>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-primary/15 pt-3">
+                <span className="text-xs font-semibold text-on-surface-variant">
+                  Total Biaya ({selectedCategory})
+                </span>
+                <span className="text-lg font-black text-primary">
+                  {entryFeeLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Payment instructions note */}
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+              <div className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-amber-700 text-lg">
+                  info
+                </span>
+                <div className="text-xs leading-relaxed text-amber-900">
+                  <p className="font-bold">Instruksi Format Berita Transfer:</p>
+                  <p className="mt-1 font-mono text-[13px] font-bold text-amber-950 bg-amber-100/70 p-2 rounded-lg">
+                    {tournament.settings.paymentInstructions ||
+                      `Format: ${player1.fullName || "[Pemain 1]"} & ${player2.fullName || "[Pemain 2]"} / ${selectedCategory}`}
+                  </p>
+                  <p className="mt-2 text-[11px] text-amber-800">
+                    Sertakan struk/screenshot bukti transfer yang jelas dengan
+                    nominal dan waktu transfer yang terbaca.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Upload payment proof */}
+            <div className="mt-6">
+              <FileUploadBox
+                label="Bukti Pembayaran Pendaftaran"
+                description="Upload screenshot / foto struk transfer bank (Maks. 5MB)"
+                required
+                url={paymentProofUrl}
+                loading={!!uploadingState["payment-proof"]}
+                onUpload={(file) =>
+                  handleUploadKey("payment-proof", file, (url) =>
+                    setPaymentProofUrl(url),
+                  )
+                }
+              />
+            </div>
           </section>
         )}
 
-        {/* Step 4: Review */}
+        {/* STEP 4: REVIEW DATA PENDAFTARAN */}
         {step === 4 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
@@ -571,70 +1019,146 @@ export default function TournamentRegisterPage() {
                 </span>
               </div>
               <div>
-                <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
-                  Review & Submit
+                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                  Review & Konfirmasi
                 </h2>
-                <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
-                  Confirm your details before submitting.
+                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                  Periksa kembali seluruh informasi tim sebelum mengirimkan
+                  pendaftaran.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Match division
-                </p>
-                <p className="mt-1 text-sm font-bold text-on-surface">
-                  {selectedCategory} ({divisionSkillLabel(selectedCategory)})
-                </p>
-              </div>
-              <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Player
-                </p>
-                <p className="mt-1 text-sm font-bold text-on-surface">
-                  {player.fullName}
-                </p>
-                <p className="text-xs text-on-surface-variant">
-                  {player.email} · +62{player.phone}
-                </p>
-              </div>
-              <div className="rounded-lg bg-surface-container-low p-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Partner
-                </p>
-                <p className="mt-1 text-sm font-bold text-on-surface">
-                  {partner.fullName}
-                </p>
-                <p className="text-xs text-on-surface-variant">
-                  {partner.email} · {divisionSkillLabel(selectedCategory)}
-                </p>
-              </div>
-              {qualificationUrl && (
-                <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Qualification
-                  </p>
-                  <p className="mt-1 text-sm font-bold text-secondary">
-                    Image uploaded ✓
-                  </p>
+              {/* Category card */}
+              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  Kategori Pilihan
+                </span>
+                <div className="mt-1 flex items-center justify-between">
+                  <span className="text-lg font-black text-on-surface">
+                    {selectedCategory}
+                  </span>
+                  <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                    {divisionSkillLabel(selectedCategory)}
+                  </span>
                 </div>
-              )}
+              </div>
+
+              {/* Player 1 Card */}
+              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Pemain 1 (Utama)
+                  </span>
+                  <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                    Jersey: {player1.jerseySize}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  {player1.photoUrl ? (
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-outline-variant">
+                      <Image
+                        src={player1.photoUrl}
+                        alt={player1.fullName}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-black">
+                      {player1.fullName.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-extrabold text-on-surface">
+                      {player1.fullName}
+                    </p>
+                    <p className="text-xs text-on-surface-variant">
+                      WA: +62{player1.phone} · IG: {player1.instagram} · Asal:{" "}
+                      {player1.city}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Player 2 Card */}
+              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Pemain 2 (Pasangan)
+                  </span>
+                  <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                    Jersey: {player2.jerseySize}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-3">
+                  {player2.photoUrl ? (
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-outline-variant">
+                      <Image
+                        src={player2.photoUrl}
+                        alt={player2.fullName}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-black">
+                      {player2.fullName.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-extrabold text-on-surface">
+                      {player2.fullName}
+                    </p>
+                    <p className="text-xs text-on-surface-variant">
+                      WA: +62{player2.phone} · IG: {player2.instagram} · Asal:{" "}
+                      {player2.city}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Proof summary */}
+              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Bukti Pembayaran ({entryFeeLabel})
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                    <span className="material-symbols-outlined text-sm">
+                      check_circle
+                    </span>
+                    Terunggah
+                  </span>
+                </div>
+                {paymentProofUrl && (
+                  <div className="relative mt-3 h-32 w-full overflow-hidden rounded-lg border border-outline-variant/40 bg-white">
+                    <Image
+                      src={paymentProofUrl}
+                      alt="Bukti Transfer"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
-            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-lg bg-surface-container-low p-4">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-1 h-4 w-4 accent-primary"
-              />
-              <span className="text-[14px] font-medium leading-relaxed text-on-surface-variant">
-                I confirm all registration details are accurate and agree to the
-                tournament rules and registration terms.
-              </span>
-            </label>
+            <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-primary text-xl">
+                  verified
+                </span>
+                <p className="text-xs font-medium leading-relaxed text-on-surface">
+                  Klik tombol di bawah untuk meninjau pernyataan persetujuan dan
+                  menyelesaikan pendaftaran resmi turnamen.
+                </p>
+              </div>
+            </div>
           </section>
         )}
 
@@ -647,6 +1171,95 @@ export default function TournamentRegisterPage() {
           submitting={submitting}
         />
       </div>
+
+      {/* CONFIRMATION & DISCLAIMER MODAL */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                <span className="material-symbols-outlined text-2xl">
+                  assignment_turned_in
+                </span>
+              </span>
+              <div>
+                <h3 className="text-lg font-black text-slate-950">
+                  Konfirmasi Pendaftaran & Pernyataan
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {tournament.name} · {selectedCategory}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 max-h-48 overflow-y-auto">
+                <p className="font-bold text-slate-900 mb-1">
+                  Ketentuan Turnamen & Self-Assessment:
+                </p>
+                <p className="whitespace-pre-line">
+                  {tournament.settings.disclaimerText ||
+                    `1. Dengan ini saya menyatakan bahwa informasi yang saya dan pasangan saya berikan adalah benar dan sesuai dengan kondisi sebenarnya.
+2. Kami bersedia mengikuti proses screening kemampuan/level oleh panitia turnamen.
+3. Keputusan panitia terkait verifikasi level dan eligibilitas bersifat mutlak dan tidak dapat diganggu gugat.
+4. Apabila tidak lolos screening, biaya pendaftaran akan dikembalikan (refund) sesuai dengan ketentuan yang berlaku.
+5. Kami bersedia mematuhi seluruh peraturan pertandingan dan tata tertib turnamen.`}
+                </p>
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 transition hover:bg-blue-50">
+                <input
+                  type="checkbox"
+                  checked={confirmedDisclaimer}
+                  onChange={(e) => setConfirmedDisclaimer(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 accent-primary"
+                />
+                <span className="text-xs font-bold leading-normal text-slate-900">
+                  KLIK UNTUK MENYETUJUI: Saya menyatakan data tim sudah benar
+                  dan menyetujui seluruh ketentuan & disclaimer di atas.
+                </span>
+              </label>
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => setShowConfirmModal(false)}
+                className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                Periksa Kembali
+              </button>
+              <button
+                type="button"
+                disabled={!confirmedDisclaimer || submitting}
+                onClick={handleSubmit}
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-extrabold text-white shadow-md transition ${
+                  confirmedDisclaimer && !submitting
+                    ? "bg-primary hover:bg-primary/90 shadow-primary/20"
+                    : "cursor-not-allowed bg-slate-300 text-slate-500"
+                }`}
+              >
+                {submitting ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">
+                      progress_activity
+                    </span>
+                    Mengirim Pendaftaran...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">
+                      check_circle
+                    </span>
+                    Setuju & Kirim Pendaftaran
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </RegistrationShell>
   );
 }
