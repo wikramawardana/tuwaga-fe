@@ -342,7 +342,7 @@ export default function MatchScoringWorkspace({
           </h1>
           <p className="mt-3 text-sm text-slate-600">{message}</p>
           <Link
-            href={`/admin/tournaments/${tournamentId}`}
+            href={`/admin/tournaments/${tournamentId}?section=operations`}
             className="mt-6 inline-flex h-11 items-center rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
           >
             Back to operations
@@ -404,7 +404,7 @@ export default function MatchScoringWorkspace({
               ))
             )}
             <Link
-              href={`/admin/tournaments/${tournamentId}`}
+              href={`/admin/tournaments/${tournamentId}?section=operations`}
               className="shrink-0 rounded-lg bg-blue-500 px-3 py-2 text-xs font-extrabold text-white transition hover:bg-blue-400"
             >
               Operations board

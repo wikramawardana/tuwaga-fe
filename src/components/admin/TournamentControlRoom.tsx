@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Fragment,
   useCallback,
@@ -125,6 +126,33 @@ const SPORT_OPTIONS: Array<{
 ];
 
 type AdminSection = "setup" | "registrations" | "operations" | "results";
+
+function parseSectionParam(param: string | null): AdminSection | null {
+  if (!param) return null;
+  const normalized = param.toLowerCase().trim();
+  if (normalized === "setup" || normalized === "01") return "setup";
+  if (
+    normalized === "registrations" ||
+    normalized === "teams" ||
+    normalized === "02"
+  )
+    return "registrations";
+  if (
+    normalized === "operations" ||
+    normalized === "matches" ||
+    normalized === "schedule" ||
+    normalized === "03"
+  )
+    return "operations";
+  if (
+    normalized === "results" ||
+    normalized === "standings" ||
+    normalized === "scores" ||
+    normalized === "04"
+  )
+    return "results";
+  return null;
+}
 type RegistrationFilter = "all" | Exclude<TeamStatus, "rejected">;
 type EditableSettings = TournamentSettings & {
   status: TournamentStatus;
@@ -366,21 +394,58 @@ export default function TournamentControlRoom({
 }: {
   tournamentId: string;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [settings, setSettings] = useState<EditableSettings>(emptySettings);
   const [teams, setTeams] = useState<RegistrationTeam[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [activeSection, setActiveSection] = useState<AdminSection>("setup");
+  const [activeSection, setActiveSection] = useState<AdminSection>(() => {
+    const sectionParam = searchParams.get("section") ?? searchParams.get("tab");
+    return parseSectionParam(sectionParam) ?? "setup";
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("Loading tournament command center…");
   const [teamSearch, setTeamSearch] = useState("");
-  const [teamFilter, setTeamFilter] = useState<RegistrationFilter>("all");
-  const [teamDivision, setTeamDivision] = useState("all");
+  const [teamFilter, setTeamFilter] = useState<RegistrationFilter>(() => {
+    const filterParam = (searchParams.get("teamFilter") ??
+      searchParams.get("filter") ??
+      "all") as RegistrationFilter;
+    return ["all", "pending", "approved", "waitlist"].includes(filterParam)
+      ? filterParam
+      : "all";
+  });
+  const [teamDivision, setTeamDivision] = useState(() => {
+    return (
+      searchParams.get("teamDivision") ?? searchParams.get("division") ?? "all"
+    );
+  });
   const [matchSearch, setMatchSearch] = useState("");
-  const [matchStatus, setMatchStatus] = useState<"all" | MatchStatus>("all");
-  const [matchPhase, setMatchPhase] = useState<"all" | Phase>("all");
-  const [matchDivision, setMatchDivision] = useState("all");
+  const [matchStatus, setMatchStatus] = useState<"all" | MatchStatus>(() => {
+    const val = searchParams.get("matchStatus") ?? searchParams.get("status");
+    return val === "live" || val === "scheduled" || val === "completed"
+      ? val
+      : "all";
+  });
+  const [matchPhase, setMatchPhase] = useState<"all" | Phase>(() => {
+    const val = searchParams.get("matchPhase") ?? searchParams.get("phase");
+    return val === "group" || val === "knockout" ? val : "all";
+  });
+  const [matchDivision, setMatchDivision] = useState(() => {
+    return (
+      searchParams.get("matchDivision") ?? searchParams.get("division") ?? "all"
+    );
+  });
+  const [resultsDivision, setResultsDivision] = useState(() => {
+    return (
+      searchParams.get("resultsDivision") ??
+      searchParams.get("division") ??
+      "all"
+    );
+  });
   const [newDivision, setNewDivision] = useState("");
   const [newDivisionLevel, setNewDivisionLevel] =
     useState<DivisionSkillLevel>("intermediate");
@@ -414,6 +479,99 @@ export default function TournamentControlRoom({
     paid: false,
     status: "pending" as Exclude<TeamStatus, "rejected">,
   });
+
+  const changeSection = useCallback(
+    (nextSection: AdminSection) => {
+      setActiveSection(nextSection);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("section", nextSection);
+      params.delete("tab");
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  useEffect(() => {
+    const fromUrl =
+      parseSectionParam(
+        searchParams.get("section") ?? searchParams.get("tab"),
+      ) ?? "setup";
+    if (fromUrl !== activeSection) {
+      setActiveSection(fromUrl);
+    }
+  }, [searchParams, activeSection]);
+
+  const handleTeamFilterChange = useCallback(
+    (filter: RegistrationFilter) => {
+      setTeamFilter(filter);
+      const params = new URLSearchParams(searchParams.toString());
+      if (filter === "all") params.delete("filter");
+      else params.set("filter", filter);
+      params.delete("teamFilter");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleTeamDivisionChange = useCallback(
+    (division: string) => {
+      setTeamDivision(division);
+      const params = new URLSearchParams(searchParams.toString());
+      if (division === "all") params.delete("division");
+      else params.set("division", division);
+      params.delete("teamDivision");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleMatchStatusChange = useCallback(
+    (status: "all" | MatchStatus) => {
+      setMatchStatus(status);
+      const params = new URLSearchParams(searchParams.toString());
+      if (status === "all") params.delete("status");
+      else params.set("status", status);
+      params.delete("matchStatus");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleMatchPhaseChange = useCallback(
+    (phase: "all" | Phase) => {
+      setMatchPhase(phase);
+      const params = new URLSearchParams(searchParams.toString());
+      if (phase === "all") params.delete("phase");
+      else params.set("phase", phase);
+      params.delete("matchPhase");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleMatchDivisionChange = useCallback(
+    (division: string) => {
+      setMatchDivision(division);
+      const params = new URLSearchParams(searchParams.toString());
+      if (division === "all") params.delete("division");
+      else params.set("division", division);
+      params.delete("matchDivision");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const handleResultsDivisionChange = useCallback(
+    (division: string) => {
+      setResultsDivision(division);
+      const params = new URLSearchParams(searchParams.toString());
+      if (division === "all") params.delete("division");
+      else params.set("division", division);
+      params.delete("resultsDivision");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   useEffect(() => {
     let active = true;
@@ -838,7 +996,7 @@ export default function TournamentControlRoom({
     try {
       const response = await generateDrawRequest(tournamentId, phase, options);
       await refreshOperations();
-      setActiveSection("operations");
+      changeSection("operations");
       setMessage(response.message);
     } catch (error) {
       setMessage(
@@ -990,9 +1148,26 @@ export default function TournamentControlRoom({
     }
   }
 
-  const completedMatches = matches.filter(
-    (match) => match.status === "completed",
+  const completedMatches = useMemo(
+    () => matches.filter((match) => match.status === "completed"),
+    [matches],
   );
+
+  const filteredResultsStandings = useMemo(() => {
+    if (resultsDivision === "all") return groupStandings;
+    return groupStandings.filter(({ group }) =>
+      group.toLowerCase().includes(resultsDivision.toLowerCase()),
+    );
+  }, [groupStandings, resultsDivision]);
+
+  const filteredCompletedMatches = useMemo(() => {
+    if (resultsDivision === "all") return completedMatches;
+    return completedMatches.filter(
+      (match) =>
+        match.category?.toLowerCase() === resultsDivision.toLowerCase(),
+    );
+  }, [completedMatches, resultsDivision]);
+
   const progress = matches.length
     ? Math.round((totals.completed / matches.length) * 100)
     : 0;
@@ -1156,7 +1331,7 @@ export default function TournamentControlRoom({
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setActiveSection(item.id)}
+                      onClick={() => changeSection(item.id)}
                       className={cx(
                         "group relative flex min-h-20 items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-left transition duration-300",
                         active
@@ -2362,7 +2537,7 @@ export default function TournamentControlRoom({
                       <select
                         value={teamFilter}
                         onChange={(event) =>
-                          setTeamFilter(
+                          handleTeamFilterChange(
                             event.target.value as RegistrationFilter,
                           )
                         }
@@ -2376,7 +2551,7 @@ export default function TournamentControlRoom({
                       <select
                         value={teamDivision}
                         onChange={(event) =>
-                          setTeamDivision(event.target.value)
+                          handleTeamDivisionChange(event.target.value)
                         }
                         className="admin-input cursor-pointer"
                       >
@@ -3069,7 +3244,7 @@ export default function TournamentControlRoom({
                       <select
                         value={matchStatus}
                         onChange={(event) =>
-                          setMatchStatus(
+                          handleMatchStatusChange(
                             event.target.value as "all" | MatchStatus,
                           )
                         }
@@ -3083,7 +3258,9 @@ export default function TournamentControlRoom({
                       <select
                         value={matchPhase}
                         onChange={(event) =>
-                          setMatchPhase(event.target.value as "all" | Phase)
+                          handleMatchPhaseChange(
+                            event.target.value as "all" | Phase,
+                          )
                         }
                         className="admin-input cursor-pointer"
                       >
@@ -3094,7 +3271,7 @@ export default function TournamentControlRoom({
                       <select
                         value={matchDivision}
                         onChange={(event) =>
-                          setMatchDivision(event.target.value)
+                          handleMatchDivisionChange(event.target.value)
                         }
                         className="admin-input cursor-pointer"
                       >
@@ -3134,7 +3311,7 @@ export default function TournamentControlRoom({
                             State: {matchStatus}
                             <button
                               type="button"
-                              onClick={() => setMatchStatus("all")}
+                              onClick={() => handleMatchStatusChange("all")}
                               className="hover:text-blue-900"
                             >
                               <span className="material-symbols-outlined text-xs">
@@ -3148,7 +3325,7 @@ export default function TournamentControlRoom({
                             Phase: {matchPhase}
                             <button
                               type="button"
-                              onClick={() => setMatchPhase("all")}
+                              onClick={() => handleMatchPhaseChange("all")}
                               className="hover:text-blue-900"
                             >
                               <span className="material-symbols-outlined text-xs">
@@ -3162,7 +3339,7 @@ export default function TournamentControlRoom({
                             Division: {matchDivision}
                             <button
                               type="button"
-                              onClick={() => setMatchDivision("all")}
+                              onClick={() => handleMatchDivisionChange("all")}
                               className="hover:text-blue-900"
                             >
                               <span className="material-symbols-outlined text-xs">
@@ -3175,9 +3352,9 @@ export default function TournamentControlRoom({
                           type="button"
                           onClick={() => {
                             setMatchSearch("");
-                            setMatchStatus("all");
-                            setMatchPhase("all");
-                            setMatchDivision("all");
+                            handleMatchStatusChange("all");
+                            handleMatchPhaseChange("all");
+                            handleMatchDivisionChange("all");
                           }}
                           className="ml-auto text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
                         >
@@ -3507,19 +3684,62 @@ export default function TournamentControlRoom({
                       accent="amber"
                     />
                   </div>
+
+                  {settings.categories.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Division:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleResultsDivisionChange("all")}
+                        className={cx(
+                          "rounded-xl border px-3.5 py-1.5 text-xs font-bold transition",
+                          resultsDivision === "all"
+                            ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                        )}
+                      >
+                        All divisions ({settings.categories.length})
+                      </button>
+                      {settings.categories.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => handleResultsDivisionChange(cat)}
+                          className={cx(
+                            "rounded-xl border px-3.5 py-1.5 text-xs font-bold transition",
+                            resultsDivision === cat
+                              ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                          )}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {groupStandings.length === 0 ? (
                     <EmptyState
                       icon="leaderboard"
                       title="Standings will appear after the draw"
                       description="Complete group matches and points will be calculated here automatically."
                     />
+                  ) : filteredResultsStandings.length === 0 ? (
+                    <EmptyState
+                      icon="leaderboard"
+                      title={`No standings for ${resultsDivision}`}
+                      description="No group stages or matches found in this division."
+                    />
                   ) : (
                     <div>
                       <h3 className="mb-3 text-lg font-black text-slate-950">
                         Group standings
+                        {resultsDivision !== "all" && ` · ${resultsDivision}`}
                       </h3>
                       <div className="grid gap-4 xl:grid-cols-2">
-                        {groupStandings.map(({ group, rows }) => (
+                        {filteredResultsStandings.map(({ group, rows }) => (
                           <div
                             key={group}
                             className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
@@ -3610,6 +3830,7 @@ export default function TournamentControlRoom({
                   <div>
                     <h3 className="mb-3 text-lg font-black text-slate-950">
                       Completed matches
+                      {resultsDivision !== "all" && ` · ${resultsDivision}`}
                     </h3>
                     {completedMatches.length === 0 ? (
                       <EmptyState
@@ -3617,9 +3838,15 @@ export default function TournamentControlRoom({
                         title="No final scores yet"
                         description="Finished matches will collect here with their winner and set scores."
                       />
+                    ) : filteredCompletedMatches.length === 0 ? (
+                      <EmptyState
+                        icon="scoreboard"
+                        title={`No completed matches for ${resultsDivision}`}
+                        description="Matches in this division are either scheduled or not yet scored."
+                      />
                     ) : (
                       <div className="grid gap-3 xl:grid-cols-2">
-                        {completedMatches.map((match) => (
+                        {filteredCompletedMatches.map((match) => (
                           <div
                             key={match.id}
                             className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"

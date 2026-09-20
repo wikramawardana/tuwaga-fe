@@ -130,10 +130,39 @@ function TournamentBracketContent() {
       .filter((round) => round.matches.length > 0);
   }, [bracket, selectedDivision]);
 
+  const handleViewChange = (view: "groups" | "bracket") => {
+    setActiveView(view);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", view);
+    router.replace(`/tournaments/bracket?${params.toString()}`, {
+      scroll: false,
+    });
+  };
+
+  const handleDivisionChange = (division: string) => {
+    setSelectedDivision(division);
+    const params = new URLSearchParams(searchParams.toString());
+    if (division === "all") {
+      params.delete("division");
+    } else {
+      params.set("division", division);
+    }
+    router.replace(`/tournaments/bracket?${params.toString()}`, {
+      scroll: false,
+    });
+  };
+
   function switchTournament(slugOrId: string) {
-    router.push(
-      `/tournaments/bracket?tournament=${slugOrId}&view=${activeView}`,
-    );
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tournament", slugOrId);
+    params.delete("slug");
+    params.set("view", activeView);
+    if (selectedDivision !== "all") {
+      params.set("division", selectedDivision);
+    } else {
+      params.delete("division");
+    }
+    router.push(`/tournaments/bracket?${params.toString()}`);
   }
 
   const hasGroups = (standings?.groups.length ?? 0) > 0;
@@ -203,7 +232,7 @@ function TournamentBracketContent() {
               <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100/80 p-1">
                 <button
                   type="button"
-                  onClick={() => setActiveView("groups")}
+                  onClick={() => handleViewChange("groups")}
                   className={`h-9 rounded-md px-3.5 text-xs font-bold transition-all ${
                     activeView === "groups"
                       ? "bg-white text-primary shadow-xs"
@@ -214,7 +243,7 @@ function TournamentBracketContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveView("bracket")}
+                  onClick={() => handleViewChange("bracket")}
                   className={`h-9 rounded-md px-3.5 text-xs font-bold transition-all ${
                     activeView === "bracket"
                       ? "bg-white text-primary shadow-xs"
@@ -250,7 +279,7 @@ function TournamentBracketContent() {
             </span>
             <button
               type="button"
-              onClick={() => setSelectedDivision("all")}
+              onClick={() => handleDivisionChange("all")}
               className={`inline-flex h-8 items-center rounded-lg px-3.5 text-xs font-semibold transition ${
                 selectedDivision === "all"
                   ? "bg-primary text-white shadow-xs"
@@ -263,7 +292,7 @@ function TournamentBracketContent() {
               <button
                 key={division}
                 type="button"
-                onClick={() => setSelectedDivision(division)}
+                onClick={() => handleDivisionChange(division)}
                 className={`inline-flex h-8 items-center rounded-lg px-3.5 text-xs font-semibold transition ${
                   selectedDivision === division
                     ? "bg-primary text-white shadow-xs"

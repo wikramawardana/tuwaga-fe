@@ -28,6 +28,37 @@ export default function AdminUsersPage() {
     "all" | "admin" | "organizer" | "user"
   >("all");
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const filterParam = params.get("filter") || params.get("role");
+    if (
+      filterParam &&
+      ["all", "admin", "organizer", "user"].includes(filterParam)
+    ) {
+      setSelectedFilter(filterParam as "all" | "admin" | "organizer" | "user");
+    }
+  }, []);
+
+  const handleFilterChange = (
+    tabId: "all" | "admin" | "organizer" | "user",
+  ) => {
+    setSelectedFilter(tabId);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (tabId === "all") {
+      params.delete("filter");
+      params.delete("role");
+    } else {
+      params.set("filter", tabId);
+    }
+    const newSearch = params.toString();
+    const newUrl = newSearch
+      ? `${window.location.pathname}?${newSearch}`
+      : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  };
+
   const [assignEmail, setAssignEmail] = useState("");
   const [assignRole, setAssignRole] = useState<"organizer" | "admin" | "user">(
     "organizer",
@@ -295,7 +326,7 @@ export default function AdminUsersPage() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setSelectedFilter(tab.id)}
+                  onClick={() => handleFilterChange(tab.id)}
                   className={`rounded-xl border px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition ${
                     selectedFilter === tab.id
                       ? "border-blue-600 bg-blue-600 text-white shadow-sm"
