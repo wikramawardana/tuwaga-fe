@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { listTournaments, type Tournament } from "@/lib/tuwagaApi";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -35,8 +36,28 @@ const steps = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const [latestTournament, setLatestTournament] = useState<Tournament | null>(
+    null,
+  );
   const sectionsRef = useRef<HTMLElement[]>([]);
   const parallaxRef = useRef<HTMLElement[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    listTournaments()
+      .then((tournaments) => {
+        if (!active) return;
+        const open =
+          tournaments.find(
+            (t) => t.status === "registration" || t.status === "setup",
+          ) ?? tournaments[0];
+        setLatestTournament(open ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const sections = sectionsRef.current.filter(Boolean);
@@ -166,6 +187,68 @@ export default function HomePage() {
                     Organizer Workspace
                   </Link>
                 </div>
+
+                {latestTournament && (
+                  <div className="hero-reveal hero-reveal-3 mt-8 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/80 via-white to-blue-50/30 p-5 shadow-[0_8px_30px_rgba(37,99,235,0.06)] transition-all">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-100/70 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
+                        Pendaftaran Dibuka ·{" "}
+                        {latestTournament.settings?.sport === "padel"
+                          ? "🎾 Padel"
+                          : "Turnamen"}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {latestTournament.dateLabel}
+                      </span>
+                    </div>
+
+                    <h3 className="mt-2.5 text-lg font-black text-slate-900">
+                      {latestTournament.name}
+                    </h3>
+                    <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-500">
+                      <span className="material-symbols-outlined text-sm text-slate-400">
+                        location_on
+                      </span>
+                      {latestTournament.venue}
+                    </p>
+
+                    {latestTournament.settings?.categories &&
+                      latestTournament.settings.categories.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {latestTournament.settings.categories.map((cat) => (
+                            <span
+                              key={cat}
+                              className="rounded-md border border-slate-200/80 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700 shadow-2xs"
+                            >
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                      <Link
+                        href={`/tournaments/${latestTournament.slug}/register`}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                      >
+                        <span className="material-symbols-outlined text-base">
+                          how_to_reg
+                        </span>
+                        Daftar Tim Sekarang
+                      </Link>
+                      <Link
+                        href={`/tournaments/bracket?tournament=${latestTournament.slug}`}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900"
+                      >
+                        <span className="material-symbols-outlined text-base text-slate-400">
+                          account_tree
+                        </span>
+                        Bagan & Info
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Right — Hero image */}
