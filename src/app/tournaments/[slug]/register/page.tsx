@@ -16,13 +16,7 @@ import {
   uploadFile,
 } from "@/lib/tuwagaApi";
 
-const WIZARD_STEPS = [
-  "Kategori",
-  "Pemain 1",
-  "Pemain 2",
-  "Pembayaran",
-  "Review",
-];
+const WIZARD_STEPS = ["Kategori", "Pemain 1", "Pemain 2", "Review"];
 
 const DEFAULT_JERSEY_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
 
@@ -189,7 +183,6 @@ export default function TournamentRegisterPage() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [copiedBank, setCopiedBank] = useState(false);
 
   // Modal confirmation state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -229,8 +222,6 @@ export default function TournamentRegisterPage() {
     photoUrl: "",
     idCardUrl: "",
   });
-
-  const [paymentProofUrl, setPaymentProofUrl] = useState("");
 
   const { data: session, isPending: sessionPending } = useSession();
 
@@ -283,15 +274,6 @@ export default function TournamentRegisterPage() {
       : DEFAULT_JERSEY_SIZES;
   }, [tournament]);
 
-  const entryFeeLabel = useMemo(() => {
-    if (!tournament) return "Rp 600.000";
-    const fee =
-      tournament.settings.entryFeePerPair ??
-      tournament.entryFeePerPair ??
-      600000;
-    return `Rp ${fee.toLocaleString("id-ID")}`;
-  }, [tournament]);
-
   const handleUploadKey = async (
     key: string,
     file: File,
@@ -336,20 +318,11 @@ export default function TournamentRegisterPage() {
           !!player2.jerseySize
         );
       case 3:
-        return !!paymentProofUrl;
-      case 4:
         return true;
       default:
         return false;
     }
-  }, [step, selectedCategory, player1, player2, paymentProofUrl]);
-
-  const handleCopyAccount = () => {
-    const accNumber = tournament?.settings.accountNumber || "1984042386";
-    navigator.clipboard.writeText(accNumber);
-    setCopiedBank(true);
-    setTimeout(() => setCopiedBank(false), 2000);
-  };
+  }, [step, selectedCategory, player1, player2]);
 
   const handleSubmit = async () => {
     if (!tournament) return;
@@ -360,7 +333,6 @@ export default function TournamentRegisterPage() {
         acceptedTerms: true,
         category: selectedCategory,
         userId: session?.user?.id,
-        paymentProofUrl: paymentProofUrl || undefined,
         player: {
           fullName: player1.fullName.trim(),
           email:
@@ -568,10 +540,11 @@ export default function TournamentRegisterPage() {
             <div className="mb-6 rounded-xl border border-outline-variant/30 bg-surface-container-low/60 p-4 space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 pb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Biaya Pendaftaran
+                  Tahap Turnamen
                 </span>
-                <span className="text-base font-extrabold text-primary">
-                  {entryFeeLabel} / PAIR
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Kurasi & Verifikasi Kategori
                 </span>
               </div>
               {tournament.settings.registrationClosedAt && (
@@ -996,117 +969,8 @@ export default function TournamentRegisterPage() {
           </section>
         )}
 
-        {/* STEP 3: PEMBAYARAN & REKENING */}
+        {/* STEP 3: REVIEW DATA PENDAFTARAN */}
         {step === 3 && (
-          <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
-            <div className="mb-6 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">
-                  payments
-                </span>
-              </div>
-              <div>
-                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
-                  Informasi Transfer & Bukti Pembayaran
-                </h2>
-                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
-                  Silakan transfer biaya registrasi turnamen sesuai instruksi
-                  panitia berikut.
-                </p>
-              </div>
-            </div>
-
-            {/* Bank Card */}
-            <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-white to-primary/10 p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="rounded-md bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-white">
-                  {tournament.settings.bankName || "BNI"}
-                </span>
-                <span className="text-xs font-bold text-on-surface-variant uppercase">
-                  Rekening Panitia
-                </span>
-              </div>
-
-              <div className="mt-5">
-                <p className="text-xs font-semibold text-on-surface-variant">
-                  Nomor Rekening
-                </p>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="font-mono text-2xl font-black tracking-wider text-on-surface sm:text-3xl">
-                    {tournament.settings.accountNumber || "1984042386"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleCopyAccount}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-1.5 text-xs font-bold text-primary transition hover:bg-primary/5 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-sm">
-                      {copiedBank ? "check" : "content_copy"}
-                    </span>
-                    {copiedBank ? "Tersalin!" : "Salin No. Rekening"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-primary/15 pt-4">
-                <p className="text-xs font-semibold text-on-surface-variant">
-                  Atas Nama (Account Holder)
-                </p>
-                <p className="mt-0.5 text-sm font-extrabold uppercase text-on-surface">
-                  {tournament.settings.accountHolder || "PT. LOKA TAMA KREASI"}
-                </p>
-              </div>
-
-              <div className="mt-3 flex items-center justify-between border-t border-primary/15 pt-3">
-                <span className="text-xs font-semibold text-on-surface-variant">
-                  Total Biaya ({selectedCategory})
-                </span>
-                <span className="text-lg font-black text-primary">
-                  {entryFeeLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* Payment instructions note */}
-            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
-              <div className="flex items-start gap-2.5">
-                <span className="material-symbols-outlined text-amber-700 text-lg">
-                  info
-                </span>
-                <div className="text-xs leading-relaxed text-amber-900">
-                  <p className="font-bold">Instruksi Format Berita Transfer:</p>
-                  <p className="mt-1 font-mono text-[13px] font-bold text-amber-950 bg-amber-100/70 p-2 rounded-lg">
-                    {tournament.settings.paymentInstructions ||
-                      `Format: ${player1.fullName || "[Pemain 1]"} & ${player2.fullName || "[Pemain 2]"} / ${selectedCategory}`}
-                  </p>
-                  <p className="mt-2 text-[11px] text-amber-800">
-                    Sertakan struk/screenshot bukti transfer yang jelas dengan
-                    nominal dan waktu transfer yang terbaca.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Upload payment proof */}
-            <div className="mt-6">
-              <FileUploadBox
-                label="Bukti Pembayaran Pendaftaran"
-                description="Upload screenshot / foto struk transfer bank (Maks. 5MB)"
-                required
-                url={paymentProofUrl}
-                loading={!!uploadingState["payment-proof"]}
-                onUpload={(file) =>
-                  handleUploadKey("payment-proof", file, (url) =>
-                    setPaymentProofUrl(url),
-                  )
-                }
-              />
-            </div>
-          </section>
-        )}
-
-        {/* STEP 4: REVIEW DATA PENDAFTARAN */}
-        {step === 4 && (
           <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
@@ -1217,30 +1081,27 @@ export default function TournamentRegisterPage() {
                 </div>
               </div>
 
-              {/* Payment Proof summary */}
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                    Bukti Pembayaran ({entryFeeLabel})
+              {/* Status Pendaftaran & Tahap Kurasi Info */}
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-amber-600 text-xl">
+                    verified_user
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                    <span className="material-symbols-outlined text-sm">
-                      check_circle
-                    </span>
-                    Terunggah
-                  </span>
-                </div>
-                {paymentProofUrl && (
-                  <div className="relative mt-3 h-32 w-full overflow-hidden rounded-lg border border-outline-variant/40 bg-white">
-                    <Image
-                      src={paymentProofUrl}
-                      alt="Bukti Transfer"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                      Tahap Kurasi & Verifikasi Kategori
+                    </h4>
+                    <p className="text-xs leading-relaxed text-on-surface-variant">
+                      Pendaftaran tim Anda akan diverifikasi oleh panitia untuk
+                      memastikan kesesuaian kategori skill level.
+                    </p>
+                    <p className="pt-1 text-xs font-medium text-amber-900 dark:text-amber-200">
+                      Nominal pembayaran dan rekening transfer resmi panitia
+                      akan diberikan di portal <strong>Pendaftaran Saya</strong>{" "}
+                      setelah tim disetujui (Approved).
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
@@ -1251,7 +1112,7 @@ export default function TournamentRegisterPage() {
                 </span>
                 <p className="text-xs font-medium leading-relaxed text-on-surface">
                   Klik tombol di bawah untuk meninjau pernyataan persetujuan dan
-                  menyelesaikan pendaftaran resmi turnamen.
+                  mengirimkan pendaftaran ke panitia.
                 </p>
               </div>
             </div>
@@ -1273,24 +1134,24 @@ export default function TournamentRegisterPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-7">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
                 <span className="material-symbols-outlined text-2xl">
                   assignment_turned_in
                 </span>
-              </span>
+              </div>
               <div>
-                <h3 className="text-lg font-black text-slate-950">
-                  Konfirmasi Pendaftaran & Pernyataan
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Pernyataan & Syarat Pendaftaran
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {tournament.name} · {selectedCategory}
+                  Harap baca dan setujui ketentuan di bawah ini.
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-700 max-h-48 overflow-y-auto">
-                <p className="font-bold text-slate-900 mb-1">
+            <div className="mt-5 space-y-3 text-xs leading-relaxed text-slate-600">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-[11px] leading-normal text-slate-700 max-h-48 overflow-y-auto">
+                <p className="font-bold text-slate-900 mb-2">
                   Ketentuan Turnamen & Self-Assessment:
                 </p>
                 <p className="whitespace-pre-line">
@@ -1298,7 +1159,7 @@ export default function TournamentRegisterPage() {
                     `1. Dengan ini saya menyatakan bahwa informasi yang saya dan pasangan saya berikan adalah benar dan sesuai dengan kondisi sebenarnya.
 2. Kami bersedia mengikuti proses screening kemampuan/level oleh panitia turnamen.
 3. Keputusan panitia terkait verifikasi level dan eligibilitas bersifat mutlak dan tidak dapat diganggu gugat.
-4. Apabila tidak lolos screening, biaya pendaftaran akan dikembalikan (refund) sesuai dengan ketentuan yang berlaku.
+4. Pembayaran biaya pendaftaran dilakukan setelah tim dinyatakan lolos verifikasi/screening oleh panitia turnamen.
 5. Kami bersedia mematuhi seluruh peraturan pertandingan dan tata tertib turnamen.`}
                 </p>
               </div>

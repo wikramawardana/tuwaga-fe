@@ -165,6 +165,7 @@ export type RegistrationTeam = {
   seed: number | null;
   qualificationUrl: string | null;
   paymentProofUrl?: string | null;
+  entryFee?: number | null;
   playerDetails?: PlayerDetail;
   partnerDetails?: PartnerDetail | null;
 };
@@ -584,11 +585,39 @@ export async function listPublicTeams(tournamentIdOrSlug: string) {
   }>(`/tournaments/${tournamentIdOrSlug}/teams`);
 }
 
+export type PaymentInfo = {
+  bankName?: string;
+  accountNumber?: string;
+  accountHolder?: string;
+  paymentInstructions?: string;
+  entryFeePerPair?: number;
+};
+
+export type MyRegistrationsResponse = {
+  teams: RegistrationTeam[];
+  paymentInfo?: PaymentInfo;
+};
+
 export async function listMyRegistrations(tournamentIdOrSlug: string) {
-  const data = await apiRequest<{ teams: RegistrationTeam[] }>(
+  const data = await apiRequest<MyRegistrationsResponse>(
     `/tournaments/${tournamentIdOrSlug}/my-registrations`,
   );
-  return data.teams;
+  return data;
+}
+
+export async function submitPaymentProof(
+  tournamentIdOrSlug: string,
+  teamId: string,
+  paymentProofUrl: string,
+) {
+  const data = await apiRequest<{ team: RegistrationTeam }>(
+    `/tournaments/${tournamentIdOrSlug}/my-registrations/${teamId}/payment-proof`,
+    {
+      method: "POST",
+      body: JSON.stringify({ paymentProofUrl }),
+    },
+  );
+  return data.team;
 }
 
 export async function listRegistrations(tournamentId: string) {
@@ -602,7 +631,10 @@ export async function updateRegistration(
   tournamentId: string,
   teamId: string,
   input: Partial<
-    Pick<RegistrationTeam, "paid" | "paymentStatus" | "status" | "group">
+    Pick<
+      RegistrationTeam,
+      "paid" | "paymentStatus" | "status" | "group" | "entryFee"
+    >
   >,
 ) {
   const data = await apiRequest<{ team: RegistrationTeam }>(

@@ -599,6 +599,10 @@ export default function TournamentControlRoom({
           startsAt: nextTournament.startsAt ?? "",
           endsAt: nextTournament.endsAt ?? "",
           description: nextTournament.description,
+          entryFeePerPair:
+            nextTournament.entryFeePerPair ??
+            nextTournament.settings.entryFeePerPair ??
+            600000,
         });
         setMessage("Command center synced with the latest tournament data.");
       } catch (error) {
@@ -859,6 +863,10 @@ export default function TournamentControlRoom({
         startsAt: refreshed.startsAt ?? "",
         endsAt: refreshed.endsAt ?? "",
         description: refreshed.description,
+        entryFeePerPair:
+          refreshed.entryFeePerPair ??
+          refreshed.settings.entryFeePerPair ??
+          600000,
       });
       setMessage(
         "Tournament settings saved and published to the command center.",
@@ -950,7 +958,9 @@ export default function TournamentControlRoom({
 
   async function patchTeam(
     team: RegistrationTeam,
-    patch: Partial<Pick<RegistrationTeam, "paid" | "status" | "group">>,
+    patch: Partial<
+      Pick<RegistrationTeam, "paid" | "status" | "group" | "entryFee">
+    >,
   ) {
     const previous = teams;
     setTeams((current) =>
@@ -4571,6 +4581,55 @@ export default function TournamentControlRoom({
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+              {/* Nominal Biaya Pendaftaran Setting for this team */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                    Nominal Biaya Pendaftaran Tim (IDR)
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    Default turnamen: Rp{" "}
+                    {(tournament?.entryFeePerPair ?? 600000).toLocaleString(
+                      "id-ID",
+                    )}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">
+                      Rp
+                    </span>
+                    <input
+                      type="number"
+                      placeholder={`${tournament?.entryFeePerPair ?? 600000}`}
+                      value={viewingTeam.entryFee ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value
+                          ? Number(e.target.value)
+                          : null;
+                        setViewingTeam((prev) =>
+                          prev ? { ...prev, entryFee: val } : null,
+                        );
+                      }}
+                      className="admin-input pl-9 font-mono"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await patchTeam(viewingTeam, {
+                        entryFee: viewingTeam.entryFee ?? undefined,
+                      });
+                      setMessage(
+                        "Nominal pendaftaran tim berhasil diperbarui.",
+                      );
+                    }}
+                    className="inline-flex h-10 items-center rounded-xl bg-slate-900 px-3.5 text-xs font-bold text-white hover:bg-slate-800"
+                  >
+                    Simpan Nominal
+                  </button>
                 </div>
               </div>
 

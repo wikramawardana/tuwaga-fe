@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -14,9 +15,12 @@ import {
   listMyRegistrations,
   listPublicTeams,
   type Match,
+  type PaymentInfo,
   type RegistrationListSummary,
   type RegistrationTeam,
+  submitPaymentProof,
   type Tournament,
+  uploadFile,
 } from "@/lib/tuwagaApi";
 
 type TabType = "my-registration" | "categories" | "matches" | "info";
@@ -31,6 +35,14 @@ function TournamentPortalContent() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [summary, setSummary] = useState<RegistrationListSummary | null>(null);
   const [myTeams, setMyTeams] = useState<RegistrationTeam[]>([]);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+  const [uploadingProofTeamId, setUploadingProofTeamId] = useState<
+    string | null
+  >(null);
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState<
+    string | null
+  >(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMyTeams, setLoadingMyTeams] = useState(false);
@@ -81,16 +93,18 @@ function TournamentPortalContent() {
     fetchData();
   }, [fetchData]);
 
-  // Load user's private registrations when session is active
+  // Load user's private registrations and payment info when session is active
   const fetchMyTeams = useCallback(async () => {
     if (!slug || !session?.user) {
       setMyTeams([]);
+      setPaymentInfo(null);
       return;
     }
     try {
       setLoadingMyTeams(true);
-      const teams = await listMyRegistrations(slug);
-      setMyTeams(teams || []);
+      const res = await listMyRegistrations(slug);
+      setMyTeams(res.teams || []);
+      setPaymentInfo(res.paymentInfo || null);
     } catch (err) {
       console.warn("Could not load my registrations:", err);
     } finally {
@@ -101,6 +115,41 @@ function TournamentPortalContent() {
   useEffect(() => {
     fetchMyTeams();
   }, [fetchMyTeams]);
+
+  // Handle uploading payment proof for approved teams
+  const handleUploadPaymentProof = async (teamId: string, file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Ukuran file maksimal 5MB.");
+      return;
+    }
+    setUploadingProofTeamId(teamId);
+    setUploadError(null);
+    setUploadSuccessMessage(null);
+    try {
+      const uploadRes = await uploadFile(file);
+      const updatedTeam = await submitPaymentProof(slug, teamId, uploadRes.url);
+      setMyTeams((prev) =>
+        prev.map((t) =>
+          t.id === teamId
+            ? {
+                ...t,
+                paymentProofUrl: updatedTeam.paymentProofUrl,
+                paymentStatus: updatedTeam.paymentStatus,
+              }
+            : t,
+        ),
+      );
+      setUploadSuccessMessage(
+        "Bukti transfer berhasil dikirim. Panitia akan segera memverifikasi.",
+      );
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Gagal mengunggah bukti transfer.",
+      );
+    } finally {
+      setUploadingProofTeamId(null);
+    }
+  };
 
   // Handle URL tab param
   useEffect(() => {
@@ -260,17 +309,14 @@ function TournamentPortalContent() {
                     )}
                   </div>
 
-                  {tournament.entryFeePerPair > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-base text-emerald-600">
-                        payments
-                      </span>
-                      <span>
-                        Rp {tournament.entryFeePerPair.toLocaleString("id-ID")}{" "}
-                        / Pasang
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-base text-indigo-600">
+                      fact_check
+                    </span>
+                    <span className="font-semibold text-slate-700">
+                      Tahap Kurasi & Verifikasi Kategori
+                    </span>
+                  </div>
                 </div>
 
                 {tournament.description && (
@@ -627,28 +673,36 @@ function TournamentPortalContent() {
                                           ? "bg-amber-200/80 text-amber-900"
                                           : isRejected
                                             ? "bg-rose-200/80 text-rose-900"
-                                            : "bg-blue-200/80 text-blue-900"
+                                            : "bg-indigo-100 text-indigo-900"
                                     }`}
                                   >
                                     {isApproved
-                                      ? "Terkonfirmasi di Main Draw"
+                                      ? "Kategori Lolos Kurasi"
                                       : isWaitlist
                                         ? "Daftar Tunggu (Waitlisted)"
                                         : isRejected
-                                          ? "Pendaftaran Ditolak"
-                                          : "Menunggu Verifikasi Admin"}
+                                          ? "Kurasi Tidak Lolos"
+                                          : "Tahap Verifikasi Kategori"}
                                   </span>
 
                                   <span
                                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
                                       team.paid
                                         ? "bg-emerald-100 text-emerald-800"
-                                        : "bg-amber-100 text-amber-800"
+                                        : isApproved
+                                          ? team.paymentProofUrl
+                                            ? "bg-amber-100 text-amber-800"
+                                            : "bg-orange-100 text-orange-800"
+                                          : "bg-slate-100 text-slate-600"
                                     }`}
                                   >
                                     {team.paid
                                       ? "✓ Pembayaran Lunas"
-                                      : "⏳ Pembayaran Ditinjau"}
+                                      : isApproved
+                                        ? team.paymentProofUrl
+                                          ? "⏳ Bukti Sedang Ditinjau"
+                                          : "Menunggu Pembayaran"
+                                        : "Biaya Diumumkan Setelah Kurasi"}
                                   </span>
                                 </div>
 
@@ -701,24 +755,36 @@ function TournamentPortalContent() {
                               },
                               {
                                 step: "2",
-                                title: "Verifikasi Pembayaran",
-                                desc: team.paid
-                                  ? "Bukti transfer diverifikasi"
-                                  : "Dalam peninjauan panitia",
-                                status: team.paid ? "done" : "active",
-                              },
-                              {
-                                step: "3",
-                                title: "Slot Main Draw",
+                                title: "Verifikasi Kategori",
                                 desc: isApproved
-                                  ? "Resmi diterima bertanding"
+                                  ? "Kategori disetujui panitia"
                                   : isWaitlist
                                     ? "Antrean daftar tunggu"
-                                    : "Menunggu approval",
+                                    : isRejected
+                                      ? "Kategori tidak sesuai"
+                                      : "Pengecekan kesesuaian kategori",
                                 status: isApproved
                                   ? "done"
                                   : isWaitlist
                                     ? "waitlist"
+                                    : isRejected
+                                      ? "rejected"
+                                      : "active",
+                              },
+                              {
+                                step: "3",
+                                title: "Biaya & Pembayaran",
+                                desc: team.paid
+                                  ? "Pembayaran lunas terverifikasi"
+                                  : isApproved
+                                    ? team.paymentProofUrl
+                                      ? "Bukti transfer ditinjau"
+                                      : "Menunggu pembayaran tim"
+                                    : "Diberikan setelah lolos kurasi",
+                                status: team.paid
+                                  ? "done"
+                                  : isApproved
+                                    ? "active"
                                     : "pending",
                               },
                               {
@@ -744,7 +810,9 @@ function TournamentPortalContent() {
                                       ? "border-blue-300 bg-blue-50/40"
                                       : item.status === "waitlist"
                                         ? "border-amber-200 bg-amber-50/40"
-                                        : "border-slate-200 bg-slate-50/40 opacity-70"
+                                        : item.status === "rejected"
+                                          ? "border-rose-200 bg-rose-50/40"
+                                          : "border-slate-200 bg-slate-50/40 opacity-70"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -756,7 +824,9 @@ function TournamentPortalContent() {
                                           ? "bg-blue-600 text-white"
                                           : item.status === "waitlist"
                                             ? "bg-amber-500 text-white"
-                                            : "bg-slate-200 text-slate-600"
+                                            : item.status === "rejected"
+                                              ? "bg-rose-600 text-white"
+                                              : "bg-slate-200 text-slate-600"
                                     }`}
                                   >
                                     {item.status === "done" ? "✓" : item.step}
@@ -775,6 +845,382 @@ function TournamentPortalContent() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Status Pending: Category Verification Notice */}
+                        {!isApproved && !isWaitlist && !isRejected && (
+                          <div className="border-b border-slate-100 bg-indigo-50/40 p-6 sm:p-8">
+                            <div className="flex items-start gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+                                <span className="material-symbols-outlined text-xl">
+                                  fact_check
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-sm font-black text-indigo-950">
+                                    Tahap Verifikasi Kategori Sedang Berlangsung
+                                  </h4>
+                                  <span className="rounded-full bg-indigo-200/80 px-2 py-0.5 text-[10px] font-bold text-indigo-900">
+                                    Kurasi Panitia
+                                  </span>
+                                </div>
+                                <p className="mt-1.5 text-xs leading-relaxed text-indigo-900/80">
+                                  Data pendaftaran Anda di kategori{" "}
+                                  <strong>{team.category}</strong> telah kami
+                                  terima. Panitia turnamen sedang meninjau
+                                  kelayakan berkas dan kesesuaian level pemain.
+                                </p>
+                                <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-indigo-700">
+                                  <span className="material-symbols-outlined text-sm">
+                                    info
+                                  </span>
+                                  <span>
+                                    Nominal biaya pendaftaran & nomor rekening
+                                    transfer panitia akan otomatis ditampilkan
+                                    di sini segera setelah tim Anda disetujui
+                                    (Approved).
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Status Approved & Unpaid: Fee Nominal, Bank Details, and Payment Proof Upload */}
+                        {isApproved && !team.paid && (
+                          <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50/70 via-white to-blue-50/30 p-6 sm:p-8">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                                  <span className="material-symbols-outlined text-sm">
+                                    check_circle
+                                  </span>
+                                  Selamat! Kategori Tim Anda Telah Disetujui
+                                </span>
+                                <h4 className="mt-2.5 text-lg font-black text-slate-900 sm:text-xl">
+                                  Selesaikan Pembayaran untuk Mengamankan Slot
+                                </h4>
+                                <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-600">
+                                  Tim Anda telah lolos kurasi untuk kategori{" "}
+                                  <strong className="text-slate-900">
+                                    {team.category}
+                                  </strong>
+                                  . Silakan selesaikan pembayaran pendaftaran
+                                  sesuai nominal berikut dan unggah bukti
+                                  transfer.
+                                </p>
+                              </div>
+
+                              {/* Fee Nominal Display */}
+                              <div className="shrink-0 rounded-2xl border border-emerald-300/80 bg-white p-4 shadow-xs sm:text-right">
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  Nominal Pendaftaran Tim
+                                </span>
+                                <p className="text-2xl font-black text-emerald-600">
+                                  Rp{" "}
+                                  {(
+                                    team.entryFee ??
+                                    paymentInfo?.entryFeePerPair ??
+                                    tournament.entryFeePerPair ??
+                                    600000
+                                  ).toLocaleString("id-ID")}
+                                </p>
+                                <span className="text-[10px] font-medium text-slate-500">
+                                  Per Pasangan
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Official Bank Account Details */}
+                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-base text-blue-600">
+                                    account_balance
+                                  </span>
+                                  <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                                    Rekening Resmi Panitia Turnamen
+                                  </span>
+                                </div>
+                                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-800">
+                                  {paymentInfo?.bankName || "BCA"}
+                                </span>
+                              </div>
+
+                              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    Bank Tujuan
+                                  </span>
+                                  <p className="text-sm font-black text-slate-900">
+                                    {paymentInfo?.bankName || "BCA"}
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    Nama Pemilik Rekening
+                                  </span>
+                                  <p className="text-sm font-bold text-slate-800">
+                                    {paymentInfo?.accountHolder ||
+                                      "PT TUWAGA INDONESIA"}
+                                  </p>
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                    Nomor Rekening
+                                  </span>
+                                  <div className="mt-1 flex items-center gap-3">
+                                    <span className="font-mono text-lg font-black tracking-wider text-slate-900">
+                                      {paymentInfo?.accountNumber ||
+                                        "8831234567"}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleCopyCode(
+                                          paymentInfo?.accountNumber ||
+                                            "8831234567",
+                                        )
+                                      }
+                                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">
+                                        {copiedId ===
+                                        (paymentInfo?.accountNumber ||
+                                          "8831234567")
+                                          ? "check"
+                                          : "content_copy"}
+                                      </span>
+                                      {copiedId ===
+                                      (paymentInfo?.accountNumber ||
+                                        "8831234567")
+                                        ? "Tersalin!"
+                                        : "Salin Nomor"}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {paymentInfo?.paymentInstructions && (
+                                <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3 text-xs leading-relaxed text-blue-900">
+                                  <strong>Instruksi Panitia:</strong>{" "}
+                                  {paymentInfo.paymentInstructions}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Payment Proof Upload Section */}
+                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-base text-emerald-600">
+                                    receipt_long
+                                  </span>
+                                  <h5 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                                    Kirim Bukti Pembayaran
+                                  </h5>
+                                </div>
+
+                                {team.paymentProofUrl && (
+                                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-800">
+                                    ⏳ Bukti Terkirim · Menunggu Approval
+                                  </span>
+                                )}
+                              </div>
+
+                              {team.paymentProofUrl && (
+                                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:flex-row sm:items-center">
+                                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-300 bg-white">
+                                    <Image
+                                      src={team.paymentProofUrl}
+                                      alt="Bukti Transfer"
+                                      fill
+                                      className="object-cover"
+                                      unoptimized
+                                    />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-slate-900">
+                                      Bukti transfer telah berhasil kami terima
+                                    </p>
+                                    <p className="text-[11px] text-slate-500">
+                                      Panitia akan memeriksa transfer Anda. Slot
+                                      Main Draw akan otomatis terkunci begitu
+                                      pembayaran diverifikasi.
+                                    </p>
+                                    <a
+                                      href={team.paymentProofUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">
+                                        open_in_new
+                                      </span>
+                                      Lihat Bukti Ukuran Penuh
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+
+                              {uploadSuccessMessage && (
+                                <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+                                  ✓ {uploadSuccessMessage}
+                                </div>
+                              )}
+
+                              {uploadError && (
+                                <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800">
+                                  {uploadError}
+                                </div>
+                              )}
+
+                              <div className="mt-4">
+                                <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/60 p-5 transition hover:border-emerald-500 hover:bg-emerald-50/20">
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    className="sr-only"
+                                    disabled={uploadingProofTeamId === team.id}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file)
+                                        handleUploadPaymentProof(team.id, file);
+                                    }}
+                                  />
+                                  {uploadingProofTeamId === team.id ? (
+                                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
+                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                                      Mengunggah bukti transfer...
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center text-center">
+                                      <span className="material-symbols-outlined text-3xl text-slate-400">
+                                        upload_file
+                                      </span>
+                                      <span className="mt-1.5 text-xs font-bold text-slate-700">
+                                        {team.paymentProofUrl
+                                          ? "Klik untuk Mengganti / Mengunggah Ulang Bukti Transfer"
+                                          : "Klik untuk Mengunggah Foto Bukti Transfer"}
+                                      </span>
+                                      <span className="mt-0.5 text-[10px] text-slate-400">
+                                        Format JPG, PNG, atau WebP (Maksimal
+                                        5MB)
+                                      </span>
+                                    </div>
+                                  )}
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Status Approved & Paid */}
+                        {isApproved && team.paid && (
+                          <div className="border-b border-emerald-100 bg-emerald-50/40 p-6 sm:p-8">
+                            <div className="flex items-start gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
+                                <span className="material-symbols-outlined text-xl">
+                                  verified
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <h4 className="text-sm font-black text-emerald-950">
+                                    Pembayaran Lunas & Slot Terkunci
+                                  </h4>
+                                  <span className="rounded-full bg-emerald-200 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-900">
+                                    Resmi di Main Draw
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs leading-relaxed text-emerald-900/80">
+                                  Pembayaran pendaftaran sebesar{" "}
+                                  <strong>
+                                    Rp{" "}
+                                    {(
+                                      team.entryFee ??
+                                      paymentInfo?.entryFeePerPair ??
+                                      tournament.entryFeePerPair ??
+                                      600000
+                                    ).toLocaleString("id-ID")}
+                                  </strong>{" "}
+                                  telah diverifikasi panitia. Tim Anda resmi
+                                  bertanding di kategori{" "}
+                                  <strong>{team.category}</strong>.
+                                </p>
+                                {team.paymentProofUrl && (
+                                  <div className="mt-2.5">
+                                    <a
+                                      href={team.paymentProofUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">
+                                        receipt_long
+                                      </span>
+                                      Lihat Bukti Transfer Tersimpan ↗
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Status Waitlist */}
+                        {isWaitlist && (
+                          <div className="border-b border-amber-100 bg-amber-50/40 p-6 sm:p-8">
+                            <div className="flex items-start gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
+                                <span className="material-symbols-outlined text-xl">
+                                  hourglass_top
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-sm font-black text-amber-950">
+                                  Tim Anda Berada di Antrean Daftar Tunggu
+                                  (Waitlist)
+                                </h4>
+                                <p className="mt-1 text-xs leading-relaxed text-amber-900/80">
+                                  Kuota untuk kategori{" "}
+                                  <strong>{team.category}</strong> saat ini
+                                  telah penuh. Jika ada tim yang membatalkan
+                                  atau tidak menyelesaikan pembayaran, slot akan
+                                  otomatis ditawarkan kepada Anda.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Status Rejected */}
+                        {isRejected && (
+                          <div className="border-b border-rose-100 bg-rose-50/40 p-6 sm:p-8">
+                            <div className="flex items-start gap-3.5">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white shadow-xs">
+                                <span className="material-symbols-outlined text-xl">
+                                  cancel
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-sm font-black text-rose-950">
+                                  Pendaftaran Tidak Memenuhi Syarat Kategori
+                                </h4>
+                                <p className="mt-1 text-xs leading-relaxed text-rose-900/80">
+                                  Berdasarkan verifikasi tim kurasi turnamen,
+                                  tim Anda belum memenuhi persyaratan untuk
+                                  kategori <strong>{team.category}</strong>.
+                                  Silakan hubungi panitia jika Anda ingin
+                                  berkonsultasi mengenai opsi pemindahan
+                                  kategori.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Team Details & Schedule */}
                         <div className="p-6 sm:p-8">
@@ -999,10 +1445,8 @@ function TournamentPortalContent() {
                         </div>
                         <div className="mt-2 flex items-center justify-between text-xs font-semibold text-slate-600">
                           <span>Biaya Pendaftaran</span>
-                          <span className="text-emerald-700 font-bold">
-                            {tournament.entryFeePerPair > 0
-                              ? `Rp ${tournament.entryFeePerPair.toLocaleString("id-ID")}`
-                              : "Gratis"}
+                          <span className="text-indigo-600 font-bold">
+                            Diberikan setelah lolos kurasi
                           </span>
                         </div>
                       </div>
@@ -1244,6 +1688,78 @@ function TournamentPortalContent() {
 
               {/* Rules & Payment info */}
               <div className="space-y-6">
+                {/* Registration & Curation Workflow */}
+                <div className="rounded-3xl border border-indigo-200 bg-indigo-50/50 p-6 sm:p-8 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-indigo-600">
+                      fact_check
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900">
+                      Alur Registrasi & Pembayaran
+                    </h3>
+                  </div>
+
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    Turnamen menerapkan sistem kurasi kategori terlebih dahulu
+                    untuk memastikan kompetisi yang adil dan seimbang:
+                  </p>
+
+                  <div className="mt-4 space-y-3 text-xs">
+                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                        1
+                      </span>
+                      <div>
+                        <strong className="text-slate-900">
+                          Pendaftaran Bebas Biaya di Awal:
+                        </strong>{" "}
+                        Tim mendaftarkan diri secara online dengan melengkapi
+                        profil pemain dan pilihan kategori.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                        2
+                      </span>
+                      <div>
+                        <strong className="text-slate-900">
+                          Verifikasi & Kurasi Kategori:
+                        </strong>{" "}
+                        Panitia melakukan pengecekan data, rekam jejak, dan
+                        kesesuaian kategori masing-masing tim.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                        3
+                      </span>
+                      <div>
+                        <strong className="text-slate-900">
+                          Penetapan Biaya & Pembayaran:
+                        </strong>{" "}
+                        Setelah tim disetujui (Approved), nominal pendaftaran
+                        dan rekening resmi akan dibuka di tab{" "}
+                        <em>Pendaftaran Saya</em>.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                        4
+                      </span>
+                      <div>
+                        <strong className="text-slate-900">
+                          Konfirmasi Main Draw:
+                        </strong>{" "}
+                        Begitu bukti transfer diverifikasi, slot tim Anda resmi
+                        dikunci dan masuk ke jadwal pertandingan.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-blue-600">
