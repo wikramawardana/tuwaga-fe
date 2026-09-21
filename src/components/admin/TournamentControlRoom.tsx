@@ -2875,86 +2875,91 @@ export default function TournamentControlRoom({
                                 </div>
                               </div>
                             </div>
-                            <div className="grid gap-2 sm:grid-cols-3 xl:w-[520px]">
-                              <label>
-                                <span className="admin-label">
-                                  Review status
-                                </span>
-                                <select
-                                  value={
-                                    team.status === "rejected"
-                                      ? "pending"
-                                      : team.status
-                                  }
-                                  onChange={(event) =>
-                                    patchTeam(team, {
-                                      status: event.target.value as TeamStatus,
-                                    })
-                                  }
-                                  className="admin-input"
-                                >
-                                  <option value="pending">Needs review</option>
-                                  <option value="approved">Approved</option>
-                                  <option value="waitlist">Waitlist</option>
-                                </select>
-                              </label>
-                              <label>
-                                <span className="admin-label">Payment</span>
-                                <select
-                                  value={team.paid ? "paid" : "unpaid"}
-                                  onChange={(event) =>
-                                    patchTeam(team, {
-                                      paid: event.target.value === "paid",
-                                    })
-                                  }
-                                  className="admin-input"
-                                >
-                                  <option value="unpaid">Unpaid</option>
-                                  <option value="paid">Paid</option>
-                                </select>
-                              </label>
-                              <div>
-                                <span className="admin-label">Readiness</span>
-                                <div
-                                  className={cx(
-                                    "flex h-11 items-center justify-center gap-2 rounded-xl border text-xs font-extrabold",
-                                    team.status === "approved" && team.paid
-                                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                      : "border-amber-200 bg-amber-50 text-amber-700",
-                                  )}
-                                >
-                                  <span className="material-symbols-outlined text-base">
-                                    {team.status === "approved" && team.paid
-                                      ? "check_circle"
-                                      : "pending"}
+                            <div className="flex flex-wrap items-end gap-2.5 xl:shrink-0">
+                              <div className="grid grid-cols-3 gap-2 w-full sm:w-[480px]">
+                                <label>
+                                  <span className="admin-label">
+                                    Review status
                                   </span>
-                                  {team.status === "approved" && team.paid
-                                    ? "Draw-ready"
-                                    : "Action needed"}
+                                  <select
+                                    value={
+                                      team.status === "rejected"
+                                        ? "pending"
+                                        : team.status
+                                    }
+                                    onChange={(event) =>
+                                      patchTeam(team, {
+                                        status: event.target
+                                          .value as TeamStatus,
+                                      })
+                                    }
+                                    className="admin-input"
+                                  >
+                                    <option value="pending">
+                                      Needs review
+                                    </option>
+                                    <option value="approved">Approved</option>
+                                    <option value="waitlist">Waitlist</option>
+                                  </select>
+                                </label>
+                                <label>
+                                  <span className="admin-label">Payment</span>
+                                  <select
+                                    value={team.paid ? "paid" : "unpaid"}
+                                    onChange={(event) =>
+                                      patchTeam(team, {
+                                        paid: event.target.value === "paid",
+                                      })
+                                    }
+                                    className="admin-input"
+                                  >
+                                    <option value="unpaid">Unpaid</option>
+                                    <option value="paid">Paid</option>
+                                  </select>
+                                </label>
+                                <div>
+                                  <span className="admin-label">Readiness</span>
+                                  <div
+                                    className={cx(
+                                      "flex h-11 items-center justify-center gap-2 rounded-xl border text-xs font-extrabold",
+                                      team.status === "approved" && team.paid
+                                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                        : "border-amber-200 bg-amber-50 text-amber-700",
+                                    )}
+                                  >
+                                    <span className="material-symbols-outlined text-base">
+                                      {team.status === "approved" && team.paid
+                                        ? "check_circle"
+                                        : "pending"}
+                                    </span>
+                                    {team.status === "approved" && team.paid
+                                      ? "Draw-ready"
+                                      : "Action needed"}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2 xl:self-end">
-                              <button
-                                type="button"
-                                onClick={() => setViewingTeam(team)}
-                                className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
-                              >
-                                <span className="material-symbols-outlined text-base">
-                                  visibility
-                                </span>
-                                Detail
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setRemoveTarget(team)}
-                                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                              >
-                                <span className="material-symbols-outlined text-base">
-                                  person_remove
-                                </span>
-                                Remove
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setViewingTeam(team)}
+                                  className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                >
+                                  <span className="material-symbols-outlined text-base">
+                                    visibility
+                                  </span>
+                                  Detail
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setRemoveTarget(team)}
+                                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                                >
+                                  <span className="material-symbols-outlined text-base">
+                                    person_remove
+                                  </span>
+                                  Remove
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </article>

@@ -114,6 +114,9 @@ export default function TechnicalMeetingDrawing({
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
     return categories[0] ?? "all";
   });
+  const [statusFilter, setStatusFilter] = useState<
+    "all_active" | "approved" | "all"
+  >("all_active");
   const [groupCount, setGroupCount] = useState<number>(() => {
     return defaultGroupSize >= 2 ? defaultGroupSize : 4;
   });
@@ -134,15 +137,22 @@ export default function TechnicalMeetingDrawing({
   const animationFrameRef = useRef<number | null>(null);
   const lastTickIndexRef = useRef<number>(-1);
 
-  // Filter approved & paid teams for eligible TM participants
+  // Filter teams for eligible TM participants based on category & status filter
   const eligibleTeams = useMemo(() => {
     return teams.filter((t) => {
       const categoryMatch =
         selectedCategory === "all" || t.category === selectedCategory;
-      // Ideally draw approved teams
-      return categoryMatch && t.status === "approved";
+      if (!categoryMatch) return false;
+
+      if (statusFilter === "approved") {
+        return t.status === "approved";
+      }
+      if (statusFilter === "all_active") {
+        return t.status !== "rejected";
+      }
+      return true;
     });
-  }, [teams, selectedCategory]);
+  }, [teams, selectedCategory, statusFilter]);
 
   // Remaining teams that have not yet been drawn
   const drawnTeamIds = useMemo(
@@ -189,6 +199,42 @@ export default function TechnicalMeetingDrawing({
       ctx.clearRect(0, 0, size, size);
 
       const items = remainingTeams.length > 0 ? remainingTeams : eligibleTeams;
+
+      if (items.length === 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
+        ctx.fillStyle = "#0f172a";
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#334155";
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(center, center, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#1e293b";
+        ctx.fill();
+        ctx.setLineDash([8, 8]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#475569";
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.textAlign = "center";
+        ctx.font = "bold 15px sans-serif";
+        ctx.fillText("Belum Ada Tim untuk Diundi", center, center - 10);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText(
+          "Ubah filter status / kategori di atas",
+          center,
+          center + 14,
+        );
+        ctx.restore();
+        return;
+      }
+
       const count = Math.max(items.length, 1);
       const arc = (2 * Math.PI) / count;
 
@@ -653,8 +699,8 @@ export default function TechnicalMeetingDrawing({
         </div>
       </div>
 
-      {/* Control Strip (Filter Division & Group Count) */}
-      <div className="grid gap-3 sm:grid-cols-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      {/* Control Strip (Filter Division, Status & Group Count) */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <label className="block">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Divisi / Kategori
@@ -675,6 +721,34 @@ export default function TechnicalMeetingDrawing({
                 {cat} ({teams.filter((t) => t.category === cat).length} tim)
               </option>
             ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Status Tim Diundi
+          </span>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(
+                e.target.value as "all_active" | "approved" | "all",
+              );
+              setDrawnList([]);
+              setLatestWinner(null);
+            }}
+            disabled={isSpinning}
+            className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-800 outline-none hover:border-blue-400 focus:border-blue-600 transition"
+          >
+            <option value="all_active">
+              Semua Tim Aktif (
+              {teams.filter((t) => t.status !== "rejected").length} tim)
+            </option>
+            <option value="approved">
+              Hanya Approved (
+              {teams.filter((t) => t.status === "approved").length} tim)
+            </option>
+            <option value="all">Semua Status ({teams.length} tim)</option>
           </select>
         </label>
 
@@ -710,7 +784,7 @@ export default function TechnicalMeetingDrawing({
               <span className="material-symbols-outlined text-base">
                 shuffle
               </span>
-              Acak Semua Sekaligus
+              Acak Semua
             </button>
             <button
               type="button"
@@ -733,7 +807,16 @@ export default function TechnicalMeetingDrawing({
         <div className="flex flex-col items-center justify-between rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-6 shadow-sm lg:col-span-5">
           {/* Target Group Indicator */}
           <div className="w-full text-center">
-            {remainingTeams.length > 0 ? (
+            {eligibleTeams.length === 0 ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-extrabold text-amber-800">
+                <span className="material-symbols-outlined text-sm">
+                  warning
+                </span>
+                <span>
+                  Belum ada tim yang dapat diundi di kategori/status ini
+                </span>
+              </div>
+            ) : remainingTeams.length > 0 ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-1.5 text-xs font-extrabold text-purple-800 animate-pulse">
                 <span className="material-symbols-outlined text-sm">
                   target
@@ -749,7 +832,10 @@ export default function TechnicalMeetingDrawing({
                 <span className="material-symbols-outlined text-sm">
                   check_circle
                 </span>
-                <span>Semua tim telah berhasil diundi!</span>
+                <span>
+                  Semua {drawnList.length > 0 ? `(${drawnList.length}) ` : ""}
+                  tim telah berhasil diundi!
+                </span>
               </div>
             )}
           </div>
@@ -778,15 +864,18 @@ export default function TechnicalMeetingDrawing({
               <span>
                 {isSpinning
                   ? "Sedang Memutar Roda…"
-                  : remainingTeams.length === 0
-                    ? "Undian Selesai"
-                    : `Putar Roda (${remainingTeams.length} Tersisa)`}
+                  : eligibleTeams.length === 0
+                    ? "Tidak Ada Tim untuk Diundi"
+                    : remainingTeams.length === 0
+                      ? "Undian Selesai"
+                      : `Putar Roda (${remainingTeams.length} Tersisa)`}
               </span>
             </button>
 
             <p className="text-center text-[11px] font-medium text-slate-400">
-              {remainingTeams.length} dari {eligibleTeams.length} tim belum
-              diundi
+              {eligibleTeams.length === 0
+                ? "Ganti pilihan status atau pilih kategori lain yang memiliki pendaftar"
+                : `${remainingTeams.length} dari ${eligibleTeams.length} tim belum diundi`}
             </p>
           </div>
         </div>
