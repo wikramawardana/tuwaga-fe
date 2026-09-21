@@ -7,7 +7,6 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useSession } from "@/lib/auth-client";
-import { divisionSkillLabel } from "@/lib/matchDivisions";
 import { simplifyScore } from "@/lib/matchScore";
 import {
   getTournamentBySlug,
@@ -1423,10 +1422,7 @@ function TournamentPortalContent() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
-                            {divisionSkillLabel(cat)}
-                          </span>
-                          <h4 className="mt-2 text-base font-extrabold text-slate-900">
+                          <h4 className="text-base font-extrabold text-slate-900">
                             {cat}
                           </h4>
                         </div>

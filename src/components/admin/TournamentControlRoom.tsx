@@ -4479,7 +4479,7 @@ export default function TournamentControlRoom({
                           <span className="material-symbols-outlined text-sm">
                             badge
                           </span>
-                          Lihat Foto KTP Pemain 1 ↗
+                          Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 1 ↗
                         </a>
                       </div>
                     )}
@@ -4576,7 +4576,7 @@ export default function TournamentControlRoom({
                           <span className="material-symbols-outlined text-sm">
                             badge
                           </span>
-                          Lihat Foto KTP Pemain 2 ↗
+                          Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 2 ↗
                         </a>
                       </div>
                     )}

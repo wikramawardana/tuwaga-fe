@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import RegistrationProgress from "@/components/RegistrationProgress";
 import RegistrationShell from "@/components/RegistrationShell";
 import { useSession } from "@/lib/auth-client";
-import { divisionSkillLabel, divisionSkillLevel } from "@/lib/matchDivisions";
+import { divisionSkillLevel } from "@/lib/matchDivisions";
 import {
   createRegistration,
   getRegistrationSummary,
@@ -609,9 +609,6 @@ export default function TournamentRegisterPage() {
                           <h3 className="text-[17px] font-extrabold text-on-surface">
                             {cat}
                           </h3>
-                          <p className="text-xs font-semibold text-primary">
-                            {divisionSkillLabel(cat)}
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -636,7 +633,8 @@ export default function TournamentRegisterPage() {
                   Data Pemain 1 (Player 1)
                 </h2>
                 <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
-                  Informasi lengkap pemain utama sesuai identitas KTP.
+                  Informasi lengkap pemain utama sesuai kartu identitas resmi
+                  (KTP, SIM, Kartu Pelajar, dll).
                 </p>
               </div>
             </div>
@@ -644,7 +642,7 @@ export default function TournamentRegisterPage() {
             <div className="space-y-5">
               <div className="space-y-2">
                 <FieldLabel htmlFor="p1-name" required>
-                  Nama Pemain 1 (Sesuai KTP)
+                  Nama Pemain 1 (Sesuai Kartu Identitas)
                 </FieldLabel>
                 <input
                   id="p1-name"
@@ -784,8 +782,8 @@ export default function TournamentRegisterPage() {
               </div>
 
               <FileUploadBox
-                label="KTP Pemain 1"
-                description="Upload foto KTP untuk verifikasi identitas (Maks. 5MB)"
+                label="Kartu Identitas Pemain 1"
+                description="Upload foto kartu identitas (KTP, SIM, Kartu Pelajar, atau KIA) untuk verifikasi identitas (Maks. 5MB)"
                 url={player1.idCardUrl}
                 loading={!!uploadingState["p1-ktp"]}
                 onUpload={(file) =>
@@ -812,7 +810,8 @@ export default function TournamentRegisterPage() {
                   Data Pemain 2 (Player 2 / Pasangan)
                 </h2>
                 <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
-                  Informasi pasangan main sesuai identitas KTP.
+                  Informasi pasangan main sesuai kartu identitas resmi (KTP,
+                  SIM, Kartu Pelajar, dll).
                 </p>
               </div>
             </div>
@@ -820,7 +819,7 @@ export default function TournamentRegisterPage() {
             <div className="space-y-5">
               <div className="space-y-2">
                 <FieldLabel htmlFor="p2-name" required>
-                  Nama Pemain 2 (Sesuai KTP)
+                  Nama Pemain 2 (Sesuai Kartu Identitas)
                 </FieldLabel>
                 <input
                   id="p2-name"
@@ -960,8 +959,8 @@ export default function TournamentRegisterPage() {
               </div>
 
               <FileUploadBox
-                label="KTP Pemain 2"
-                description="Upload foto KTP untuk verifikasi identitas (Maks. 5MB)"
+                label="Kartu Identitas Pemain 2"
+                description="Upload foto kartu identitas (KTP, SIM, Kartu Pelajar, atau KIA) untuk verifikasi identitas (Maks. 5MB)"
                 url={player2.idCardUrl}
                 loading={!!uploadingState["p2-ktp"]}
                 onUpload={(file) =>
@@ -1003,9 +1002,6 @@ export default function TournamentRegisterPage() {
                 <div className="mt-1 flex items-center justify-between">
                   <span className="text-lg font-black text-on-surface">
                     {selectedCategory}
-                  </span>
-                  <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
-                    {divisionSkillLabel(selectedCategory)}
                   </span>
                 </div>
               </div>
@@ -1098,7 +1094,7 @@ export default function TournamentRegisterPage() {
                     </h4>
                     <p className="text-xs leading-relaxed text-on-surface-variant">
                       Pendaftaran tim Anda akan diverifikasi oleh panitia untuk
-                      memastikan kesesuaian kategori skill level.
+                      memastikan kesesuaian disetiap kategori.
                     </p>
                     <p className="pt-1 text-xs font-medium text-amber-900 dark:text-amber-200">
                       Nominal pembayaran dan rekening transfer resmi panitia

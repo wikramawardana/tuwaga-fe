@@ -44,7 +44,7 @@ function SuccessContent() {
         </h1>
         <p className="mt-2 text-sm font-medium leading-relaxed text-on-surface-variant">
           Selamat! Berkas dan data tim Anda telah resmi tercatat di sistem
-          turnamen TUWAGA.
+          TUWAGA.
         </p>
 
         {/* Ticket Reference */}
