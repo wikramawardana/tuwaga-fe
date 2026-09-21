@@ -429,6 +429,9 @@ export default function TournamentRegisterPage() {
         title={tournament.name}
         description={`${tournament.venue} — ${tournament.dateLabel}`}
         showProgress={false}
+        parentLabel={tournament.name}
+        parentHref={`/tournaments/${slug}`}
+        currentLabel="Daftar"
       >
         <div className="mx-auto max-w-xl">
           <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10">
@@ -503,10 +506,12 @@ export default function TournamentRegisterPage() {
 
   return (
     <RegistrationShell
-      current={step}
       title={tournament.name}
       description={`${tournament.venue} — ${tournament.dateLabel}`}
-      showProgress
+      showProgress={false}
+      parentLabel={tournament.name}
+      parentHref={`/tournaments/${slug}`}
+      currentLabel="Daftar"
     >
       <RegistrationProgress steps={WIZARD_STEPS} current={step} />
 

@@ -10,6 +10,10 @@ type RegistrationShellProps = {
   description?: ReactNode;
   headerAlign?: "left" | "center";
   showProgress?: boolean;
+  steps?: string[];
+  parentLabel?: string;
+  parentHref?: string;
+  currentLabel?: string;
   children: ReactNode;
 };
 
@@ -18,7 +22,11 @@ export default function RegistrationShell({
   title,
   description,
   headerAlign = "left",
-  showProgress = true,
+  showProgress = false,
+  steps,
+  parentLabel = "Home",
+  parentHref = "/",
+  currentLabel = "Register",
   children,
 }: RegistrationShellProps) {
   const isCentered = headerAlign === "center";
@@ -30,13 +38,13 @@ export default function RegistrationShell({
       <main className="flex-1 px-6 pb-16 pt-28 md:px-10">
         <div className="mx-auto w-full max-w-[1200px]">
           <PageBreadcrumb
-            parentLabel="Home"
-            parentHref="/"
-            current="Register"
+            parentLabel={parentLabel}
+            parentHref={parentHref}
+            current={currentLabel}
           />
 
           {showProgress ? (
-            <RegistrationProgress current={current ?? 0} />
+            <RegistrationProgress steps={steps} current={current ?? 0} />
           ) : null}
 
           {title ? (
