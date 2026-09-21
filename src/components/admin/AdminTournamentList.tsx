@@ -138,6 +138,15 @@ function TournamentCard({
             Tim & Kurasi
           </Link>
           <Link
+            href={`/admin/tournaments/${tournament.id}?section=technical-meeting`}
+            className="inline-flex items-center gap-1 rounded-lg border border-purple-200/80 bg-purple-50/70 px-2.5 py-1 text-[11px] font-bold text-purple-700 transition hover:border-purple-300 hover:bg-purple-100"
+          >
+            <span className="material-symbols-outlined text-[13px] text-purple-500">
+              casino
+            </span>
+            TM Drawing
+          </Link>
+          <Link
             href={`/admin/tournaments/${tournament.id}?section=operations`}
             className="inline-flex items-center gap-1 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
           >

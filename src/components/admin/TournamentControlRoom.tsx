@@ -12,6 +12,8 @@ import {
   useState,
 } from "react";
 import AiDirectorCopilot from "@/components/admin/AiDirectorCopilot";
+import TechnicalMeetingDrawing from "@/components/admin/TechnicalMeetingDrawing";
+import TournamentOverview from "@/components/admin/TournamentOverview";
 import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -125,18 +127,39 @@ const SPORT_OPTIONS: Array<{
   },
 ];
 
-type AdminSection = "setup" | "registrations" | "operations" | "results";
+export type AdminSection =
+  | "overview"
+  | "registrations"
+  | "technical-meeting"
+  | "operations"
+  | "results"
+  | "setup";
 
 function parseSectionParam(param: string | null): AdminSection | null {
   if (!param) return null;
   const normalized = param.toLowerCase().trim();
-  if (normalized === "setup" || normalized === "01") return "setup";
+  if (
+    normalized === "overview" ||
+    normalized === "dashboard" ||
+    normalized === "hub" ||
+    normalized === "00"
+  )
+    return "overview";
   if (
     normalized === "registrations" ||
     normalized === "teams" ||
-    normalized === "02"
+    normalized === "01"
   )
     return "registrations";
+  if (
+    normalized === "technical-meeting" ||
+    normalized === "tm" ||
+    normalized === "drawing" ||
+    normalized === "draw" ||
+    normalized === "wheel" ||
+    normalized === "02"
+  )
+    return "technical-meeting";
   if (
     normalized === "operations" ||
     normalized === "matches" ||
@@ -151,20 +174,12 @@ function parseSectionParam(param: string | null): AdminSection | null {
     normalized === "04"
   )
     return "results";
+  if (normalized === "setup" || normalized === "05") return "setup";
   return null;
 }
 
-function defaultSectionForStatus(status?: TournamentStatus): AdminSection {
-  switch (status) {
-    case "live":
-      return "operations";
-    case "registration":
-      return "registrations";
-    case "completed":
-      return "results";
-    default:
-      return "setup";
-  }
+function defaultSectionForStatus(_status?: TournamentStatus): AdminSection {
+  return "overview";
 }
 
 type SetupTab = "general" | "registration" | "format" | "oop";
@@ -201,7 +216,7 @@ const SETUP_TABS: {
   },
 ];
 type RegistrationFilter = "all" | Exclude<TeamStatus, "rejected">;
-type EditableSettings = TournamentSettings & {
+export type EditableSettings = TournamentSettings & {
   status: TournamentStatus;
   name: string;
   venue: string;
@@ -251,32 +266,46 @@ const sectionItems: Array<{
   icon: string;
 }> = [
   {
-    id: "setup",
-    step: "01",
-    label: "Tournament setup",
-    description: "Identity, format and divisions",
-    icon: "tune",
+    id: "overview",
+    step: "00",
+    label: "Overview",
+    description: "Ringkasan & status turnamen",
+    icon: "dashboard",
   },
   {
     id: "registrations",
-    step: "02",
-    label: "Teams",
-    description: "Review readiness and payment",
+    step: "01",
+    label: "Tim & Pendaftaran",
+    description: "Review berkas & pembayaran",
     icon: "groups",
+  },
+  {
+    id: "technical-meeting",
+    step: "02",
+    label: "Technical Meeting",
+    description: "Live wheel & undian grup",
+    icon: "casino",
   },
   {
     id: "operations",
     step: "03",
-    label: "Match operations",
-    description: "Draw, schedule and scoring",
+    label: "Match Operations",
+    description: "Jadwal OOP & live scoring",
     icon: "space_dashboard",
   },
   {
     id: "results",
     step: "04",
-    label: "Results",
-    description: "Standings and completed matches",
+    label: "Hasil & Bagan",
+    description: "Klasemen & bracket knockout",
     icon: "emoji_events",
+  },
+  {
+    id: "setup",
+    step: "05",
+    label: "Pengaturan",
+    description: "Identitas, divisi & format",
+    icon: "tune",
   },
 ];
 
@@ -456,8 +485,19 @@ export default function TournamentControlRoom({
   const explicitSectionRef = useRef(explicitSectionFromParams);
   explicitSectionRef.current = explicitSectionFromParams;
   const [activeSection, setActiveSection] = useState<AdminSection>(
-    () => explicitSectionFromParams ?? "setup",
+    () => explicitSectionFromParams ?? "overview",
   );
+  const [proofLightboxUrl, setProofLightboxUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setProofLightboxUrl(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("Loading tournament command center…");
@@ -937,6 +977,55 @@ export default function TournamentControlRoom({
     }
   }
 
+  async function handleUpdateStatus(nextStatus: TournamentStatus) {
+    try {
+      const payload = { ...settings, status: nextStatus };
+      await updateSettings(tournamentId, payload);
+      const refreshed = await getTournament(tournamentId);
+      setTournament(refreshed);
+      setSettings((prev) => ({
+        ...prev,
+        status: nextStatus,
+      }));
+      setMessage(
+        `Status turnamen berhasil diperbarui menjadi ${nextStatus.toUpperCase()}.`,
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Gagal memperbarui status.",
+      );
+    }
+  }
+
+  async function handleApplyDrawing(
+    assignments: Array<{ teamId: string; group: string; seed: number | null }>,
+  ) {
+    try {
+      await importDrawRequest(tournamentId, assignments);
+      await generateDraw("all", { useExistingGroups: true });
+      await refreshOperations();
+      setMessage("Hasil undian TM berhasil diterapkan ke jadwal pertandingan.");
+      changeSection("operations");
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Gagal menerapkan hasil undian.",
+      );
+      throw error;
+    }
+  }
+
+  const tournamentCategories = useMemo(() => {
+    if (settings.categories && settings.categories.length > 0) {
+      return settings.categories;
+    }
+    const fromTeams = Array.from(
+      new Set(teams.map((t) => t.category).filter(Boolean)),
+    );
+    return fromTeams.length > 0 ? fromTeams : ["Open"];
+  }, [settings.categories, teams]);
+
   function addDivision() {
     const label = createDivisionLabel(newDivision, newDivisionLevel);
     if (!label || settings.categories.includes(label)) return;
@@ -1377,13 +1466,17 @@ export default function TournamentControlRoom({
                     className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-700"
                     style={{
                       width:
-                        activeSection === "setup"
-                          ? "25%"
+                        activeSection === "overview"
+                          ? "16%"
                           : activeSection === "registrations"
-                            ? "50%"
-                            : activeSection === "operations"
-                              ? "75%"
-                              : "100%",
+                            ? "33%"
+                            : activeSection === "technical-meeting"
+                              ? "50%"
+                              : activeSection === "operations"
+                                ? "67%"
+                                : activeSection === "results"
+                                  ? "84%"
+                                  : "100%",
                     }}
                   />
                 </div>
@@ -1421,29 +1514,16 @@ export default function TournamentControlRoom({
                           {item.icon}
                         </span>
                       </span>
-                      <span className="relative hidden min-w-0 lg:block">
-                        <span
-                          className={cx(
-                            "block text-[10px] font-extrabold uppercase tracking-[0.16em]",
-                            active ? "text-blue-100" : "text-slate-400",
-                          )}
-                        >
-                          {item.step}
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[10px] font-extrabold uppercase tracking-wider opacity-70">
+                          Step {item.step}
                         </span>
-                        <span className="mt-0.5 block text-sm font-extrabold">
+                        <span className="block truncate text-xs font-black tracking-tight sm:text-sm">
                           {item.label}
                         </span>
-                        <span
-                          className={cx(
-                            "mt-0.5 block truncate text-[11px]",
-                            active ? "text-blue-100/75" : "text-slate-400",
-                          )}
-                        >
+                        <span className="hidden truncate text-[11px] opacity-75 sm:block">
                           {item.description}
                         </span>
-                      </span>
-                      <span className="relative block text-xs font-extrabold lg:hidden">
-                        {item.label}
                       </span>
                     </button>
                   );
@@ -1464,6 +1544,29 @@ export default function TournamentControlRoom({
               key={activeSection}
               className="admin-section-enter min-w-0"
             >
+              {activeSection === "overview" && tournament && (
+                <TournamentOverview
+                  tournament={tournament}
+                  settings={settings}
+                  teams={teams}
+                  matches={matches}
+                  totals={totals}
+                  onNavigateSection={changeSection}
+                  onViewTeam={setViewingTeam}
+                  onUpdateStatus={handleUpdateStatus}
+                />
+              )}
+
+              {activeSection === "technical-meeting" && tournament && (
+                <TechnicalMeetingDrawing
+                  tournament={tournament}
+                  teams={teams}
+                  categories={tournamentCategories}
+                  defaultGroupSize={settings.groupSize ?? 4}
+                  onApplyDraw={handleApplyDrawing}
+                />
+              )}
+
               {activeSection === "setup" && (
                 <div className="space-y-6">
                   <SectionTitle
@@ -2831,11 +2934,11 @@ export default function TournamentControlRoom({
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 xl:self-end">
                               <button
                                 type="button"
                                 onClick={() => setViewingTeam(team)}
-                                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
                               >
                                 <span className="material-symbols-outlined text-base">
                                   visibility
@@ -2845,7 +2948,7 @@ export default function TournamentControlRoom({
                               <button
                                 type="button"
                                 onClick={() => setRemoveTarget(team)}
-                                className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                               >
                                 <span className="material-symbols-outlined text-base">
                                   person_remove
@@ -4789,7 +4892,16 @@ export default function TournamentControlRoom({
                 <div className="mt-3">
                   {viewingTeam.paymentProofUrl ? (
                     <div className="space-y-2">
-                      <div className="relative h-64 w-full overflow-hidden rounded-xl border border-slate-300 bg-white">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setProofLightboxUrl(
+                            viewingTeam.paymentProofUrl ?? null,
+                          )
+                        }
+                        className="group relative h-64 w-full cursor-zoom-in overflow-hidden rounded-xl border border-slate-300 bg-white transition hover:border-blue-400 focus:outline-none"
+                        title="Klik untuk memperbesar gambar"
+                      >
                         <Image
                           src={viewingTeam.paymentProofUrl}
                           alt="Bukti Transfer"
@@ -4797,18 +4909,29 @@ export default function TournamentControlRoom({
                           className="object-contain"
                           unoptimized
                         />
-                      </div>
-                      <a
-                        href={viewingTeam.paymentProofUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:underline"
+                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/25 opacity-0 transition group-hover:opacity-100">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
+                            <span className="material-symbols-outlined text-sm">
+                              zoom_in
+                            </span>
+                            Lihat Gambar Penuh
+                          </span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setProofLightboxUrl(
+                            viewingTeam.paymentProofUrl ?? null,
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-800 hover:underline"
                       >
                         <span className="material-symbols-outlined text-sm">
-                          open_in_new
+                          zoom_in
                         </span>
                         Buka Gambar Ukuran Penuh
-                      </a>
+                      </button>
                     </div>
                   ) : (
                     <p className="text-xs text-slate-500 italic">
@@ -4878,6 +5001,52 @@ export default function TournamentControlRoom({
                     : "Approve Tim"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {proofLightboxUrl && (
+        <div
+          className="admin-modal fixed inset-0 z-[150] flex flex-col items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            className="fixed inset-0 h-full w-full cursor-default bg-transparent"
+            onClick={() => setProofLightboxUrl(null)}
+            aria-label="Tutup preview"
+          />
+          <div className="relative z-10 flex max-h-[92vh] max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600">
+                  receipt_long
+                </span>
+                <p className="text-sm font-black text-slate-900">
+                  Bukti Pembayaran / Transfer{" "}
+                  {viewingTeam ? `· ${teamName(viewingTeam)}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProofLightboxUrl(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
+                aria-label="Tutup"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+            <div className="relative max-h-[82vh] overflow-auto p-4 bg-slate-100/60 flex items-center justify-center">
+              <Image
+                src={proofLightboxUrl}
+                alt="Bukti Transfer Penuh"
+                width={800}
+                height={1200}
+                className="max-h-[78vh] w-auto max-w-full rounded-xl object-contain shadow-md"
+                unoptimized
+              />
             </div>
           </div>
         </div>
