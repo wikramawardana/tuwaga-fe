@@ -153,6 +153,53 @@ function parseSectionParam(param: string | null): AdminSection | null {
     return "results";
   return null;
 }
+
+function defaultSectionForStatus(status?: TournamentStatus): AdminSection {
+  switch (status) {
+    case "live":
+      return "operations";
+    case "registration":
+      return "registrations";
+    case "completed":
+      return "results";
+    default:
+      return "setup";
+  }
+}
+
+type SetupTab = "general" | "registration" | "format" | "oop";
+
+const SETUP_TABS: {
+  id: SetupTab;
+  label: string;
+  icon: string;
+  hint: string;
+}[] = [
+  {
+    id: "general",
+    label: "Umum & Tempat",
+    icon: "domain",
+    hint: "Identitas turnamen, lokasi venue, tanggal pelaksanaan, dan kapasitas",
+  },
+  {
+    id: "registration",
+    label: "Pendaftaran & Rekening",
+    icon: "account_balance",
+    hint: "Biaya pendaftaran, rekening bank panitia, kontak CP, dan syarat pendaftaran",
+  },
+  {
+    id: "format",
+    label: "Divisi & Format",
+    icon: "category",
+    hint: "Cabang olahraga, format kompetisi, dan aturan per divisi",
+  },
+  {
+    id: "oop",
+    label: "Order of Play (OOP)",
+    icon: "calendar_month",
+    hint: "Pengaturan sesi jadwal, kapasitas lapangan, dan urutan kategori",
+  },
+];
 type RegistrationFilter = "all" | Exclude<TeamStatus, "rejected">;
 type EditableSettings = TournamentSettings & {
   status: TournamentStatus;
@@ -402,10 +449,15 @@ export default function TournamentControlRoom({
   const [settings, setSettings] = useState<EditableSettings>(emptySettings);
   const [teams, setTeams] = useState<RegistrationTeam[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [activeSection, setActiveSection] = useState<AdminSection>(() => {
-    const sectionParam = searchParams.get("section") ?? searchParams.get("tab");
-    return parseSectionParam(sectionParam) ?? "setup";
-  });
+  const [setupTab, setSetupTab] = useState<SetupTab>("general");
+  const explicitSectionFromParams = parseSectionParam(
+    searchParams.get("section") ?? searchParams.get("tab"),
+  );
+  const explicitSectionRef = useRef(explicitSectionFromParams);
+  explicitSectionRef.current = explicitSectionFromParams;
+  const [activeSection, setActiveSection] = useState<AdminSection>(
+    () => explicitSectionFromParams ?? "setup",
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("Loading tournament command center…");
@@ -492,11 +544,10 @@ export default function TournamentControlRoom({
   );
 
   useEffect(() => {
-    const fromUrl =
-      parseSectionParam(
-        searchParams.get("section") ?? searchParams.get("tab"),
-      ) ?? "setup";
-    if (fromUrl !== activeSection) {
+    const fromUrl = parseSectionParam(
+      searchParams.get("section") ?? searchParams.get("tab"),
+    );
+    if (fromUrl && fromUrl !== activeSection) {
       setActiveSection(fromUrl);
     }
   }, [searchParams, activeSection]);
@@ -604,6 +655,12 @@ export default function TournamentControlRoom({
             nextTournament.settings.entryFeePerPair ??
             600000,
         });
+
+        // Smart section landing: if no explicit section in URL query, land on section matching tournament lifecycle
+        if (!explicitSectionRef.current && nextTournament?.status) {
+          setActiveSection(defaultSectionForStatus(nextTournament.status));
+        }
+
         setMessage("Command center synced with the latest tournament data.");
       } catch (error) {
         setMessage(
@@ -1433,1045 +1490,1125 @@ export default function TournamentControlRoom({
                     }
                   />
 
-                  <div className="grid gap-5 xl:grid-cols-2">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                          <span className="material-symbols-outlined">
-                            badge
-                          </span>
-                        </span>
-                        <div>
-                          <h3 className="font-black text-slate-950">
-                            Tournament identity
-                          </h3>
-                          <p className="text-xs text-slate-500">
-                            What teams and spectators will see
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                        <label className="sm:col-span-2">
-                          <span className="admin-label">Tournament name</span>
-                          <input
-                            value={settings.name}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                name: event.target.value,
-                              }))
-                            }
-                            className="admin-input"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">Venue</span>
-                          <input
-                            value={settings.venue}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                venue: event.target.value,
-                              }))
-                            }
-                            className="admin-input"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">Lifecycle status</span>
-                          <select
-                            value={settings.status}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                status: event.target.value as TournamentStatus,
-                              }))
-                            }
-                            className="admin-input"
-                          >
-                            <option value="setup">Setup</option>
-                            <option value="registration">
-                              Registration open
-                            </option>
-                            <option value="live">Live</option>
-                            <option value="completed">Completed</option>
-                          </select>
-                        </label>
-                        <div className="sm:col-span-2">
-                          <span className="admin-label">Tournament dates</span>
-                          <DateRangePicker
-                            startsAt={settings.startsAt}
-                            endsAt={settings.endsAt}
-                            onChange={(startsAt, endsAt) =>
-                              setSettings((current) => ({
-                                ...current,
-                                startsAt,
-                                endsAt,
-                                dateLabel:
-                                  startsAt && endsAt
-                                    ? formatDateRange(startsAt, endsAt)
-                                    : current.dateLabel,
-                              }))
-                            }
-                          />
-                        </div>
-                        <label className="sm:col-span-2">
-                          <span className="admin-label">Description</span>
-                          <textarea
-                            rows={4}
-                            value={settings.description}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                description: event.target.value,
-                              }))
-                            }
-                            className="admin-input h-auto py-3"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
-                          <span className="material-symbols-outlined">
-                            manufacturing
-                          </span>
-                        </span>
-                        <div>
-                          <h3 className="font-black text-slate-950">
-                            Operations capacity
-                          </h3>
-                          <p className="text-xs text-slate-500">
-                            Resources and tournament pacing
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                        <label>
-                          <span className="admin-label">Maximum teams</span>
-                          <input
-                            type="number"
-                            min={8}
-                            max={256}
-                            value={settings.maxPlayers}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                maxPlayers: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">Waitlist limit</span>
-                          <input
-                            type="number"
-                            min={0}
-                            max={128}
-                            value={settings.waitlistLimit}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                waitlistLimit: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">Active courts</span>
-                          <input
-                            type="number"
-                            min={1}
-                            max={12}
-                            value={settings.courts}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                courts: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">Match duration</span>
-                          <select
-                            value={settings.matchDuration}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                matchDuration: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input"
-                          >
-                            <option value={15}>15 minutes</option>
-                            <option value={20}>20 minutes</option>
-                            <option value={30}>30 minutes</option>
-                            <option value={45}>45 minutes</option>
-                            <option value={60}>60 minutes</option>
-                          </select>
-                        </label>
-                        <label>
-                          <span className="admin-label">
-                            Racket Sport / Discipline
-                          </span>
-                          <select
-                            value={settings.sport ?? "badminton"}
-                            onChange={(event) => {
-                              const selectedSport = event.target
-                                .value as SportType;
-                              const preset = SPORT_OPTIONS.find(
-                                (s) => s.value === selectedSport,
-                              )?.defaultRules;
-                              setSettings((current) => ({
-                                ...current,
-                                sport: selectedSport,
-                                scoringRules: preset
-                                  ? {
-                                      ...preset,
-                                      bronzeMatch:
-                                        current.scoringRules?.bronzeMatch ??
-                                        false,
-                                    }
-                                  : current.scoringRules,
-                              }));
-                            }}
-                            className="admin-input font-bold"
-                          >
-                            {SPORT_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label} — {opt.badge}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          <span className="admin-label">Team format</span>
-                          <select
-                            value={settings.teamSize}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                teamSize: event.target.value,
-                              }))
-                            }
-                            className="admin-input"
-                          >
-                            <option>Doubles</option>
-                            <option>Singles</option>
-                          </select>
-                        </label>
-                        <label>
-                          <span className="admin-label">
-                            Competition format
-                          </span>
-                          <select
-                            value={settings.format}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                format: event.target.value as TournamentFormat,
-                              }))
-                            }
-                            className="admin-input"
-                          >
-                            <option>Group stage + knockout</option>
-                            <option>Single elimination</option>
-                            <option>Round robin</option>
-                          </select>
-                        </label>
-                        <label>
-                          <span className="admin-label">
-                            Default teams per group
-                          </span>
-                          <input
-                            type="number"
-                            min={2}
-                            max={16}
-                            disabled={
-                              settings.format !== "Group stage + knockout"
-                            }
-                            value={settings.groupSize}
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                groupSize: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
-                          />
-                        </label>
-                        <label>
-                          <span className="admin-label">
-                            Default knockout size
-                          </span>
-                          <select
-                            value={settings.qualifierCount}
-                            disabled={
-                              settings.format !== "Group stage + knockout"
-                            }
-                            onChange={(event) =>
-                              setSettings((current) => ({
-                                ...current,
-                                qualifierCount: Number(event.target.value),
-                              }))
-                            }
-                            className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value={8}>Top 8</option>
-                            <option value={16}>Top 16</option>
-                            <option value={24}>Top 24</option>
-                            <option value={32}>Top 32</option>
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                        <span className="material-symbols-outlined">
-                          account_balance
-                        </span>
-                      </span>
-                      <div>
-                        <h3 className="font-black text-slate-950">
-                          Registration & Bank Transfer
-                        </h3>
-                        <p className="text-xs text-slate-500">
-                          Bank details, entry fees, deadline, and screening
-                          disclaimer
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                      <label>
-                        <span className="admin-label">
-                          Entry Fee per Pair (IDR)
-                        </span>
-                        <input
-                          type="number"
-                          value={settings.entryFeePerPair ?? 600000}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              entryFeePerPair: Number(event.target.value),
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label>
-                        <span className="admin-label">Bank Name</span>
-                        <input
-                          placeholder="e.g. BNI, BCA, Mandiri"
-                          value={settings.bankName ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              bankName: event.target.value,
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label>
-                        <span className="admin-label">Account Number</span>
-                        <input
-                          placeholder="e.g. 1984042386"
-                          value={settings.accountNumber ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              accountNumber: event.target.value,
-                            }))
-                          }
-                          className="admin-input font-mono"
-                        />
-                      </label>
-                      <label>
-                        <span className="admin-label">
-                          Account Holder (Atas Nama)
-                        </span>
-                        <input
-                          placeholder="e.g. PT. LOKA TAMA KREASI"
-                          value={settings.accountHolder ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              accountHolder: event.target.value,
-                            }))
-                          }
-                          className="admin-input uppercase"
-                        />
-                      </label>
-                      <label>
-                        <span className="admin-label">Contact Person (CP)</span>
-                        <input
-                          placeholder="e.g. Richard (0881025139999)"
-                          value={settings.contactPerson ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              contactPerson: event.target.value,
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label>
-                        <span className="admin-label">
-                          Registration Deadline
-                        </span>
-                        <input
-                          placeholder="e.g. 11 Agustus 2026"
-                          value={settings.registrationClosedAt ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              registrationClosedAt: event.target.value,
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label className="sm:col-span-2">
-                        <span className="admin-label">
-                          Payment Instructions (Berita Transfer)
-                        </span>
-                        <input
-                          placeholder="e.g. Format berita: [Nama 1] & [Nama 2] / [Kategori]"
-                          value={settings.paymentInstructions ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              paymentInstructions: event.target.value,
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label className="sm:col-span-2">
-                        <span className="admin-label">
-                          Jersey Sizes (comma separated)
-                        </span>
-                        <input
-                          placeholder="XS, S, M, L, XL, XXL, XXXL"
-                          value={(
-                            settings.jerseySizes ?? [
-                              "XS",
-                              "S",
-                              "M",
-                              "L",
-                              "XL",
-                              "XXL",
-                              "XXXL",
-                            ]
-                          ).join(", ")}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              jerseySizes: event.target.value
-                                .split(",")
-                                .map((s) => s.trim())
-                                .filter(Boolean),
-                            }))
-                          }
-                          className="admin-input"
-                        />
-                      </label>
-                      <label className="sm:col-span-2">
-                        <span className="admin-label">
-                          Registration Notes / Screening Rules
-                        </span>
-                        <textarea
-                          rows={2}
-                          placeholder="Kriteria peserta, screening level, atau kebijakan refund..."
-                          value={settings.registrationNotes ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              registrationNotes: event.target.value,
-                            }))
-                          }
-                          className="admin-input h-auto py-2.5"
-                        />
-                      </label>
-                      <label className="sm:col-span-2">
-                        <span className="admin-label">
-                          Disclaimer & Self-Assessment Text
-                        </span>
-                        <textarea
-                          rows={3}
-                          placeholder="Teks pernyataan yang wajib disetujui saat pendaftar mengonfirmasi form..."
-                          value={settings.disclaimerText ?? ""}
-                          onChange={(event) =>
-                            setSettings((current) => ({
-                              ...current,
-                              disclaimerText: event.target.value,
-                            }))
-                          }
-                          className="admin-input h-auto py-2.5"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                    <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-                      <div>
-                        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
-                          Match divisions
-                        </p>
-                        <h3 className="mt-1 text-xl font-black text-slate-950">
-                          Division-specific draw rules
-                        </h3>
-                        <p className="mt-1 text-sm text-slate-500">
-                          Override group and knockout sizes only where a
-                          division needs different rules.
-                        </p>
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_150px_auto]">
-                        <input
-                          value={newDivision}
-                          onChange={(event) =>
-                            setNewDivision(event.target.value)
-                          }
-                          placeholder="e.g. Mixed Doubles"
-                          className="admin-input"
-                        />
-                        <select
-                          value={newDivisionLevel}
-                          onChange={(event) =>
-                            setNewDivisionLevel(
-                              event.target.value as DivisionSkillLevel,
-                            )
-                          }
-                          className="admin-input"
-                        >
-                          {DIVISION_SKILL_LEVELS.map((level) => (
-                            <option key={level.value} value={level.value}>
-                              {level.label}
-                            </option>
-                          ))}
-                        </select>
+                  {/* Setup Sub-Tabs Navigation */}
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-xs">
+                    {SETUP_TABS.map((tab) => {
+                      const isActive = setupTab === tab.id;
+                      return (
                         <button
+                          key={tab.id}
                           type="button"
-                          onClick={addDivision}
-                          className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white transition hover:bg-blue-700"
+                          onClick={() => setSetupTab(tab.id)}
+                          className={cx(
+                            "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition",
+                            isActive
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                          )}
                         >
-                          Add division
+                          <span className="material-symbols-outlined text-lg">
+                            {tab.icon}
+                          </span>
+                          <span>{tab.label}</span>
                         </button>
-                      </div>
-                    </div>
-                    <div className="mt-5 grid gap-3 xl:grid-cols-2">
-                      {settings.categories.length === 0 ? (
-                        <div className="xl:col-span-2">
-                          <EmptyState
-                            icon="category"
-                            title="Add your first match division"
-                            description="Divisions keep registrations, draws, standings and brackets separated correctly."
-                          />
-                        </div>
-                      ) : (
-                        settings.categories.map((division) => {
-                          const override =
-                            settings.divisionSettings?.[division] ?? {};
-                          return (
-                            <div
-                              key={division}
-                              className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <p className="font-extrabold text-slate-950">
-                                    {division}
-                                  </p>
-                                  <p className="mt-1 text-xs text-slate-500">
-                                    {
-                                      teams.filter(
-                                        (team) => team.category === division,
-                                      ).length
-                                    }{" "}
-                                    registered teams
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeDivision(division)}
-                                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                                  aria-label={`Remove ${division}`}
-                                >
-                                  <span className="material-symbols-outlined text-lg">
-                                    delete
-                                  </span>
-                                </button>
-                              </div>
-                              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                                <label>
-                                  <span className="admin-label">
-                                    Format override
-                                  </span>
-                                  <select
-                                    value={override.format ?? ""}
-                                    onChange={(event) =>
-                                      setDivisionOverride(
-                                        division,
-                                        "format",
-                                        (event.target
-                                          .value as TournamentFormat) ||
-                                          undefined,
-                                      )
-                                    }
-                                    className="admin-input font-bold"
-                                  >
-                                    <option value="">
-                                      Default ({settings.format})
-                                    </option>
-                                    <option value="Group stage + knockout">
-                                      Group stage + knockout
-                                    </option>
-                                    <option value="Single elimination">
-                                      Single elimination
-                                    </option>
-                                    <option value="Round robin">
-                                      Round robin
-                                    </option>
-                                  </select>
-                                </label>
-                                <label>
-                                  <span className="admin-label">
-                                    Teams per group
-                                  </span>
-                                  <select
-                                    value={override.groupSize ?? ""}
-                                    disabled={
-                                      (override.format ?? settings.format) ===
-                                      "Single elimination"
-                                    }
-                                    onChange={(event) =>
-                                      setDivisionOverride(
-                                        division,
-                                        "groupSize",
-                                        event.target.value
-                                          ? Number(event.target.value)
-                                          : undefined,
-                                      )
-                                    }
-                                    className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
-                                  >
-                                    <option value="">
-                                      Default ({settings.groupSize})
-                                    </option>
-                                    {[2, 3, 4, 5, 6, 8].map((value) => (
-                                      <option key={value} value={value}>
-                                        {value} teams
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                                <label>
-                                  <span className="admin-label">
-                                    Knockout size
-                                  </span>
-                                  <select
-                                    value={override.knockoutSize ?? ""}
-                                    disabled={
-                                      (override.format ?? settings.format) ===
-                                      "Round robin"
-                                    }
-                                    onChange={(event) =>
-                                      setDivisionOverride(
-                                        division,
-                                        "knockoutSize",
-                                        event.target.value
-                                          ? Number(event.target.value)
-                                          : undefined,
-                                      )
-                                    }
-                                    className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
-                                  >
-                                    <option value="">
-                                      Default ({settings.qualifierCount})
-                                    </option>
-                                    {[2, 4, 8, 16, 24, 32, 64].map((value) => (
-                                      <option key={value} value={value}>
-                                        Top {value}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </label>
-                              </div>
-                              <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
-                                <input
-                                  type="checkbox"
-                                  checked={override.bronzeMatch ?? false}
-                                  onChange={(event) =>
-                                    setDivisionOverride(
-                                      division,
-                                      "bronzeMatch",
-                                      event.target.checked || undefined,
-                                    )
-                                  }
-                                  className="h-4 w-4 accent-blue-600"
-                                />
-                                Include a 3rd-place (bronze) match
-                              </label>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
-                        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
-                          Order of Play
-                        </p>
-                        <h3 className="mt-1 text-xl font-black text-slate-950">
-                          Session and court sequencing
-                        </h3>
-                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                          Configure how group and knockout matches fill every
-                          court. The same plan powers the operations grid and
-                          XLSX export.
-                        </p>
-                      </div>
-                      {!settings.oop && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettings((current) => ({
-                              ...current,
-                              oop: padelCahOopTemplate(current.categories),
-                            }))
-                          }
-                          className="h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200"
-                        >
-                          Use Padel CAH template
-                        </button>
-                      )}
-                    </div>
-
-                    {settings.oop ? (
-                      <div className="mt-5 space-y-5">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <label>
-                            <span className="admin-label">Day start time</span>
+                  {/* SUBTAB 1: UMUM & TEMPAT */}
+                  {setupTab === "general" && (
+                    <div className="grid gap-5 xl:grid-cols-2">
+                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                            <span className="material-symbols-outlined">
+                              badge
+                            </span>
+                          </span>
+                          <div>
+                            <h3 className="font-black text-slate-950">
+                              Tournament identity
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              What teams and spectators will see
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                          <label className="sm:col-span-2">
+                            <span className="admin-label">Tournament name</span>
                             <input
-                              value={settings.oop.startTime}
+                              value={settings.name}
                               onChange={(event) =>
-                                updateOopSettings((oop) => ({
-                                  ...oop,
-                                  startTime: event.target.value,
+                                setSettings((current) => ({
+                                  ...current,
+                                  name: event.target.value,
                                 }))
                               }
-                              placeholder="09:00"
+                              className="admin-input"
+                            />
+                          </label>
+                          <label>
+                            <span className="admin-label">Venue</span>
+                            <input
+                              value={settings.venue}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  venue: event.target.value,
+                                }))
+                              }
                               className="admin-input"
                             />
                           </label>
                           <label>
                             <span className="admin-label">
-                              Slots per session
+                              Lifecycle status
                             </span>
+                            <select
+                              value={settings.status}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  status: event.target
+                                    .value as TournamentStatus,
+                                }))
+                              }
+                              className="admin-input"
+                            >
+                              <option value="setup">Setup</option>
+                              <option value="registration">
+                                Registration open
+                              </option>
+                              <option value="live">Live</option>
+                              <option value="completed">Completed</option>
+                            </select>
+                          </label>
+                          <div className="sm:col-span-2">
+                            <span className="admin-label">
+                              Tournament dates
+                            </span>
+                            <DateRangePicker
+                              startsAt={settings.startsAt}
+                              endsAt={settings.endsAt}
+                              onChange={(startsAt, endsAt) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  startsAt,
+                                  endsAt,
+                                  dateLabel:
+                                    startsAt && endsAt
+                                      ? formatDateRange(startsAt, endsAt)
+                                      : current.dateLabel,
+                                }))
+                              }
+                            />
+                          </div>
+                          <label className="sm:col-span-2">
+                            <span className="admin-label">Description</span>
+                            <textarea
+                              rows={4}
+                              value={settings.description}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  description: event.target.value,
+                                }))
+                              }
+                              className="admin-input h-auto py-3"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                            <span className="material-symbols-outlined">
+                              manufacturing
+                            </span>
+                          </span>
+                          <div>
+                            <h3 className="font-black text-slate-950">
+                              Operations capacity
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              Resources and tournament pacing
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                          <label>
+                            <span className="admin-label">Maximum teams</span>
                             <input
                               type="number"
-                              min={1}
-                              max={12}
-                              value={settings.oop.slotsPerSession}
+                              min={8}
+                              max={256}
+                              value={settings.maxPlayers}
                               onChange={(event) =>
-                                updateOopSettings((oop) => ({
-                                  ...oop,
-                                  slotsPerSession: Math.max(
-                                    1,
-                                    Number(event.target.value) || 1,
-                                  ),
+                                setSettings((current) => ({
+                                  ...current,
+                                  maxPlayers: Number(event.target.value),
                                 }))
                               }
                               className="admin-input"
                             />
                           </label>
+                          <label>
+                            <span className="admin-label">Waitlist limit</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={128}
+                              value={settings.waitlistLimit}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  waitlistLimit: Number(event.target.value),
+                                }))
+                              }
+                              className="admin-input"
+                            />
+                          </label>
+                          <label>
+                            <span className="admin-label">Active courts</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={12}
+                              value={settings.courts}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  courts: Number(event.target.value),
+                                }))
+                              }
+                              className="admin-input"
+                            />
+                          </label>
+                          <label>
+                            <span className="admin-label">Match duration</span>
+                            <select
+                              value={settings.matchDuration}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  matchDuration: Number(event.target.value),
+                                }))
+                              }
+                              className="admin-input"
+                            >
+                              <option value={15}>15 minutes</option>
+                              <option value={20}>20 minutes</option>
+                              <option value={30}>30 minutes</option>
+                              <option value={45}>45 minutes</option>
+                              <option value={60}>60 minutes</option>
+                            </select>
+                          </label>
+                          <label className="sm:col-span-2">
+                            <span className="admin-label">Team format</span>
+                            <select
+                              value={settings.teamSize}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  teamSize: event.target.value,
+                                }))
+                              }
+                              className="admin-input"
+                            >
+                              <option>Doubles</option>
+                              <option>Singles</option>
+                            </select>
+                          </label>
                         </div>
-                        <div>
-                          <span className="admin-label">
-                            Groups fill courts in this order
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUBTAB 2: PENDAFTARAN & REKENING */}
+                  {setupTab === "registration" && (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                          <span className="material-symbols-outlined">
+                            account_balance
                           </span>
-                          <div className="flex flex-wrap gap-2">
-                            {settings.categories.map((division) => {
-                              const active =
-                                settings.oop?.categoryOrder.includes(
-                                  division,
-                                ) ?? false;
-                              return (
-                                <button
-                                  key={division}
-                                  type="button"
-                                  onClick={() =>
-                                    updateOopSettings((oop) => ({
-                                      ...oop,
-                                      categoryOrder: active
-                                        ? oop.categoryOrder.filter(
-                                            (item) => item !== division,
-                                          )
-                                        : [...oop.categoryOrder, division],
-                                    }))
-                                  }
-                                  className={cx(
-                                    "rounded-xl border px-3 py-2 text-xs font-extrabold transition",
-                                    active
-                                      ? "border-blue-300 bg-blue-50 text-blue-700"
-                                      : "border-slate-200 bg-white text-slate-500 hover:border-blue-200",
-                                  )}
-                                >
-                                  {division}
-                                </button>
-                              );
-                            })}
+                        </span>
+                        <div>
+                          <h3 className="font-black text-slate-950">
+                            Registration & Bank Transfer
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Bank details, entry fees, deadline, and screening
+                            disclaimer
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                        <label>
+                          <span className="admin-label">
+                            Entry Fee per Pair (IDR)
+                          </span>
+                          <input
+                            type="number"
+                            value={settings.entryFeePerPair ?? 600000}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                entryFeePerPair: Number(event.target.value),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Bank Name</span>
+                          <input
+                            placeholder="e.g. BNI, BCA, Mandiri"
+                            value={settings.bankName ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                bankName: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">Account Number</span>
+                          <input
+                            placeholder="e.g. 1984042386"
+                            value={settings.accountNumber ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                accountNumber: event.target.value,
+                              }))
+                            }
+                            className="admin-input font-mono"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Account Holder (Atas Nama)
+                          </span>
+                          <input
+                            placeholder="e.g. PT. LOKA TAMA KREASI"
+                            value={settings.accountHolder ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                accountHolder: event.target.value,
+                              }))
+                            }
+                            className="admin-input uppercase"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Contact Person (CP)
+                          </span>
+                          <input
+                            placeholder="e.g. Richard (0881025139999)"
+                            value={settings.contactPerson ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                contactPerson: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label>
+                          <span className="admin-label">
+                            Registration Deadline
+                          </span>
+                          <input
+                            placeholder="e.g. 11 Agustus 2026"
+                            value={settings.registrationClosedAt ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                registrationClosedAt: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">
+                            Payment Instructions (Berita Transfer)
+                          </span>
+                          <input
+                            placeholder="e.g. Format berita: [Nama 1] & [Nama 2] / [Kategori]"
+                            value={settings.paymentInstructions ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                paymentInstructions: event.target.value,
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">
+                            Jersey Sizes (comma separated)
+                          </span>
+                          <input
+                            placeholder="XS, S, M, L, XL, XXL, XXXL"
+                            value={(
+                              settings.jerseySizes ?? [
+                                "XS",
+                                "S",
+                                "M",
+                                "L",
+                                "XL",
+                                "XXL",
+                                "XXXL",
+                              ]
+                            ).join(", ")}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                jerseySizes: event.target.value
+                                  .split(",")
+                                  .map((s) => s.trim())
+                                  .filter(Boolean),
+                              }))
+                            }
+                            className="admin-input"
+                          />
+                        </label>
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">
+                            Registration Notes / Screening Rules
+                          </span>
+                          <textarea
+                            rows={2}
+                            placeholder="Kriteria peserta, screening level, atau kebijakan refund..."
+                            value={settings.registrationNotes ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                registrationNotes: event.target.value,
+                              }))
+                            }
+                            className="admin-input h-auto py-2.5"
+                          />
+                        </label>
+                        <label className="sm:col-span-2">
+                          <span className="admin-label">
+                            Disclaimer & Self-Assessment Text
+                          </span>
+                          <textarea
+                            rows={3}
+                            placeholder="Teks pernyataan yang wajib disetujui saat pendaftar mengonfirmasi form..."
+                            value={settings.disclaimerText ?? ""}
+                            onChange={(event) =>
+                              setSettings((current) => ({
+                                ...current,
+                                disclaimerText: event.target.value,
+                              }))
+                            }
+                            className="admin-input h-auto py-2.5"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUBTAB 3: DIVISI & FORMAT */}
+                  {setupTab === "format" && (
+                    <div className="space-y-6">
+                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                            <span className="material-symbols-outlined">
+                              sports_tennis
+                            </span>
+                          </span>
+                          <div>
+                            <h3 className="font-black text-slate-950">
+                              Competition format & scoring rules
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              Tournament structure and default scoring preset
+                            </p>
                           </div>
                         </div>
-                        <div className="space-y-3">
-                          {settings.oop.sessions.map((session, index) => (
-                            <div
-                              key={`${session.time}-${index}`}
-                              className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                          <label>
+                            <span className="admin-label">
+                              Racket Sport / Discipline
+                            </span>
+                            <select
+                              value={settings.sport ?? "badminton"}
+                              onChange={(event) => {
+                                const selectedSport = event.target
+                                  .value as SportType;
+                                const preset = SPORT_OPTIONS.find(
+                                  (s) => s.value === selectedSport,
+                                )?.defaultRules;
+                                setSettings((current) => ({
+                                  ...current,
+                                  sport: selectedSport,
+                                  scoringRules: preset
+                                    ? {
+                                        ...preset,
+                                        bronzeMatch:
+                                          current.scoringRules?.bronzeMatch ??
+                                          false,
+                                      }
+                                    : current.scoringRules,
+                                }));
+                              }}
+                              className="admin-input font-bold"
                             >
-                              <div className="grid items-end gap-3 sm:grid-cols-[130px_130px_1fr_auto]">
-                                <label>
-                                  <span className="admin-label">
-                                    Session time
-                                  </span>
-                                  <input
-                                    value={session.time}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  time: event.target.value,
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    className="admin-input"
-                                  />
-                                </label>
-                                <label>
-                                  <span className="admin-label">Capacity</span>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={12}
-                                    value={session.capacity ?? ""}
-                                    placeholder="Auto"
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  capacity: event.target.value
-                                                    ? Number(event.target.value)
-                                                    : null,
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    className="admin-input"
-                                  />
-                                </label>
-                                <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700">
-                                  <input
-                                    type="checkbox"
-                                    checked={session.notBefore}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  notBefore:
-                                                    event.target.checked,
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    className="h-4 w-4 accent-blue-600"
-                                  />
-                                  Not before this time
-                                </label>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateOopSettings((oop) => ({
-                                      ...oop,
-                                      sessions: oop.sessions.filter(
-                                        (_, itemIndex) => itemIndex !== index,
-                                      ),
-                                    }))
-                                  }
-                                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-600"
-                                  aria-label={`Remove session ${session.time}`}
-                                >
-                                  <span className="material-symbols-outlined">
-                                    delete
-                                  </span>
-                                </button>
-                              </div>
-                              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                                <label>
-                                  <span className="admin-label">
-                                    Events before
-                                  </span>
-                                  <input
-                                    value={(session.eventsBefore ?? []).join(
-                                      ", ",
-                                    )}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  eventsBefore:
-                                                    event.target.value
-                                                      .split(",")
-                                                      .map((value) =>
-                                                        value.trim(),
-                                                      )
-                                                      .filter(Boolean),
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    placeholder="Opening ceremony"
-                                    className="admin-input"
-                                  />
-                                </label>
-                                <label>
-                                  <span className="admin-label">
-                                    Events mid (Title@slot)
-                                  </span>
-                                  <input
-                                    value={(session.eventsMid ?? [])
-                                      .map(
-                                        (item) =>
-                                          `${item.title}@${item.afterSlot}`,
-                                      )
-                                      .join(", ")}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  eventsMid: event.target.value
-                                                    .split(",")
-                                                    .map((raw) => {
-                                                      const [title, slot] = raw
-                                                        .trim()
-                                                        .split("@");
-                                                      return {
-                                                        title: (
-                                                          title ?? ""
-                                                        ).trim(),
-                                                        afterSlot:
-                                                          Number(slot) || 1,
-                                                      };
-                                                    })
-                                                    .filter(
-                                                      (entry) => entry.title,
-                                                    ),
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    placeholder="Games@1"
-                                    className="admin-input"
-                                  />
-                                </label>
-                                <label>
-                                  <span className="admin-label">
-                                    Events after
-                                  </span>
-                                  <input
-                                    value={(session.eventsAfter ?? []).join(
-                                      ", ",
-                                    )}
-                                    onChange={(event) =>
-                                      updateOopSettings((oop) => ({
-                                        ...oop,
-                                        sessions: oop.sessions.map(
-                                          (item, itemIndex) =>
-                                            itemIndex === index
-                                              ? {
-                                                  ...item,
-                                                  eventsAfter:
-                                                    event.target.value
-                                                      .split(",")
-                                                      .map((value) =>
-                                                        value.trim(),
-                                                      )
-                                                      .filter(Boolean),
-                                                }
-                                              : item,
-                                        ),
-                                      }))
-                                    }
-                                    placeholder="Awarding"
-                                    className="admin-input"
-                                  />
-                                </label>
-                              </div>
+                              {SPORT_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label} — {opt.badge}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            <span className="admin-label">
+                              Competition format
+                            </span>
+                            <select
+                              value={settings.format}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  format: event.target
+                                    .value as TournamentFormat,
+                                }))
+                              }
+                              className="admin-input"
+                            >
+                              <option>Group stage + knockout</option>
+                              <option>Single elimination</option>
+                              <option>Round robin</option>
+                            </select>
+                          </label>
+                          <label>
+                            <span className="admin-label">
+                              Default teams per group
+                            </span>
+                            <input
+                              type="number"
+                              min={2}
+                              max={16}
+                              disabled={
+                                settings.format !== "Group stage + knockout"
+                              }
+                              value={settings.groupSize}
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  groupSize: Number(event.target.value),
+                                }))
+                              }
+                              className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                          </label>
+                          <label>
+                            <span className="admin-label">
+                              Default knockout size
+                            </span>
+                            <select
+                              value={settings.qualifierCount}
+                              disabled={
+                                settings.format !== "Group stage + knockout"
+                              }
+                              onChange={(event) =>
+                                setSettings((current) => ({
+                                  ...current,
+                                  qualifierCount: Number(event.target.value),
+                                }))
+                              }
+                              className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <option value={8}>Top 8</option>
+                              <option value={16}>Top 16</option>
+                              <option value={24}>Top 24</option>
+                              <option value={32}>Top 32</option>
+                            </select>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                          <div>
+                            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                              Match divisions
+                            </p>
+                            <h3 className="mt-1 text-xl font-black text-slate-950">
+                              Division-specific draw rules
+                            </h3>
+                            <p className="mt-1 text-sm text-slate-500">
+                              Override group and knockout sizes only where a
+                              division needs different rules.
+                            </p>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_150px_auto]">
+                            <input
+                              value={newDivision}
+                              onChange={(event) =>
+                                setNewDivision(event.target.value)
+                              }
+                              placeholder="e.g. Mixed Doubles"
+                              className="admin-input"
+                            />
+                            <select
+                              value={newDivisionLevel}
+                              onChange={(event) =>
+                                setNewDivisionLevel(
+                                  event.target.value as DivisionSkillLevel,
+                                )
+                              }
+                              className="admin-input"
+                            >
+                              {DIVISION_SKILL_LEVELS.map((level) => (
+                                <option key={level.value} value={level.value}>
+                                  {level.label}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={addDivision}
+                              className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white transition hover:bg-blue-700"
+                            >
+                              Add division
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-5 grid gap-3 xl:grid-cols-2">
+                          {settings.categories.length === 0 ? (
+                            <div className="xl:col-span-2">
+                              <EmptyState
+                                icon="category"
+                                title="Add your first match division"
+                                description="Divisions keep registrations, draws, standings and brackets separated correctly."
+                              />
                             </div>
-                          ))}
+                          ) : (
+                            settings.categories.map((division) => {
+                              const override =
+                                settings.divisionSettings?.[division] ?? {};
+                              return (
+                                <div
+                                  key={division}
+                                  className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                      <p className="font-extrabold text-slate-950">
+                                        {division}
+                                      </p>
+                                      <p className="mt-1 text-xs text-slate-500">
+                                        {
+                                          teams.filter(
+                                            (team) =>
+                                              team.category === division,
+                                          ).length
+                                        }{" "}
+                                        registered teams
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeDivision(division)}
+                                      className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                      aria-label={`Remove ${division}`}
+                                    >
+                                      <span className="material-symbols-outlined text-lg">
+                                        delete
+                                      </span>
+                                    </button>
+                                  </div>
+                                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                    <label>
+                                      <span className="admin-label">
+                                        Format override
+                                      </span>
+                                      <select
+                                        value={override.format ?? ""}
+                                        onChange={(event) =>
+                                          setDivisionOverride(
+                                            division,
+                                            "format",
+                                            (event.target
+                                              .value as TournamentFormat) ||
+                                              undefined,
+                                          )
+                                        }
+                                        className="admin-input font-bold"
+                                      >
+                                        <option value="">
+                                          Default ({settings.format})
+                                        </option>
+                                        <option value="Group stage + knockout">
+                                          Group stage + knockout
+                                        </option>
+                                        <option value="Single elimination">
+                                          Single elimination
+                                        </option>
+                                        <option value="Round robin">
+                                          Round robin
+                                        </option>
+                                      </select>
+                                    </label>
+                                    <label>
+                                      <span className="admin-label">
+                                        Teams per group
+                                      </span>
+                                      <select
+                                        value={override.groupSize ?? ""}
+                                        disabled={
+                                          (override.format ??
+                                            settings.format) ===
+                                          "Single elimination"
+                                        }
+                                        onChange={(event) =>
+                                          setDivisionOverride(
+                                            division,
+                                            "groupSize",
+                                            event.target.value
+                                              ? Number(event.target.value)
+                                              : undefined,
+                                          )
+                                        }
+                                        className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
+                                      >
+                                        <option value="">
+                                          Default ({settings.groupSize})
+                                        </option>
+                                        {[2, 3, 4, 5, 6, 8].map((value) => (
+                                          <option key={value} value={value}>
+                                            {value} teams
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <label>
+                                      <span className="admin-label">
+                                        Knockout size
+                                      </span>
+                                      <select
+                                        value={override.knockoutSize ?? ""}
+                                        disabled={
+                                          (override.format ??
+                                            settings.format) === "Round robin"
+                                        }
+                                        onChange={(event) =>
+                                          setDivisionOverride(
+                                            division,
+                                            "knockoutSize",
+                                            event.target.value
+                                              ? Number(event.target.value)
+                                              : undefined,
+                                          )
+                                        }
+                                        className="admin-input disabled:cursor-not-allowed disabled:opacity-50"
+                                      >
+                                        <option value="">
+                                          Default ({settings.qualifierCount})
+                                        </option>
+                                        {[2, 4, 8, 16, 24, 32, 64].map(
+                                          (value) => (
+                                            <option key={value} value={value}>
+                                              Top {value}
+                                            </option>
+                                          ),
+                                        )}
+                                      </select>
+                                    </label>
+                                  </div>
+                                  <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
+                                    <input
+                                      type="checkbox"
+                                      checked={override.bronzeMatch ?? false}
+                                      onChange={(event) =>
+                                        setDivisionOverride(
+                                          division,
+                                          "bronzeMatch",
+                                          event.target.checked || undefined,
+                                        )
+                                      }
+                                      className="h-4 w-4 accent-blue-600"
+                                    />
+                                    Include a 3rd-place (bronze) match
+                                  </label>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SUBTAB 4: ORDER OF PLAY (OOP) */}
+                  {setupTab === "oop" && (
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                            Order of Play
+                          </p>
+                          <h3 className="mt-1 text-xl font-black text-slate-950">
+                            Session and court sequencing
+                          </h3>
+                          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                            Configure how group and knockout matches fill every
+                            court. The same plan powers the operations grid and
+                            XLSX export.
+                          </p>
+                        </div>
+                        {!settings.oop && (
                           <button
                             type="button"
                             onClick={() =>
-                              updateOopSettings((oop) => ({
-                                ...oop,
-                                sessions: [
-                                  ...oop.sessions,
-                                  { time: "", notBefore: true },
-                                ],
+                              setSettings((current) => ({
+                                ...current,
+                                oop: padelCahOopTemplate(current.categories),
                               }))
                             }
-                            className="h-10 rounded-xl border border-dashed border-blue-300 px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                            className="h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200"
                           >
-                            + Add OOP session
+                            Use Padel CAH template
                           </button>
+                        )}
+                      </div>
+
+                      {settings.oop ? (
+                        <div className="mt-5 space-y-5">
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <label>
+                              <span className="admin-label">
+                                Day start time
+                              </span>
+                              <input
+                                value={settings.oop.startTime}
+                                onChange={(event) =>
+                                  updateOopSettings((oop) => ({
+                                    ...oop,
+                                    startTime: event.target.value,
+                                  }))
+                                }
+                                placeholder="09:00"
+                                className="admin-input"
+                              />
+                            </label>
+                            <label>
+                              <span className="admin-label">
+                                Slots per session
+                              </span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={12}
+                                value={settings.oop.slotsPerSession}
+                                onChange={(event) =>
+                                  updateOopSettings((oop) => ({
+                                    ...oop,
+                                    slotsPerSession: Math.max(
+                                      1,
+                                      Number(event.target.value) || 1,
+                                    ),
+                                  }))
+                                }
+                                className="admin-input"
+                              />
+                            </label>
+                          </div>
+                          <div>
+                            <span className="admin-label">
+                              Groups fill courts in this order
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {settings.categories.map((division) => {
+                                const active =
+                                  settings.oop?.categoryOrder.includes(
+                                    division,
+                                  ) ?? false;
+                                return (
+                                  <button
+                                    key={division}
+                                    type="button"
+                                    onClick={() =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        categoryOrder: active
+                                          ? oop.categoryOrder.filter(
+                                              (item) => item !== division,
+                                            )
+                                          : [...oop.categoryOrder, division],
+                                      }))
+                                    }
+                                    className={cx(
+                                      "rounded-xl border px-3 py-2 text-xs font-extrabold transition",
+                                      active
+                                        ? "border-blue-300 bg-blue-50 text-blue-700"
+                                        : "border-slate-200 bg-white text-slate-500 hover:border-blue-200",
+                                    )}
+                                  >
+                                    {division}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            {settings.oop.sessions.map((session, index) => (
+                              <div
+                                key={`${session.time}-${index}`}
+                                className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                              >
+                                <div className="grid items-end gap-3 sm:grid-cols-[130px_130px_1fr_auto]">
+                                  <label>
+                                    <span className="admin-label">
+                                      Session time
+                                    </span>
+                                    <input
+                                      value={session.time}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    time: event.target.value,
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      className="admin-input"
+                                    />
+                                  </label>
+                                  <label>
+                                    <span className="admin-label">
+                                      Capacity
+                                    </span>
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={12}
+                                      value={session.capacity ?? ""}
+                                      placeholder="Auto"
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    capacity: event.target.value
+                                                      ? Number(
+                                                          event.target.value,
+                                                        )
+                                                      : null,
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      className="admin-input"
+                                    />
+                                  </label>
+                                  <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700">
+                                    <input
+                                      type="checkbox"
+                                      checked={session.notBefore}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    notBefore:
+                                                      event.target.checked,
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      className="h-4 w-4 accent-blue-600"
+                                    />
+                                    Not before this time
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateOopSettings((oop) => ({
+                                        ...oop,
+                                        sessions: oop.sessions.filter(
+                                          (_, itemIndex) => itemIndex !== index,
+                                        ),
+                                      }))
+                                    }
+                                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-600"
+                                    aria-label={`Remove session ${session.time}`}
+                                  >
+                                    <span className="material-symbols-outlined">
+                                      delete
+                                    </span>
+                                  </button>
+                                </div>
+                                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                                  <label>
+                                    <span className="admin-label">
+                                      Events before
+                                    </span>
+                                    <input
+                                      value={(session.eventsBefore ?? []).join(
+                                        ", ",
+                                      )}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    eventsBefore:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((value) =>
+                                                          value.trim(),
+                                                        )
+                                                        .filter(Boolean),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="Opening ceremony"
+                                      className="admin-input"
+                                    />
+                                  </label>
+                                  <label>
+                                    <span className="admin-label">
+                                      Events mid (Title@slot)
+                                    </span>
+                                    <input
+                                      value={(session.eventsMid ?? [])
+                                        .map(
+                                          (item) =>
+                                            `${item.title}@${item.afterSlot}`,
+                                        )
+                                        .join(", ")}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    eventsMid:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((raw) => {
+                                                          const [title, slot] =
+                                                            raw
+                                                              .trim()
+                                                              .split("@");
+                                                          return {
+                                                            title: (
+                                                              title ?? ""
+                                                            ).trim(),
+                                                            afterSlot:
+                                                              Number(slot) || 1,
+                                                          };
+                                                        })
+                                                        .filter(
+                                                          (entry) =>
+                                                            entry.title,
+                                                        ),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="Games@1"
+                                      className="admin-input"
+                                    />
+                                  </label>
+                                  <label>
+                                    <span className="admin-label">
+                                      Events after
+                                    </span>
+                                    <input
+                                      value={(session.eventsAfter ?? []).join(
+                                        ", ",
+                                      )}
+                                      onChange={(event) =>
+                                        updateOopSettings((oop) => ({
+                                          ...oop,
+                                          sessions: oop.sessions.map(
+                                            (item, itemIndex) =>
+                                              itemIndex === index
+                                                ? {
+                                                    ...item,
+                                                    eventsAfter:
+                                                      event.target.value
+                                                        .split(",")
+                                                        .map((value) =>
+                                                          value.trim(),
+                                                        )
+                                                        .filter(Boolean),
+                                                  }
+                                                : item,
+                                          ),
+                                        }))
+                                      }
+                                      placeholder="Awarding"
+                                      className="admin-input"
+                                    />
+                                  </label>
+                                </div>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateOopSettings((oop) => ({
+                                  ...oop,
+                                  sessions: [
+                                    ...oop.sessions,
+                                    { time: "", notBefore: true },
+                                  ],
+                                }))
+                              }
+                              className="h-10 rounded-xl border border-dashed border-blue-300 px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                            >
+                              + Add OOP session
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="mt-5 rounded-2xl border border-dashed border-blue-200 bg-blue-50/60 p-5 text-sm font-semibold text-blue-800">
-                        Enable the template to configure OOP sessions, events,
-                        category order and court capacity.
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="mt-5 rounded-2xl border border-dashed border-blue-200 bg-blue-50/60 p-5 text-sm font-semibold text-blue-800">
+                          Enable the template to configure OOP sessions, events,
+                          category order and court capacity.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

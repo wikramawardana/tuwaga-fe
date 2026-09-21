@@ -127,6 +127,35 @@ function TournamentCard({
             </p>
           </div>
         </div>
+        <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+          <Link
+            href={`/admin/tournaments/${tournament.id}?section=registrations`}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+          >
+            <span className="material-symbols-outlined text-[13px] text-slate-500">
+              group
+            </span>
+            Tim & Kurasi
+          </Link>
+          <Link
+            href={`/admin/tournaments/${tournament.id}?section=operations`}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+          >
+            <span className="material-symbols-outlined text-[13px] text-slate-500">
+              scoreboard
+            </span>
+            Jadwal & Skor
+          </Link>
+          <Link
+            href={`/admin/tournaments/${tournament.id}?section=setup`}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+          >
+            <span className="material-symbols-outlined text-[13px] text-slate-500">
+              tune
+            </span>
+            Pengaturan
+          </Link>
+        </div>
       </div>
       <div className="mt-5 flex items-center justify-between gap-3">
         <Link
