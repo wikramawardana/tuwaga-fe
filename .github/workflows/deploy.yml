@@ -140,10 +140,20 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Wait for startup
-        run: sleep 60
-
-      - name: Check app and auth path
+      - name: Wait for startup and check health
         run: |
-          curl -fsSIL https://tuwaga.wikra.my.id
-          curl -fsS https://tuwaga.wikra.my.id/api/auth/get-session
+          echo "Waiting for tuwaga-fe rollout and verifying health..."
+          MAX_ATTEMPTS=24
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Health check attempt $i/$MAX_ATTEMPTS..."
+            if curl -fsSIL --connect-timeout 10 --max-time 15 https://tuwaga.wikra.my.id >/dev/null 2>&1 && \
+               curl -fsS --connect-timeout 10 --max-time 15 https://tuwaga.wikra.my.id/api/auth/get-session >/dev/null 2>&1; then
+              echo "✓ Tuwaga frontend is healthy and serving requests!"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "✗ Health check timed out after $MAX_ATTEMPTS attempts."
+          curl -vSIL https://tuwaga.wikra.my.id || true
+          curl -vS https://tuwaga.wikra.my.id/api/auth/get-session || true
+          exit 1
