@@ -358,12 +358,13 @@ type ApiEnvelope<T> = {
 };
 
 function getApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(
-    /\/$/,
-    "",
-  );
+  const configuredUrl = (
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
+  )?.replace(/\/$/, "");
   if (!configuredUrl) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set.");
+    throw new Error(
+      "NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_API_URL is not set.",
+    );
   }
   return configuredUrl;
 }
@@ -423,12 +424,17 @@ async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  let token = await getAuthToken();
   const authRequired = requiresAuth(path);
+  let token: string | null = null;
 
-  if (authRequired && !token) {
-    await forceSignOutAndRedirect();
-    throw new Error("No authentication token available.");
+  if (authRequired) {
+    token = await getAuthToken();
+    if (!token) {
+      await forceSignOutAndRedirect();
+      throw new Error("No authentication token available.");
+    }
+  } else if (tokenPromise && Date.now() < tokenExpiry) {
+    token = await tokenPromise.catch(() => null);
   }
 
   const request = (authToken: string | null) =>

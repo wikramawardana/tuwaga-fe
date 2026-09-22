@@ -6,7 +6,12 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { CaprivalQualificationModal } from "@/components/tournaments/CaprivalQualificationModal";
 import { useSession } from "@/lib/auth-client";
+import {
+  getCaprivalCategoryEligibility,
+  isCaprivalTournament,
+} from "@/lib/caprivalQualifications";
 import { simplifyScore } from "@/lib/matchScore";
 import {
   getTournamentBySlug,
@@ -51,6 +56,10 @@ function TournamentPortalContent() {
   const [activeTab, setActiveTab] = useState<TabType>("my-registration");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Caprival qualification modal
+  const [showCaprivalModal, setShowCaprivalModal] = useState(false);
+  const isCaprival = isCaprivalTournament(slug);
+
   // Match list filter
   const [matchCategoryFilter, setMatchCategoryFilter] = useState<string>("all");
 
@@ -63,20 +72,23 @@ function TournamentPortalContent() {
       const tourney = await getTournamentBySlug(slug);
       setTournament(tourney);
 
-      // Load summary metrics (counts only, no player names leaked)
-      try {
-        const teamsData = await listPublicTeams(tourney.id || slug);
-        setSummary(teamsData.summary || null);
-      } catch (err) {
-        console.warn("Could not load summary:", err);
+      // Load summary metrics and matches in parallel
+      const targetId = tourney.id || slug;
+      const [teamsRes, matchesRes] = await Promise.allSettled([
+        listPublicTeams(targetId),
+        listMatches(targetId),
+      ]);
+
+      if (teamsRes.status === "fulfilled") {
+        setSummary(teamsRes.value.summary || null);
+      } else {
+        console.warn("Could not load summary:", teamsRes.reason);
       }
 
-      // Load matches if available
-      try {
-        const matchData = await listMatches(tourney.id || slug);
-        setMatches(matchData || []);
-      } catch (err) {
-        console.warn("Could not load matches:", err);
+      if (matchesRes.status === "fulfilled") {
+        setMatches(matchesRes.value || []);
+      } else {
+        console.warn("Could not load matches:", matchesRes.reason);
       }
     } catch (err) {
       console.error("Failed to load tournament portal:", err);
@@ -1395,6 +1407,45 @@ function TournamentPortalContent() {
           ────────────────────────────────────────────────────────── */}
           {activeTab === "categories" && (
             <div className="mt-8 space-y-6">
+              {/* Caprival Qualification Banner */}
+              {isCaprival && (
+                <div className="rounded-2xl border border-indigo-900/30 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
+                          <span className="material-symbols-outlined text-[13px]">
+                            verified
+                          </span>
+                          The Grand Caprival
+                        </span>
+                        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+                          Kuota: 24 Pasang (24 Pair) / Kategori
+                        </span>
+                      </div>
+                      <h3 className="text-base font-extrabold text-white">
+                        Panduan & Matriks Kualifikasi Kategori Resmi
+                      </h3>
+                      <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                        Turnamen The Grand Caprival memberlakukan standarisasi
+                        level ketat untuk cabang Tenis & Padel. Pastikan Anda
+                        memeriksa matriks kualifikasi sebelum mendaftar.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCaprivalModal(true)}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-2.5 text-xs font-black text-slate-950 shadow-md transition hover:bg-amber-300"
+                    >
+                      <span className="material-symbols-outlined text-base">
+                        table_chart
+                      </span>
+                      Buka Matriks Kualifikasi
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-blue-600">
@@ -1415,6 +1466,10 @@ function TournamentPortalContent() {
               {/* Division slots grid */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {categories.map((cat) => {
+                  const caprivalEligibility = isCaprival
+                    ? getCaprivalCategoryEligibility(cat)
+                    : null;
+
                   return (
                     <div
                       key={cat}
@@ -1425,11 +1480,32 @@ function TournamentPortalContent() {
                           <h4 className="text-base font-extrabold text-slate-900">
                             {cat}
                           </h4>
+                          {caprivalEligibility && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                                {caprivalEligibility.quota}
+                              </span>
+                              <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700">
+                                {caprivalEligibility.badgeText}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold uppercase text-emerald-800">
                           Slot Dibuka
                         </span>
                       </div>
+
+                      {caprivalEligibility && (
+                        <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600">
+                          <span className="font-bold text-slate-900 block mb-0.5">
+                            Kriteria Kelayakan:
+                          </span>
+                          <p className="text-[11px] leading-relaxed">
+                            {caprivalEligibility.description}
+                          </p>
+                        </div>
+                      )}
 
                       <div className="mt-5 border-t border-slate-100 pt-4">
                         <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
@@ -1622,6 +1698,104 @@ function TournamentPortalContent() {
           ────────────────────────────────────────────────────────── */}
           {activeTab === "info" && (
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Caprival Qualification Card in Tab 4 */}
+              {isCaprival && (
+                <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-slate-50 p-6 sm:p-8 shadow-xs lg:col-span-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-indigo-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
+                        <span className="material-symbols-outlined text-2xl">
+                          verified
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-slate-900">
+                            Standar Kualifikasi Level Pemain (Tenis & Padel)
+                          </h3>
+                          <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-black uppercase text-amber-900">
+                            The Grand Caprival
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Untuk menjaga integritas kompetisi, seluruh tim akan
+                          melewati tahap kurasi & verifikasi profil secara
+                          ketat.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCaprivalModal(true)}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-indigo-700"
+                    >
+                      <span className="material-symbols-outlined text-base">
+                        table_chart
+                      </span>
+                      Buka Matriks Lengkap (Pop-up)
+                    </button>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4 space-y-1.5">
+                      <span className="font-extrabold text-amber-900 block text-sm">
+                        Upper Beginner Women
+                      </span>
+                      <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                        24 Pair
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Khusus pemula tenis & padel. Dilarang bagi mantan atlet
+                        pro raket (5 thn), tenis intermediate/advanced, peraih
+                        gelar resmi, dan coach.
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1.5">
+                      <span className="font-extrabold text-slate-900 block text-sm">
+                        Bronze (Men & Women)
+                      </span>
+                      <span className="inline-block rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                        24 Pair Men & Women
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Pemain intermediate tenis atau 2x juara beginner
+                        (partner beda). Dilarang untuk advanced tenis, coach,
+                        dan peraih podium silver/gold.
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-1.5">
+                      <span className="font-extrabold text-indigo-950 block text-sm">
+                        Silver Open
+                      </span>
+                      <span className="inline-block rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-800">
+                        24 Pair
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Terbuka untuk petenis advanced, pelatih tenis/padel, dan
+                        semifinalis turnamen silver. Dilarang bagi pro raket (5
+                        thn) & pemain PON.
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-sky-200 bg-sky-50/40 p-4 space-y-1.5">
+                      <span className="font-extrabold text-sky-950 block text-sm">
+                        KU-14 Men
+                      </span>
+                      <span className="inline-block rounded bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-800">
+                        24 Pair (U-14)
+                      </span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        Pembinaan junior putra kelahiran tahun 2012 atau
+                        setelahnya. Wajib melampirkan identitas resmi saat
+                        mendaftar.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Venue Card */}
               <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-2">
@@ -1829,6 +2003,14 @@ function TournamentPortalContent() {
           )}
         </div>
       </main>
+
+      {/* Caprival Qualification Matrix Modal */}
+      {isCaprival && (
+        <CaprivalQualificationModal
+          isOpen={showCaprivalModal}
+          onClose={() => setShowCaprivalModal(false)}
+        />
+      )}
 
       <Footer />
     </div>

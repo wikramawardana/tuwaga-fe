@@ -6,7 +6,15 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import RegistrationProgress from "@/components/RegistrationProgress";
 import RegistrationShell from "@/components/RegistrationShell";
+import {
+  CaprivalQualificationModal,
+  CaprivalSelectedCategoryGuide,
+} from "@/components/tournaments/CaprivalQualificationModal";
 import { useSession } from "@/lib/auth-client";
+import {
+  getCaprivalCategoryEligibility,
+  isCaprivalTournament,
+} from "@/lib/caprivalQualifications";
 import { divisionSkillLevel } from "@/lib/matchDivisions";
 import {
   createRegistration,
@@ -188,6 +196,9 @@ export default function TournamentRegisterPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmedDisclaimer, setConfirmedDisclaimer] = useState(false);
 
+  // Caprival qualification guide modal state
+  const [showCaprivalModal, setShowCaprivalModal] = useState(false);
+
   // Uploading state flags
   const [uploadingState, setUploadingState] = useState<Record<string, boolean>>(
     {},
@@ -195,6 +206,11 @@ export default function TournamentRegisterPage() {
 
   // Form states
   const [selectedCategory, setSelectedCategory] = useState("");
+
+  const isCaprival = isCaprivalTournament(slug);
+  const isYouthCategory =
+    selectedCategory.toLowerCase().includes("ku-14") ||
+    selectedCategory.toLowerCase().includes("u-14");
 
   const [player1, setPlayer1] = useState({
     fullName: "",
@@ -541,6 +557,45 @@ export default function TournamentRegisterPage() {
               </div>
             </div>
 
+            {/* Caprival Qualification Guide Banner */}
+            {isCaprival && (
+              <div className="mb-6 rounded-2xl border border-indigo-900/30 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-5 text-white shadow-md">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
+                        <span className="material-symbols-outlined text-[13px]">
+                          verified
+                        </span>
+                        The Grand Caprival
+                      </span>
+                      <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+                        Kuota 24 Pasang / Kategori
+                      </span>
+                    </div>
+                    <h3 className="text-base font-extrabold text-white">
+                      Panduan & Syarat Kualifikasi Kategori
+                    </h3>
+                    <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                      Turnamen menerapkan kurasi ketat level pemain (Tenis &
+                      Padel). Pastikan pasangan Anda memenuhi kriteria sebelum
+                      memilih kategori.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCaprivalModal(true)}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-md transition hover:bg-amber-300"
+                  >
+                    <span className="material-symbols-outlined text-base">
+                      table_chart
+                    </span>
+                    Lihat Matriks Kualifikasi
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Tournament brief banner info */}
             <div className="mb-6 rounded-xl border border-outline-variant/30 bg-surface-container-low/60 p-4 space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 pb-2">
@@ -578,6 +633,10 @@ export default function TournamentRegisterPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(tournament.settings.categories ?? []).map((cat) => {
                 const isSelected = selectedCategory === cat;
+                const caprivalInfo = isCaprival
+                  ? getCaprivalCategoryEligibility(cat)
+                  : null;
+
                 return (
                   <label key={cat} className="cursor-pointer">
                     <input
@@ -595,9 +654,9 @@ export default function TournamentRegisterPage() {
                           : "border-outline-variant hover:border-primary/40"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-start gap-3">
                         <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-on-primary transition-all ${
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-on-primary transition-all ${
                             isSelected ? "bg-primary opacity-100" : "opacity-0"
                           }`}
                         >
@@ -605,10 +664,20 @@ export default function TournamentRegisterPage() {
                             check
                           </span>
                         </span>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <h3 className="text-[17px] font-extrabold text-on-surface">
                             {cat}
                           </h3>
+                          {caprivalInfo && (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                                {caprivalInfo.quota}
+                              </span>
+                              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                                {caprivalInfo.badgeText}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -616,6 +685,14 @@ export default function TournamentRegisterPage() {
                 );
               })}
             </div>
+
+            {/* Dynamic Selected Category Eligibility Guide */}
+            {isCaprival && selectedCategory && (
+              <CaprivalSelectedCategoryGuide
+                categoryName={selectedCategory}
+                onOpenModal={() => setShowCaprivalModal(true)}
+              />
+            )}
           </section>
         )}
 
@@ -780,6 +857,22 @@ export default function TournamentRegisterPage() {
                   </select>
                 </div>
               </div>
+
+              {isCaprival && isYouthCategory && (
+                <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-xs text-sky-900 font-medium flex items-start gap-2.5">
+                  <span className="material-symbols-outlined text-sky-600 text-lg shrink-0 mt-0.5">
+                    child_care
+                  </span>
+                  <div>
+                    <strong className="text-sky-950 font-bold block mb-0.5">
+                      Verifikasi Usia KU-14 (Kelahiran 2012 atau Setelahnya):
+                    </strong>
+                    Pemain kategori KU-14 wajib melampirkan foto kartu identitas
+                    (KIA / Akta Kelahiran / Kartu Pelajar) yang memperlihatkan
+                    tanggal/tahun kelahiran untuk proses screening panitia.
+                  </div>
+                </div>
+              )}
 
               <FileUploadBox
                 label="Kartu Identitas Pemain 1"
@@ -958,6 +1051,23 @@ export default function TournamentRegisterPage() {
                 </div>
               </div>
 
+              {isCaprival && isYouthCategory && (
+                <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-xs text-sky-900 font-medium flex items-start gap-2.5">
+                  <span className="material-symbols-outlined text-sky-600 text-lg shrink-0 mt-0.5">
+                    child_care
+                  </span>
+                  <div>
+                    <strong className="text-sky-950 font-bold block mb-0.5">
+                      Verifikasi Usia KU-14 (Kelahiran 2012 atau Setelahnya):
+                    </strong>
+                    Pemain pasangan kategori KU-14 wajib melampirkan foto kartu
+                    identitas (KIA / Akta Kelahiran / Kartu Pelajar) yang
+                    memperlihatkan tanggal/tahun kelahiran untuk proses
+                    screening panitia.
+                  </div>
+                </div>
+              )}
+
               <FileUploadBox
                 label="Kartu Identitas Pemain 2"
                 description="Upload foto kartu identitas (KTP, SIM, Kartu Pelajar, atau KIA) untuk verifikasi identitas (Maks. 5MB)"
@@ -996,14 +1106,39 @@ export default function TournamentRegisterPage() {
             <div className="space-y-4">
               {/* Category card */}
               <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                  Kategori Pilihan
-                </span>
-                <div className="mt-1 flex items-center justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    Kategori Pilihan
+                  </span>
+                  {isCaprival && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCaprivalModal(true)}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:underline"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        table_chart
+                      </span>
+                      Cek Matriks Kualifikasi
+                    </button>
+                  )}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-lg font-black text-on-surface">
                     {selectedCategory}
                   </span>
+                  {isCaprival && (
+                    <span className="rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700">
+                      Kuota: 24 Pasang
+                    </span>
+                  )}
                 </div>
+                {isCaprival && (
+                  <p className="mt-2 text-[11px] text-slate-500 border-t border-outline-variant/20 pt-2">
+                    ✓ Pendaftaran tim Anda akan diverifikasi sesuai kriteria
+                    kelayakan resmi The Grand Caprival.
+                  </p>
+                )}
               </div>
 
               {/* Player 1 Card */}
@@ -1157,11 +1292,18 @@ export default function TournamentRegisterPage() {
                 </p>
                 <p className="whitespace-pre-line">
                   {tournament.settings.disclaimerText ||
-                    `1. Dengan ini saya menyatakan bahwa informasi yang saya dan pasangan saya berikan adalah benar dan sesuai dengan kondisi sebenarnya.
+                    (isCaprival
+                      ? `1. Dengan ini saya menyatakan bahwa informasi dan rekam jejak kemampuan level saya dan pasangan adalah benar sesuai kondisi sebenarnya.
+2. Kami telah membaca dan menyatakan bahwa kami memenuhi seluruh kriteria kualifikasi kategori ${selectedCategory} sesuai Matriks Kualifikasi Resmi The Grand Caprival.
+3. Kami bersedia mengikuti proses kurasi & verifikasi profil secara menyeluruh oleh panitia turnamen.
+4. Keputusan panitia terkait verifikasi level dan eligibilitas bersifat mutlak. Jika ditemukan ketidaksesuaian level/data, panitia berhak memindahkan kategori atau mendiskualifikasi tanpa pengembalian biaya.
+5. Pembayaran biaya pendaftaran baru dilakukan setelah tim dinyatakan lolos verifikasi kurasi panitia.
+6. Kami bersedia mematuhi seluruh peraturan pertandingan dan tata tertib turnamen The Grand Caprival.`
+                      : `1. Dengan ini saya menyatakan bahwa informasi yang saya dan pasangan saya berikan adalah benar dan sesuai dengan kondisi sebenarnya.
 2. Kami bersedia mengikuti proses screening kemampuan/level oleh panitia turnamen.
 3. Keputusan panitia terkait verifikasi level dan eligibilitas bersifat mutlak dan tidak dapat diganggu gugat.
 4. Pembayaran biaya pendaftaran dilakukan setelah tim dinyatakan lolos verifikasi/screening oleh panitia turnamen.
-5. Kami bersedia mematuhi seluruh peraturan pertandingan dan tata tertib turnamen.`}
+5. Kami bersedia mematuhi seluruh peraturan pertandingan dan tata tertib turnamen.`)}
                 </p>
               </div>
 
@@ -1217,6 +1359,15 @@ export default function TournamentRegisterPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* CAPRIVAL QUALIFICATION MATRIX MODAL */}
+      {isCaprival && (
+        <CaprivalQualificationModal
+          isOpen={showCaprivalModal}
+          onClose={() => setShowCaprivalModal(false)}
+          initialCategory={selectedCategory}
+        />
       )}
     </RegistrationShell>
   );
