@@ -569,9 +569,6 @@ export default function TournamentRegisterPage() {
                         </span>
                         The Grand Caprival
                       </span>
-                      <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-                        Kuota 24 Pasang / Kategori
-                      </span>
                     </div>
                     <h3 className="text-base font-extrabold text-white">
                       Panduan & Syarat Kualifikasi Kategori
@@ -670,9 +667,6 @@ export default function TournamentRegisterPage() {
                           </h3>
                           {caprivalInfo && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                                {caprivalInfo.quota}
-                              </span>
                               <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
                                 {caprivalInfo.badgeText}
                               </span>
@@ -1127,11 +1121,6 @@ export default function TournamentRegisterPage() {
                   <span className="text-lg font-black text-on-surface">
                     {selectedCategory}
                   </span>
-                  {isCaprival && (
-                    <span className="rounded-lg bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700">
-                      Kuota: 24 Pasang
-                    </span>
-                  )}
                 </div>
                 {isCaprival && (
                   <p className="mt-2 text-[11px] text-slate-500 border-t border-outline-variant/20 pt-2">

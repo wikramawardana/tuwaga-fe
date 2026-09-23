@@ -1419,9 +1419,6 @@ function TournamentPortalContent() {
                           </span>
                           The Grand Caprival
                         </span>
-                        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-                          Kuota: 24 Pasang (24 Pair) / Kategori
-                        </span>
                       </div>
                       <h3 className="text-base font-extrabold text-white">
                         Panduan & Matriks Kualifikasi Kategori Resmi
@@ -1482,9 +1479,6 @@ function TournamentPortalContent() {
                           </h4>
                           {caprivalEligibility && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-700">
-                                {caprivalEligibility.quota}
-                              </span>
                               <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700">
                                 {caprivalEligibility.badgeText}
                               </span>
@@ -1741,9 +1735,6 @@ function TournamentPortalContent() {
                       <span className="font-extrabold text-amber-900 block text-sm">
                         Upper Beginner Women
                       </span>
-                      <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                        24 Pair
-                      </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
                         Khusus pemula tenis & padel. Dilarang bagi mantan atlet
                         pro raket (5 thn), tenis intermediate/advanced, peraih
@@ -1754,9 +1745,6 @@ function TournamentPortalContent() {
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1.5">
                       <span className="font-extrabold text-slate-900 block text-sm">
                         Bronze (Men & Women)
-                      </span>
-                      <span className="inline-block rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
-                        24 Pair Men & Women
                       </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
                         Pemain intermediate tenis atau 2x juara beginner
@@ -1769,9 +1757,6 @@ function TournamentPortalContent() {
                       <span className="font-extrabold text-indigo-950 block text-sm">
                         Silver Open
                       </span>
-                      <span className="inline-block rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-800">
-                        24 Pair
-                      </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
                         Terbuka untuk petenis advanced, pelatih tenis/padel, dan
                         semifinalis turnamen silver. Dilarang bagi pro raket (5
@@ -1782,9 +1767,6 @@ function TournamentPortalContent() {
                     <div className="rounded-2xl border border-sky-200 bg-sky-50/40 p-4 space-y-1.5">
                       <span className="font-extrabold text-sky-950 block text-sm">
                         KU-14 Men
-                      </span>
-                      <span className="inline-block rounded bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-800">
-                        24 Pair (U-14)
                       </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
                         Pembinaan junior putra kelahiran tahun 2012 atau

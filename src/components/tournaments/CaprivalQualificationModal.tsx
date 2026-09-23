@@ -46,9 +46,6 @@ export function CaprivalQualificationModal({
                   </span>
                   The Grand Caprival
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-                  Kuota: 24 Pair per Kategori
-                </span>
               </div>
               <h2
                 id="caprival-modal-title"
@@ -252,9 +249,6 @@ export function CaprivalQualificationModal({
                         {CAPRIVAL_YOUTH_QUALIFICATION.title} (
                         {CAPRIVAL_YOUTH_QUALIFICATION.category})
                       </h4>
-                      <span className="inline-flex rounded-full bg-sky-200/80 px-2 py-0.5 text-[10px] font-bold text-sky-900">
-                        Kuota: {CAPRIVAL_YOUTH_QUALIFICATION.quota}
-                      </span>
                     </div>
                     <p className="text-xs font-bold text-sky-800">
                       🎂 Syarat Kelahiran:{" "}
@@ -296,15 +290,6 @@ export function CaprivalQualificationModal({
                       }`}
                     >
                       <span>{name}</span>
-                      <span
-                        className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                          isSelected
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        24 Pair
-                      </span>
                     </button>
                   );
                 })}
@@ -327,9 +312,6 @@ export function CaprivalQualificationModal({
                     <div className="flex items-center gap-2">
                       <span className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-extrabold text-indigo-700">
                         {currentEligibility.badgeText}
-                      </span>
-                      <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">
-                        {currentEligibility.quota}
                       </span>
                     </div>
                   </div>
@@ -458,7 +440,7 @@ export function CaprivalSelectedCategoryGuide({
               Kriteria Kualifikasi: {eligibility.name}
             </h4>
             <p className="text-[11px] text-indigo-800/80">
-              {eligibility.badgeText} • Kuota: {eligibility.quota}
+              {eligibility.badgeText}
             </p>
           </div>
         </div>

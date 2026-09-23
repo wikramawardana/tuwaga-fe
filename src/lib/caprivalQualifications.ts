@@ -14,7 +14,7 @@ export interface CriteriaSection {
 
 export interface CategoryEligibility {
   name: string;
-  quota: string;
+  quota?: string;
   tier: "Upper Beginner" | "Bronze" | "Silver" | "Youth";
   badgeText: string;
   allowedList: string[];
@@ -158,7 +158,6 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
 
 export const CAPRIVAL_YOUTH_QUALIFICATION = {
   category: "KU-14 Men",
-  quota: "24 Pasang (24 Pair)",
   title: "Youth Player Qualification (KU-14)",
   rule: "Born in 2012 or Later",
   indonesianRule:
@@ -175,7 +174,6 @@ export function getCaprivalCategoryEligibility(
   if (norm.includes("upper beginner")) {
     return {
       name: categoryName,
-      quota: "24 Pasang (24 Pair)",
       tier: "Upper Beginner",
       badgeText: "Pemula Murni / Beginner Tennis",
       description:
@@ -199,7 +197,6 @@ export function getCaprivalCategoryEligibility(
     const isMen = norm.includes("men");
     return {
       name: categoryName,
-      quota: "24 Pasang (24 Pair)",
       tier: "Bronze",
       badgeText: isMen ? "Bronze Men" : "Bronze Women",
       description:
@@ -223,7 +220,6 @@ export function getCaprivalCategoryEligibility(
   if (norm.includes("silver")) {
     return {
       name: categoryName,
-      quota: "24 Pasang (24 Pair)",
       tier: "Silver",
       badgeText: "Silver Open",
       description:
@@ -252,7 +248,6 @@ export function getCaprivalCategoryEligibility(
   ) {
     return {
       name: categoryName,
-      quota: "24 Pasang (24 Pair)",
       tier: "Youth",
       badgeText: "U-14 Kelahiran 2012+",
       description:
