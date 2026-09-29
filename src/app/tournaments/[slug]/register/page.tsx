@@ -6,10 +6,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import RegistrationProgress from "@/components/RegistrationProgress";
 import RegistrationShell from "@/components/RegistrationShell";
-import {
-  CaprivalQualificationModal,
-  CaprivalSelectedCategoryGuide,
-} from "@/components/tournaments/CaprivalQualificationModal";
+import { CaprivalQualificationModal } from "@/components/tournaments/CaprivalQualificationModal";
 import { useSession } from "@/lib/auth-client";
 import {
   getCaprivalCategoryEligibility,
@@ -684,14 +681,6 @@ export default function TournamentRegisterPage() {
                 );
               })}
             </div>
-
-            {/* Dynamic Selected Category Eligibility Guide */}
-            {isCaprival && selectedCategory && (
-              <CaprivalSelectedCategoryGuide
-                categoryName={selectedCategory}
-                onOpenModal={() => setShowCaprivalModal(true)}
-              />
-            )}
           </section>
         )}
 
