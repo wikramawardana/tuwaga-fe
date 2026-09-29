@@ -1463,6 +1463,10 @@ function TournamentPortalContent() {
               {/* Division slots grid */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {categories.map((cat) => {
+                  const displayCat =
+                    isCaprival && cat.toLowerCase().includes("silver")
+                      ? "Open Men"
+                      : cat;
                   const caprivalEligibility = isCaprival
                     ? getCaprivalCategoryEligibility(cat)
                     : null;
@@ -1475,7 +1479,7 @@ function TournamentPortalContent() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h4 className="text-base font-extrabold text-slate-900">
-                            {cat}
+                            {displayCat}
                           </h4>
                           {caprivalEligibility && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
@@ -1755,12 +1759,11 @@ function TournamentPortalContent() {
 
                     <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-1.5">
                       <span className="font-extrabold text-indigo-950 block text-sm">
-                        Silver Open
+                        Open Men
                       </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
-                        Terbuka untuk petenis advanced, pelatih tenis/padel, dan
-                        semifinalis turnamen silver. Dilarang bagi pro raket (5
-                        thn) & pemain PON.
+                        Kategori terbuka putra tanpa batasan kualifikasi khusus,
+                        terbuka bagi pemain dari berbagai level kompetisi.
                       </p>
                     </div>
 

@@ -19,9 +19,11 @@ export function CaprivalQualificationModal({
   initialCategory,
 }: CaprivalQualificationModalProps) {
   const [activeTab, setActiveTab] = useState<"matrix" | "categories">("matrix");
-  const [selectedCatName, setSelectedCatName] = useState<string>(
-    initialCategory || "Upper beginner women",
-  );
+  const [selectedCatName, setSelectedCatName] = useState<string>(() => {
+    if (!initialCategory) return "Upper beginner women";
+    if (initialCategory.toLowerCase().includes("silver")) return "Open Men";
+    return initialCategory;
+  });
 
   if (!isOpen) return null;
 
@@ -153,10 +155,7 @@ export function CaprivalQualificationModal({
                         </span>
                       </th>
                       <th className="py-3.5 px-4 text-center w-32 bg-indigo-50/60 text-indigo-900">
-                        Silver
-                        <span className="block text-[10px] font-normal text-indigo-700">
-                          (Open)
-                        </span>
+                        Open Men
                       </th>
                     </tr>
                   </thead>
@@ -215,16 +214,18 @@ export function CaprivalQualificationModal({
                                 </span>
                               )}
                             </td>
-                            {/* Silver Column */}
+                            {/* Open Men Column */}
                             <td className="py-3 px-4 text-center bg-indigo-50/20">
-                              {row.silver ? (
+                              {row.openMen === true ? (
                                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-black text-sm">
                                   ✓
                                 </span>
-                              ) : (
+                              ) : row.openMen === false ? (
                                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-black text-sm">
                                   ✕
                                 </span>
+                              ) : (
+                                <span className="inline-block h-6 w-6" />
                               )}
                             </td>
                           </tr>
@@ -274,7 +275,7 @@ export function CaprivalQualificationModal({
                   "Upper beginner women",
                   "Bronze Men",
                   "Bronze Women",
-                  "Silver Open",
+                  "Open Men",
                   "KU-14 Men",
                 ].map((name) => {
                   const isSelected = selectedCatName === name;
@@ -354,25 +355,41 @@ export function CaprivalQualificationModal({
                     </div>
 
                     {/* Disallowed */}
-                    <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-rose-900 font-bold text-xs">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white text-xs font-black">
-                          ✕
-                        </span>
-                        Dilarang Mendaftar (Not Allowed)
+                    {currentEligibility.disallowedList.length > 0 ? (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-rose-900 font-bold text-xs">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white text-xs font-black">
+                            ✕
+                          </span>
+                          Dilarang Mendaftar (Not Allowed)
+                        </div>
+                        <ul className="space-y-2 text-xs text-slate-700">
+                          {currentEligibility.disallowedList.map((item) => (
+                            <li
+                              key={item}
+                              className="flex items-start gap-2 leading-relaxed"
+                            >
+                              <span className="text-rose-600 font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <ul className="space-y-2 text-xs text-slate-700">
-                        {currentEligibility.disallowedList.map((item) => (
-                          <li
-                            key={item}
-                            className="flex items-start gap-2 leading-relaxed"
-                          >
-                            <span className="text-rose-600 font-bold">•</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    ) : (
+                      <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+                          <span className="material-symbols-outlined text-base text-indigo-600">
+                            public
+                          </span>
+                          Batasan Kualifikasi
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          Tidak ada batasan kualifikasi khusus untuk kategori
+                          Open Men. Kategori ini terbuka bagi seluruh pemain
+                          putra.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -487,20 +504,35 @@ export function CaprivalSelectedCategoryGuide({
         </div>
 
         {/* Quick Disallowed list */}
-        <div className="rounded-xl border border-rose-200 bg-white/90 p-3">
-          <div className="flex items-center gap-1.5 font-bold text-rose-800 text-[11px] uppercase tracking-wider mb-1.5">
-            <span className="text-rose-600 font-black">✕</span>
-            Dilarang (Not Allowed):
+        {eligibility.disallowedList.length > 0 ? (
+          <div className="rounded-xl border border-rose-200 bg-white/90 p-3">
+            <div className="flex items-center gap-1.5 font-bold text-rose-800 text-[11px] uppercase tracking-wider mb-1.5">
+              <span className="text-rose-600 font-black">✕</span>
+              Dilarang (Not Allowed):
+            </div>
+            <ul className="space-y-1 text-[11px] text-slate-700 leading-snug">
+              {eligibility.disallowedList.slice(0, 2).map((item) => (
+                <li key={item} className="flex items-start gap-1.5">
+                  <span className="text-rose-500 font-bold">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="space-y-1 text-[11px] text-slate-700 leading-snug">
-            {eligibility.disallowedList.slice(0, 2).map((item) => (
-              <li key={item} className="flex items-start gap-1.5">
-                <span className="text-rose-500 font-bold">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-indigo-100 bg-white/90 p-3">
+            <div className="flex items-center gap-1.5 font-bold text-indigo-900 text-[11px] uppercase tracking-wider mb-1.5">
+              <span className="material-symbols-outlined text-[15px] text-indigo-600">
+                public
+              </span>
+              Kategori Terbuka (Open)
+            </div>
+            <p className="text-[11px] text-slate-600 leading-snug">
+              Kategori ini terbuka untuk seluruh pemain tanpa batasan
+              kualifikasi.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

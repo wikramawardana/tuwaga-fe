@@ -1,9 +1,10 @@
 export interface MatrixRow {
   criteria: string;
   notes?: string;
-  upperBeginner: boolean;
-  bronze: boolean;
-  silver: boolean;
+  upperBeginner: boolean | null;
+  bronze: boolean | null;
+  openMen?: boolean | null;
+  silver?: boolean | null;
 }
 
 export interface CriteriaSection {
@@ -15,7 +16,7 @@ export interface CriteriaSection {
 export interface CategoryEligibility {
   name: string;
   quota?: string;
-  tier: "Upper Beginner" | "Bronze" | "Silver" | "Youth";
+  tier: "Upper Beginner" | "Bronze" | "Silver" | "Open" | "Youth";
   badgeText: string;
   allowedList: string[];
   disallowedList: string[];
@@ -42,28 +43,28 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
           "Atlet profesional / mantan atlet raket dalam kurun waktu 5 tahun terakhir",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "Advanced Tennis Players (Current or Ex-Junior Tennis)",
         notes: "Pemain tenis mahir / mantan pemain junior resmi",
         upperBeginner: false,
         bronze: false,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "Intermediate Tennis Players",
         notes: "Pemain tenis level menengah",
         upperBeginner: false,
         bronze: true,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "Beginner Tennis Players",
         notes: "Pemain tenis pemula / recreational player",
         upperBeginner: true,
         bronze: true,
-        silver: true,
+        openMen: null,
       },
     ],
   },
@@ -76,35 +77,35 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
         notes: "Pemain pro aktif maupun mantan pro padel",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "Semifinalist or Higher of Gold / Open Level Tournament",
         notes: "Semifinalis, finalis, atau juara turnamen kategori Gold / Open",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "Current / Ex PON Player",
         notes: "Pemain PON padel aktif maupun mantan atlet PON",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "2x Winner (Juara 1) of Silver Level Tournament",
         notes: "Pernah menjuarai turnamen kategori Silver minimal 2 kali",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "3x Finalist of Silver Level Tournament",
         notes: "Pernah menjadi finalis turnamen kategori Silver minimal 3 kali",
         upperBeginner: false,
         bronze: false,
-        silver: false,
+        openMen: null,
       },
       {
         criteria: "Padel Coach or Tennis Coach (licensed or unlicensed)",
@@ -112,28 +113,28 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
           "Pelatih padel atau tenis (baik berlisensi maupun tidak berlisensi)",
         upperBeginner: false,
         bronze: false,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "Semifinalist or Higher of Silver Level Tournament",
         notes: "Semifinalis atau lebih tinggi di turnamen Silver",
         upperBeginner: false,
         bronze: false,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "2x Winner (Juara 1) of Bronze Tournament",
         notes: "Pernah menjuarai turnamen kategori Bronze minimal 2 kali",
         upperBeginner: false,
         bronze: false,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "3x Finalist of Bronze Level Tournament",
         notes: "Pernah menjadi finalis turnamen kategori Bronze minimal 3 kali",
         upperBeginner: false,
         bronze: false,
-        silver: true,
+        openMen: null,
       },
       {
         criteria:
@@ -142,7 +143,7 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
           "Pernah 2x juara 1 turnamen Beginner dengan pasangan yang berbeda",
         upperBeginner: false,
         bronze: true,
-        silver: true,
+        openMen: null,
       },
       {
         criteria: "Any lower qualifications than mentioned all above",
@@ -150,7 +151,7 @@ export const CAPRIVAL_QUALIFICATION_SECTIONS: CriteriaSection[] = [
           "Pemain dengan kualifikasi di bawah kriteria di atas (recreational / pemula murni)",
         upperBeginner: true,
         bronze: true,
-        silver: true,
+        openMen: null,
       },
     ],
   },
@@ -194,7 +195,7 @@ export function getCaprivalCategoryEligibility(
   }
 
   if (norm.includes("bronze")) {
-    const isMen = norm.includes("men");
+    const isMen = norm.includes("men") && !norm.includes("women");
     return {
       name: categoryName,
       tier: "Bronze",
@@ -217,27 +218,18 @@ export function getCaprivalCategoryEligibility(
     };
   }
 
-  if (norm.includes("silver")) {
+  if (norm.includes("open") || norm.includes("silver")) {
     return {
-      name: categoryName,
-      tier: "Silver",
-      badgeText: "Silver Open",
+      name: "Open Men",
+      tier: "Open",
+      badgeText: "Open Men",
       description:
-        "Kategori terbuka tingkat lanjut dengan intensitas tinggi, terbuka untuk petenis mahir & pelatih.",
+        "Kategori terbuka putra (Open Men) tanpa batasan kualifikasi khusus, terbuka untuk pemain dari berbagai tingkat kemahiran.",
       allowedList: [
-        "Pemain tenis level Advanced (termasuk mantan petenis junior)",
-        "Pemain tenis level Intermediate & Beginner",
-        "Pelatih padel atau tenis (berlisensi maupun non-lisensi)",
-        "Semifinalis atau peraih podium turnamen Silver",
-        "Pernah menjuarai (Juara 1) turnamen Bronze 2 kali atau finalis 3 kali",
+        "Terbuka untuk seluruh pemain putra (Open Category)",
+        "Pemain tenis & padel dari berbagai tingkat kemahiran",
       ],
-      disallowedList: [
-        "Atlet pro / mantan pro cabang olahraga raket dalam kurun waktu 5 tahun terakhir",
-        "Pemain pro aktif / mantan pro padel",
-        "Semifinalis atau peringkat lebih tinggi di turnamen Gold / Open Level",
-        "Pemain PON (aktif maupun mantan kontingen PON)",
-        "Pernah 2x Juara 1 turnamen Silver atau 3x Finalis turnamen Silver",
-      ],
+      disallowedList: [],
     };
   }
 

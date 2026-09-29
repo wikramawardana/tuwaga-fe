@@ -629,7 +629,12 @@ export default function TournamentRegisterPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(tournament.settings.categories ?? []).map((cat) => {
-                const isSelected = selectedCategory === cat;
+                const displayCat =
+                  isCaprival && cat.toLowerCase().includes("silver")
+                    ? "Open Men"
+                    : cat;
+                const isSelected =
+                  selectedCategory === displayCat || selectedCategory === cat;
                 const caprivalInfo = isCaprival
                   ? getCaprivalCategoryEligibility(cat)
                   : null;
@@ -639,9 +644,9 @@ export default function TournamentRegisterPage() {
                     <input
                       type="radio"
                       name="category"
-                      value={cat}
+                      value={displayCat}
                       checked={isSelected}
-                      onChange={() => setSelectedCategory(cat)}
+                      onChange={() => setSelectedCategory(displayCat)}
                       className="sr-only"
                     />
                     <div
@@ -663,7 +668,7 @@ export default function TournamentRegisterPage() {
                         </span>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-[17px] font-extrabold text-on-surface">
-                            {cat}
+                            {displayCat}
                           </h3>
                           {caprivalInfo && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
