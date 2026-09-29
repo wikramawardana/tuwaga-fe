@@ -14,6 +14,7 @@ type RegistrationShellProps = {
   parentLabel?: string;
   parentHref?: string;
   currentLabel?: string;
+  hideFooter?: boolean;
   children: ReactNode;
 };
 
@@ -27,6 +28,7 @@ export default function RegistrationShell({
   parentLabel = "Home",
   parentHref = "/",
   currentLabel = "Register",
+  hideFooter = false,
   children,
 }: RegistrationShellProps) {
   const isCentered = headerAlign === "center";
@@ -71,7 +73,7 @@ export default function RegistrationShell({
         </div>
       </main>
 
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 }

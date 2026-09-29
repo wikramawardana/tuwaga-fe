@@ -1464,8 +1464,10 @@ function TournamentPortalContent() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {categories.map((cat) => {
                   const displayCat =
-                    isCaprival && cat.toLowerCase().includes("silver")
-                      ? "Open Men"
+                    isCaprival &&
+                    (cat.toLowerCase().includes("silver") ||
+                      cat.toLowerCase().includes("open"))
+                      ? "Mens Open"
                       : cat;
                   const caprivalEligibility = isCaprival
                     ? getCaprivalCategoryEligibility(cat)
@@ -1759,7 +1761,7 @@ function TournamentPortalContent() {
 
                     <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-1.5">
                       <span className="font-extrabold text-indigo-950 block text-sm">
-                        Open Men
+                        Mens Open
                       </span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
                         Kategori terbuka putra tanpa batasan kualifikasi khusus,

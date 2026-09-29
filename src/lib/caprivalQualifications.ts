@@ -4,6 +4,7 @@ export interface MatrixRow {
   upperBeginner: boolean | null;
   bronze: boolean | null;
   openMen?: boolean | null;
+  mensOpen?: boolean | null;
   silver?: boolean | null;
 }
 
@@ -220,13 +221,13 @@ export function getCaprivalCategoryEligibility(
 
   if (norm.includes("open") || norm.includes("silver")) {
     return {
-      name: "Open Men",
+      name: "Mens Open",
       tier: "Open",
-      badgeText: "Open Men",
+      badgeText: "Mens Open",
       description:
-        "Kategori terbuka putra (Open Men) tanpa batasan kualifikasi khusus, terbuka untuk pemain dari berbagai tingkat kemahiran.",
+        "Kategori terbuka putra (Mens Open) tanpa batasan kualifikasi khusus, terbuka untuk pemain dari berbagai tingkat kemahiran.",
       allowedList: [
-        "Terbuka untuk seluruh pemain putra (Open Category)",
+        "Terbuka untuk seluruh pemain putra (Mens Open Category)",
         "Pemain tenis & padel dari berbagai tingkat kemahiran",
       ],
       disallowedList: [],

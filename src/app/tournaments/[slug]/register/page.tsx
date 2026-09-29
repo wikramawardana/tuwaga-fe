@@ -417,7 +417,11 @@ export default function TournamentRegisterPage() {
 
   if (loading && !tournament) {
     return (
-      <RegistrationShell title="Memuat Turnamen..." showProgress={false}>
+      <RegistrationShell
+        title="Memuat Turnamen..."
+        showProgress={false}
+        hideFooter={true}
+      >
         <div className="flex h-64 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
@@ -427,7 +431,11 @@ export default function TournamentRegisterPage() {
 
   if (!tournament) {
     return (
-      <RegistrationShell title="Turnamen Tidak Ditemukan" showProgress={false}>
+      <RegistrationShell
+        title="Turnamen Tidak Ditemukan"
+        showProgress={false}
+        hideFooter={true}
+      >
         <div className="rounded-lg border border-error/20 bg-error-container p-6 text-sm font-semibold text-on-error-container">
           {message || "Informasi turnamen tidak dapat ditemukan."}
         </div>
@@ -445,6 +453,7 @@ export default function TournamentRegisterPage() {
         parentLabel={tournament.name}
         parentHref={`/tournaments/${slug}`}
         currentLabel="Daftar"
+        hideFooter={true}
       >
         <div className="mx-auto max-w-xl">
           <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10">
@@ -525,6 +534,7 @@ export default function TournamentRegisterPage() {
       parentLabel={tournament.name}
       parentHref={`/tournaments/${slug}`}
       currentLabel="Daftar"
+      hideFooter={true}
     >
       <RegistrationProgress steps={WIZARD_STEPS} current={step} />
 
@@ -627,8 +637,10 @@ export default function TournamentRegisterPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(tournament.settings.categories ?? []).map((cat) => {
                 const displayCat =
-                  isCaprival && cat.toLowerCase().includes("silver")
-                    ? "Open Men"
+                  isCaprival &&
+                  (cat.toLowerCase().includes("silver") ||
+                    cat.toLowerCase().includes("open"))
+                    ? "Mens Open"
                     : cat;
                 const isSelected =
                   selectedCategory === displayCat || selectedCategory === cat;

@@ -110,7 +110,7 @@ export function CaprivalQualificationModal({
                       </span>
                     </th>
                     <th className="py-3.5 px-4 text-center w-32 bg-indigo-50/60 text-indigo-900">
-                      Open Men
+                      Mens Open
                     </th>
                   </tr>
                 </thead>
@@ -169,13 +169,14 @@ export function CaprivalQualificationModal({
                               </span>
                             )}
                           </td>
-                          {/* Open Men Column */}
+                          {/* Mens Open Column */}
                           <td className="py-3 px-4 text-center bg-indigo-50/20">
-                            {row.openMen === true ? (
+                            {row.mensOpen === true || row.openMen === true ? (
                               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-black text-sm">
                                 ✓
                               </span>
-                            ) : row.openMen === false ? (
+                            ) : row.mensOpen === false ||
+                              row.openMen === false ? (
                               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-black text-sm">
                                 ✕
                               </span>
