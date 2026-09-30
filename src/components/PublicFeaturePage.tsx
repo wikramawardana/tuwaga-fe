@@ -1,53 +1,67 @@
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import type { AppIcon } from "@/components/icons/SportIcons";
+import RadarArt from "@/components/landing/RadarArt";
 import Navbar from "@/components/Navbar";
 
 export default function PublicFeaturePage({
   eyebrow,
   title,
   description,
-  icon,
+  icon: FeatureIcon,
 }: {
   eyebrow: string;
   title: string;
   description: string;
-  icon: string;
+  icon: AppIcon;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <Navbar />
-      <main className="relative flex flex-1 items-center overflow-hidden px-6 pb-20 pt-32 md:px-10">
-        <div className="mx-auto grid w-full max-w-[1200px] items-center gap-10 lg:grid-cols-[1fr_360px]">
-          <div className="relative z-10">
-            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
-              {eyebrow}
-            </span>
-            <h1 className="mt-5 max-w-3xl text-4xl font-extrabold tracking-tight text-on-surface md:text-5xl">
+      <main className="relative isolate flex flex-1 items-center overflow-hidden bg-ink-950 pb-24 pt-32 text-cream-100">
+        <div className="texture-grain pointer-events-none absolute inset-0 -z-10 opacity-60" />
+
+        <div className="container-page grid items-center gap-16 lg:grid-cols-[1fr_420px]">
+          <div>
+            <p className="eyebrow flex items-center gap-2.5 text-cream-100/60">
+              <span className="h-1.5 w-1.5 bg-brand-500" />
+              {eyebrow} · Coming soon
+            </p>
+            <h1 className="mt-6 max-w-2xl text-[clamp(2.5rem,6vw,4.75rem)] font-medium leading-[0.95] tracking-[-0.045em] text-cream-50">
               {title}
             </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-on-surface-variant">
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-cream-100/65 md:text-lg">
               {description}
             </p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-on-primary shadow-sm transition-colors hover:bg-primary/90"
-            >
-              <span className="material-symbols-outlined text-lg">
-                arrow_back
-              </span>
-              Back to tournaments
-            </Link>
+            <div className="cta-row mt-10">
+              <Link href="/" className="btn btn-lg btn-primary">
+                <ArrowLeftIcon weight="bold" aria-hidden="true" />
+                Back to tournaments
+              </Link>
+              <Link
+                href="/tournaments/live"
+                className="btn btn-lg btn-outline-dark"
+              >
+                Watch live scores
+              </Link>
+            </div>
           </div>
 
-          <div className="relative z-10 flex aspect-square items-center justify-center rounded-2xl border border-outline-variant/30 bg-white p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
-            <div className="flex h-36 w-36 items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-low">
-              <span className="material-symbols-outlined text-[72px] text-primary">
-                {icon}
+          <div className="relative mx-auto aspect-square w-full max-w-[420px]">
+            <RadarArt
+              className="absolute inset-0 h-full w-full"
+              showCourts={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-28 w-28 items-center justify-center rounded-3xl border border-cream-200/15 bg-ink-900/90 shadow-2xl backdrop-blur">
+                <FeatureIcon
+                  className="text-6xl text-brand-500"
+                  weight="duotone"
+                  aria-hidden="true"
+                />
               </span>
             </div>
-            <span className="absolute -bottom-3 -left-3 rounded-md bg-primary px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-on-primary shadow-sm">
-              Coming soon
-            </span>
           </div>
         </div>
       </main>

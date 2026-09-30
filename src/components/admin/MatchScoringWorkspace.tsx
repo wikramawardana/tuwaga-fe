@@ -1,5 +1,23 @@
 "use client";
 
+import {
+  CircleNotchIcon,
+  CloudCheckIcon,
+  InfoIcon,
+  LightbulbIcon,
+  LightningIcon,
+  MagnifyingGlassMinusIcon,
+  MinusIcon,
+  NotePencilIcon,
+  PencilSimpleLineIcon,
+  PlayCircleIcon,
+  PlusCircleIcon,
+  PlusIcon,
+  TargetIcon,
+  TrashIcon,
+  TrophyIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -59,13 +77,13 @@ function getSportCue(
     if (maxPts === 11 && minPts < 11) {
       return {
         type: "info",
-        text: "🏸 11-Point Interval: 60-second break & side change advice",
+        text: "11-Point Interval: 60-second break & side change advice",
       };
     }
     if (ptsA === 29 && ptsB === 29) {
       return {
         type: "alert",
-        text: "⚡ Sudden Death at 29-29: Next point wins the set (Cap 30)",
+        text: "Sudden Death at 29-29: Next point wins the set (Cap 30)",
       };
     }
     if (maxPts >= targetPts - 1 && diff >= 1) {
@@ -74,7 +92,7 @@ function getSportCue(
         (leader === "Team A" ? setsWonA : setsWonB) === setsToWin - 1;
       return {
         type: "warning",
-        text: `${isMatchPoint ? "🔥 MATCH POINT" : "🎯 GAME POINT"} for ${leader} (${ptsA}-${ptsB})`,
+        text: `${isMatchPoint ? "MATCH POINT" : "GAME POINT"} for ${leader} (${ptsA}-${ptsB})`,
       };
     }
   }
@@ -84,13 +102,13 @@ function getSportCue(
     if (ptsA === 6 && ptsB === 6) {
       return {
         type: "alert",
-        text: "🎾 Tiebreak at 6-6: First to 7 points (must win by 2)",
+        text: "Tiebreak at 6-6: First to 7 points (must win by 2)",
       };
     }
     if (rules?.goldenPoint && ptsA >= 5 && ptsB >= 5 && diff === 0) {
       return {
         type: "alert",
-        text: "⭐ Punto de Oro (Golden Point) active on deciding deuce!",
+        text: "Punto de Oro (Golden Point) active on deciding deuce!",
       };
     }
   }
@@ -100,14 +118,14 @@ function getSportCue(
     if (ptsA === 6 && ptsB === 6) {
       return {
         type: "alert",
-        text: "🎾 Tiebreak at 6-6: First to 7 points (must win by 2)",
+        text: "Tiebreak at 6-6: First to 7 points (must win by 2)",
       };
     }
     if (maxPts >= 5 && diff === 1) {
       const leader = ptsA > ptsB ? "Team A" : "Team B";
       return {
         type: "warning",
-        text: `🎯 Advantage / Game Point for ${leader}`,
+        text: `Advantage / Game Point for ${leader}`,
       };
     }
   }
@@ -128,18 +146,18 @@ function getSportCue(
       if (diff === 0) {
         return {
           type: "info",
-          text: `🏓 Deuce (10-10+). Service changes every point. Server: ${server}`,
+          text: `Deuce (10-10+). Service changes every point. Server: ${server}`,
         };
       }
       const leader = ptsA > ptsB ? "Team A" : "Team B";
       return {
         type: "warning",
-        text: `🎯 Game Point for ${leader}! Server: ${server}`,
+        text: `Game Point for ${leader}! Server: ${server}`,
       };
     }
     return {
       type: "neutral",
-      text: `🏓 Service: ${server} to serve (Total points: ${totalPoints})`,
+      text: `Service: ${server} to serve (Total points: ${totalPoints})`,
     };
   }
 
@@ -148,12 +166,14 @@ function getSportCue(
 
 function MatchScoringSkeleton() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f6f8fc] px-6 text-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-6 text-ink-900">
       <div className="text-center">
-        <span className="material-symbols-outlined admin-spin text-5xl text-blue-600">
-          progress_activity
-        </span>
-        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">
+        <CircleNotchIcon
+          className="admin-spin text-5xl text-brand-600"
+          aria-hidden="true"
+          weight="duotone"
+        />
+        <p className="mt-4 text-xs font-bold uppercase tracking-widest text-ink-500">
           Opening scoring room
         </p>
       </div>
@@ -332,18 +352,20 @@ export default function MatchScoringWorkspace({
 
   if (!match) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] px-6 text-slate-900">
+      <main className="flex min-h-screen items-center justify-center bg-canvas px-6 text-ink-900">
         <div className="max-w-md text-center">
-          <span className="material-symbols-outlined text-6xl text-slate-400">
-            search_off
-          </span>
-          <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-950">
+          <MagnifyingGlassMinusIcon
+            className="text-6xl text-ink-400"
+            aria-hidden="true"
+            weight="duotone"
+          />
+          <h1 className="mt-5 text-3xl font-black tracking-tight text-ink-950">
             Match not found
           </h1>
-          <p className="mt-3 text-sm text-slate-600">{message}</p>
+          <p className="mt-3 text-sm text-ink-600">{message}</p>
           <Link
             href={`/admin/tournaments/${tournamentId}?section=operations`}
-            className="mt-6 inline-flex h-11 items-center rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+            className="mt-6 inline-flex h-11 items-center rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400"
           >
             Back to operations
           </Link>
@@ -353,9 +375,9 @@ export default function MatchScoringWorkspace({
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f8fc] text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#06163b]/95 text-white shadow-xl shadow-blue-950/10 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1500px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+    <main className="min-h-screen bg-canvas text-ink-900">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/95 text-white shadow-xl shadow-ink-950/10 backdrop-blur-xl">
+        <div className="container-wide flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -366,29 +388,29 @@ export default function MatchScoringWorkspace({
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               aria-label="Close scoring workspace"
             >
-              <span className="material-symbols-outlined text-lg">close</span>
+              <XIcon className="text-lg" aria-hidden="true" weight="bold" />
             </button>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate text-sm font-black">
                   {tournament?.name}
                 </p>
-                <span className="rounded-md bg-blue-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-blue-200">
+                <span className="rounded-md bg-brand-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-cream-200">
                   #{match.id}
                 </span>
               </div>
-              <p className="truncate text-xs text-blue-200/60">
+              <p className="truncate text-xs text-cream-200/60">
                 {match.category} · {match.group ? `${match.group} · ` : ""}
                 {match.round}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-            <span className="hidden shrink-0 text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-200/60 sm:block">
+            <span className="hidden shrink-0 text-[10px] font-extrabold uppercase tracking-[0.16em] text-cream-200/60 sm:block">
               Other live courts
             </span>
             {otherActiveMatches.length === 0 ? (
-              <span className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-blue-100/60">
+              <span className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-cream-100/60">
                 No other live match
               </span>
             ) : (
@@ -405,7 +427,7 @@ export default function MatchScoringWorkspace({
             )}
             <Link
               href={`/admin/tournaments/${tournamentId}?section=operations`}
-              className="shrink-0 rounded-lg bg-blue-500 px-3 py-2 text-xs font-extrabold text-white transition hover:bg-blue-400"
+              className="shrink-0 rounded-lg bg-brand-500 px-3 py-2 text-xs font-extrabold text-ink-950 transition hover:bg-brand-400"
             >
               Operations board
             </Link>
@@ -413,8 +435,8 @@ export default function MatchScoringWorkspace({
         </div>
       </header>
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-[1500px] gap-3 px-4 py-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1fr_180px_180px_1fr]">
+      <section className="border-b border-ink-200 bg-white">
+        <div className="container-wide grid gap-3 py-4 sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_1fr]">
           <div className="flex items-center gap-3">
             <span
               className={cx(
@@ -423,14 +445,14 @@ export default function MatchScoringWorkspace({
                   ? "bg-rose-500"
                   : match.status === "completed"
                     ? "bg-emerald-500"
-                    : "bg-blue-500",
+                    : "bg-brand-500",
               )}
             />
             <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-ink-400">
                 Match state
               </p>
-              <p className="text-sm font-black capitalize text-slate-800">
+              <p className="text-sm font-black capitalize text-ink-800">
                 {match.status}
               </p>
             </div>
@@ -464,7 +486,7 @@ export default function MatchScoringWorkspace({
           </label>
           <div>
             <span className="admin-label">Scheduled</span>
-            <div className="flex h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700">
+            <div className="flex h-11 items-center rounded-xl border border-ink-200 bg-ink-50 px-3 text-sm font-bold text-ink-700">
               {match.time || "Not set"}
             </div>
           </div>
@@ -481,34 +503,37 @@ export default function MatchScoringWorkspace({
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:py-8">
-        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="container-wide py-5 lg:py-8">
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <span
-              className={cx(
-                "material-symbols-outlined mt-0.5 text-xl",
-                saving
-                  ? "admin-spin text-blue-600"
-                  : dirty
-                    ? "text-amber-500"
-                    : "text-emerald-500",
-              )}
-            >
-              {saving
-                ? "progress_activity"
-                : dirty
-                  ? "edit_note"
-                  : "cloud_done"}
-            </span>
+            {saving ? (
+              <CircleNotchIcon
+                className="admin-spin mt-0.5 shrink-0 text-xl text-brand-600"
+                weight="bold"
+                aria-hidden="true"
+              />
+            ) : dirty ? (
+              <PencilSimpleLineIcon
+                className="mt-0.5 shrink-0 text-xl text-amber-600"
+                weight="duotone"
+                aria-hidden="true"
+              />
+            ) : (
+              <CloudCheckIcon
+                className="mt-0.5 shrink-0 text-xl text-emerald-600"
+                weight="duotone"
+                aria-hidden="true"
+              />
+            )}
             <div>
-              <p className="text-sm font-extrabold text-blue-950">
+              <p className="text-sm font-extrabold text-ink-950">
                 {saving
                   ? "Saving score…"
                   : dirty
                     ? "Score changed · autosave in 5 seconds"
                     : message}
               </p>
-              <p className="mt-0.5 text-xs text-blue-700/60">
+              <p className="mt-0.5 text-xs text-brand-700/60">
                 Large controls are designed for quick court-side input. You can
                 still type an exact score.
               </p>
@@ -523,22 +548,22 @@ export default function MatchScoringWorkspace({
               )
             }
             disabled={!dirty || saving}
-            className="h-10 rounded-xl bg-blue-600 px-4 text-xs font-extrabold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+            className="h-10 rounded-xl bg-brand-500 px-4 text-xs font-extrabold text-ink-950 shadow-md shadow-ink-950/10 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Save now
           </button>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-blue-900/20 bg-[#071c4d] px-5 py-5 text-center text-white">
+          <section className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm">
+            <div className="border-b border-ink-900/20 bg-ink-950 px-5 py-5 text-center text-white">
               <div className="flex items-center justify-center gap-2">
-                <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-100">
+                <span className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-cream-100">
                   {tournament?.settings.sport
                     ?.replace("_", " ")
                     .toUpperCase() ?? "BADMINTON"}
                 </span>
-                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-blue-200/80">
+                <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-cream-200/80">
                   {match.category} · {match.round}
                 </p>
               </div>
@@ -550,26 +575,26 @@ export default function MatchScoringWorkspace({
                 <span className="text-4xl font-bold">{setWins.teamB}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 border-b border-slate-200">
-              <div className="border-r border-slate-200 p-4 text-center sm:p-6">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-xl font-black text-white shadow-lg shadow-blue-200">
+            <div className="grid grid-cols-2 border-b border-ink-200">
+              <div className="border-r border-ink-200 p-4 text-center sm:p-6">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-xl font-black text-ink-950 shadow-lg shadow-ink-950/10">
                   A
                 </span>
-                <h1 className="mt-4 text-lg font-black leading-tight text-slate-950 sm:text-2xl">
+                <h1 className="mt-4 text-lg font-black leading-tight text-ink-950 sm:text-2xl">
                   {teamA.name}
                 </h1>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-ink-400">
                   {teamARecord?.id ?? "Team pending"}
                 </p>
               </div>
               <div className="p-4 text-center sm:p-6">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500 text-xl font-black text-white shadow-lg shadow-cyan-200">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-ink-900 text-xl font-black text-white shadow-lg shadow-ink-950/10">
                   B
                 </span>
-                <h1 className="mt-4 text-lg font-black leading-tight text-slate-950 sm:text-2xl">
+                <h1 className="mt-4 text-lg font-black leading-tight text-ink-950 sm:text-2xl">
                   {teamB.name}
                 </h1>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-ink-400">
                   {teamBRecord?.id ?? "Team pending"}
                 </p>
               </div>
@@ -587,15 +612,15 @@ export default function MatchScoringWorkspace({
                 return (
                   <div
                     key={String(index)}
-                    className="admin-rise overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50/70 shadow-sm"
+                    className="admin-rise overflow-hidden rounded-2xl border-2 border-ink-200 bg-ink-50/70 shadow-sm"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
+                    <div className="flex items-center justify-between border-b border-ink-200 bg-white px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-700">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-ink-700">
                           Set {index + 1}
                         </p>
                         {tournament?.settings.sport && (
-                          <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-blue-700">
+                          <span className="rounded bg-brand-50 px-2 py-0.5 text-[10px] font-extrabold uppercase text-brand-700">
                             {tournament.settings.sport.replace("_", " ")}
                           </span>
                         )}
@@ -604,11 +629,13 @@ export default function MatchScoringWorkspace({
                         <button
                           type="button"
                           onClick={() => removeSet(index)}
-                          className="flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                          className="flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-ink-400 transition hover:bg-rose-50 hover:text-rose-600"
                         >
-                          <span className="material-symbols-outlined text-base">
-                            delete
-                          </span>
+                          <TrashIcon
+                            className="text-base"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           Remove
                         </button>
                       )}
@@ -620,30 +647,37 @@ export default function MatchScoringWorkspace({
                           cue.type === "alert"
                             ? "bg-rose-500 text-white animate-pulse"
                             : cue.type === "warning"
-                              ? "bg-amber-400 text-slate-950 shadow-inner"
+                              ? "bg-amber-400 text-ink-950 shadow-inner"
                               : cue.type === "info"
-                                ? "bg-blue-600 text-white"
-                                : "bg-slate-200 text-slate-800",
+                                ? "bg-brand-500 text-ink-950"
+                                : "bg-ink-200 text-ink-800",
                         )}
                       >
-                        <span className="font-extrabold">{cue.text}</span>
+                        <span className="flex items-center gap-2 font-extrabold">
+                          {cue.type === "alert" ? (
+                            <LightningIcon weight="fill" aria-hidden="true" />
+                          ) : cue.type === "warning" ? (
+                            <TargetIcon weight="bold" aria-hidden="true" />
+                          ) : (
+                            <InfoIcon weight="bold" aria-hidden="true" />
+                          )}
+                          {cue.text}
+                        </span>
                         <span className="text-[10px] font-black uppercase tracking-wider opacity-90">
                           Referee Cue
                         </span>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 divide-x divide-slate-200">
+                    <div className="grid grid-cols-2 divide-x divide-ink-200">
                       <div className="p-3 sm:p-5">
                         <div className="grid grid-cols-[44px_1fr_44px] items-center gap-2">
                           <button
                             type="button"
                             onClick={() => updateScore(index, "teamA", -1)}
-                            className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-blue-700 transition active:scale-90 hover:bg-blue-50"
+                            className="flex h-11 items-center justify-center rounded-xl border border-ink-200 bg-white text-brand-700 transition active:scale-90 hover:bg-brand-50"
                             aria-label={`Subtract one point from ${teamA.name}`}
                           >
-                            <span className="material-symbols-outlined">
-                              remove
-                            </span>
+                            <MinusIcon aria-hidden="true" weight="bold" />
                           </button>
                           <input
                             type="number"
@@ -657,18 +691,16 @@ export default function MatchScoringWorkspace({
                                 Number(event.target.value),
                               )
                             }
-                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-blue-100 bg-white text-center text-4xl font-black text-blue-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 sm:h-24 sm:text-6xl"
+                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-brand-100 bg-white text-center text-4xl font-black text-brand-700 outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100 sm:h-24 sm:text-6xl"
                             aria-label={`${teamA.name} set ${String(index + 1)} score`}
                           />
                           <button
                             type="button"
                             onClick={() => updateScore(index, "teamA", 1)}
-                            className="flex h-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200 transition active:scale-90 hover:bg-blue-700"
+                            className="flex h-11 items-center justify-center rounded-xl bg-brand-500 text-ink-950 shadow-md shadow-ink-950/10 transition active:scale-90 hover:bg-brand-400"
                             aria-label={`Add one point to ${teamA.name}`}
                           >
-                            <span className="material-symbols-outlined">
-                              add
-                            </span>
+                            <PlusIcon aria-hidden="true" weight="bold" />
                           </button>
                         </div>
                       </div>
@@ -677,12 +709,10 @@ export default function MatchScoringWorkspace({
                           <button
                             type="button"
                             onClick={() => updateScore(index, "teamB", -1)}
-                            className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-cyan-700 transition active:scale-90 hover:bg-cyan-50"
+                            className="flex h-11 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-900 transition active:scale-90 hover:bg-ink-100"
                             aria-label={`Subtract one point from ${teamB.name}`}
                           >
-                            <span className="material-symbols-outlined">
-                              remove
-                            </span>
+                            <MinusIcon aria-hidden="true" weight="bold" />
                           </button>
                           <input
                             type="number"
@@ -696,18 +726,16 @@ export default function MatchScoringWorkspace({
                                 Number(event.target.value),
                               )
                             }
-                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-cyan-100 bg-white text-center text-4xl font-black text-cyan-700 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-100 sm:h-24 sm:text-6xl"
+                            className="h-20 min-w-0 w-full rounded-2xl border-2 border-ink-200 bg-white text-center text-4xl font-black text-ink-900 outline-none transition focus:border-ink-900 focus:ring-4 focus:ring-ink-200 sm:h-24 sm:text-6xl"
                             aria-label={`${teamB.name} set ${String(index + 1)} score`}
                           />
                           <button
                             type="button"
                             onClick={() => updateScore(index, "teamB", 1)}
-                            className="flex h-11 items-center justify-center rounded-xl bg-cyan-500 text-white shadow-md shadow-cyan-200 transition active:scale-90 hover:bg-cyan-600"
+                            className="flex h-11 items-center justify-center rounded-xl bg-ink-900 text-white shadow-md shadow-ink-950/10 transition active:scale-90 hover:bg-ink-950"
                             aria-label={`Add one point to ${teamB.name}`}
                           >
-                            <span className="material-symbols-outlined">
-                              add
-                            </span>
+                            <PlusIcon aria-hidden="true" weight="bold" />
                           </button>
                         </div>
                       </div>
@@ -718,23 +746,23 @@ export default function MatchScoringWorkspace({
               <button
                 type="button"
                 onClick={addSet}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/50 text-sm font-extrabold text-blue-700 transition hover:border-blue-400 hover:bg-blue-50"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-200 bg-brand-50/50 text-sm font-extrabold text-brand-700 transition hover:border-brand-400 hover:bg-brand-50"
               >
-                <span className="material-symbols-outlined">add_circle</span>Add
-                another set
+                <PlusCircleIcon aria-hidden="true" weight="bold" />
+                Add another set
               </button>
             </div>
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+            <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-600">
                 Match actions
               </p>
-              <h2 className="mt-2 text-xl font-black text-slate-950">
+              <h2 className="mt-2 text-xl font-black text-ink-950">
                 Control this court
               </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
+              <p className="mt-2 text-sm leading-6 text-ink-500">
                 Status changes publish immediately to the public live view.
               </p>
               <div className="mt-5 space-y-2">
@@ -743,11 +771,9 @@ export default function MatchScoringWorkspace({
                     type="button"
                     onClick={startMatch}
                     disabled={!match.teamAId || !match.teamBId || saving}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:opacity-40"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-black text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400 disabled:opacity-40"
                   >
-                    <span className="material-symbols-outlined">
-                      play_circle
-                    </span>
+                    <PlayCircleIcon aria-hidden="true" weight="bold" />
                     Start match
                   </button>
                 )}
@@ -756,11 +782,9 @@ export default function MatchScoringWorkspace({
                     type="button"
                     onClick={() => setWinnerDialog(true)}
                     disabled={!match.teamAId || !match.teamBId || saving}
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-black text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:opacity-40"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-black text-white shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:opacity-40"
                   >
-                    <span className="material-symbols-outlined">
-                      emoji_events
-                    </span>
+                    <TrophyIcon aria-hidden="true" weight="bold" />
                     Finish match
                   </button>
                 )}
@@ -773,50 +797,48 @@ export default function MatchScoringWorkspace({
                         "Match reopened for score correction.",
                       )
                     }
-                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-black text-blue-700 transition hover:bg-blue-100"
+                    className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 text-sm font-black text-brand-700 transition hover:bg-brand-100"
                   >
-                    <span className="material-symbols-outlined">
-                      edit_square
-                    </span>
+                    <NotePencilIcon aria-hidden="true" weight="bold" />
                     Reopen scoring
                   </button>
                 )}
               </div>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+            <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-ink-400">
                 Score summary
               </p>
-              <p className="mt-3 text-3xl font-black tracking-tight text-blue-700">
+              <p className="mt-3 text-3xl font-black tracking-tight text-brand-700">
                 {scoreLabel(sets)}
               </p>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Sets recorded</span>
-                  <span className="font-black text-slate-800">
-                    {sets.length}
-                  </span>
+                  <span className="text-ink-500">Sets recorded</span>
+                  <span className="font-black text-ink-800">{sets.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Team A sets</span>
-                  <span className="font-black text-blue-700">
+                  <span className="text-ink-500">Team A sets</span>
+                  <span className="font-black text-brand-700">
                     {setWins.teamA}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Team B sets</span>
-                  <span className="font-black text-cyan-700">
+                  <span className="text-ink-500">Team B sets</span>
+                  <span className="font-black text-ink-900">
                     {setWins.teamB}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl bg-[#071c4d] p-5 text-white">
-              <span className="material-symbols-outlined text-blue-300">
-                lightbulb
-              </span>
+            <div className="rounded-2xl bg-ink-950 p-5 text-white">
+              <LightbulbIcon
+                className="text-cream-300"
+                aria-hidden="true"
+                weight="bold"
+              />
               <p className="mt-3 text-sm font-black">Multi-court workflow</p>
-              <p className="mt-2 text-xs leading-5 text-blue-100/70">
+              <p className="mt-2 text-xs leading-5 text-cream-100/70">
                 Use the live-court links in the top bar to open another match in
                 a new tab. Every tab autosaves independently.
               </p>
@@ -826,18 +848,18 @@ export default function MatchScoringWorkspace({
       </div>
 
       {winnerDialog && (
-        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/60 px-4 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            className="admin-dialog-enter w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.4)]"
+            className="admin-dialog-enter w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(23,23,23,0.4)]"
           >
-            <div className="bg-[#071c4d] p-6 text-white">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-blue-950/30">
-                <span className="material-symbols-outlined">emoji_events</span>
+            <div className="bg-ink-950 p-6 text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-ink-950/10">
+                <TrophyIcon aria-hidden="true" weight="bold" />
               </span>
               <h2 className="mt-4 text-2xl font-black">Choose the winner</h2>
-              <p className="mt-2 text-sm text-blue-100/70">
+              <p className="mt-2 text-sm text-cream-100/70">
                 Final score: {scoreLabel(sets)}. Confirming completes this
                 match.
               </p>
@@ -846,37 +868,37 @@ export default function MatchScoringWorkspace({
               <button
                 type="button"
                 onClick={() => match.teamAId && finishMatch(match.teamAId)}
-                className="rounded-2xl border-2 border-blue-100 p-5 text-left transition hover:border-blue-500 hover:bg-blue-50"
+                className="rounded-2xl border-2 border-brand-100 p-5 text-left transition hover:border-brand-500 hover:bg-brand-50"
               >
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-brand-500">
                   Team A wins
                 </span>
-                <span className="mt-2 block text-lg font-black text-slate-950">
+                <span className="mt-2 block text-lg font-black text-ink-950">
                   {teamA.name}
                 </span>
-                <span className="mt-2 block text-3xl font-black text-blue-700">
+                <span className="mt-2 block text-3xl font-black text-brand-700">
                   {setWins.teamA} sets
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => match.teamBId && finishMatch(match.teamBId)}
-                className="rounded-2xl border-2 border-cyan-100 p-5 text-left transition hover:border-cyan-500 hover:bg-cyan-50"
+                className="rounded-2xl border-2 border-ink-200 p-5 text-left transition hover:border-ink-900 hover:bg-ink-100"
               >
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-600">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-ink-950">
                   Team B wins
                 </span>
-                <span className="mt-2 block text-lg font-black text-slate-950">
+                <span className="mt-2 block text-lg font-black text-ink-950">
                   {teamB.name}
                 </span>
-                <span className="mt-2 block text-3xl font-black text-cyan-700">
+                <span className="mt-2 block text-3xl font-black text-ink-900">
                   {setWins.teamB} sets
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => setWinnerDialog(false)}
-                className="h-11 rounded-xl text-sm font-extrabold text-slate-500 transition hover:bg-slate-100 sm:col-span-2"
+                className="h-11 rounded-xl text-sm font-extrabold text-ink-500 transition hover:bg-ink-100 sm:col-span-2"
               >
                 Back to scoring
               </button>

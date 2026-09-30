@@ -1,3 +1,4 @@
+import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr";
 import PublicFeaturePage from "@/components/PublicFeaturePage";
 
 export default function DashboardPage() {
@@ -6,7 +7,7 @@ export default function DashboardPage() {
       eyebrow="Player dashboard"
       title="Your game, tracked."
       description="Personal statistics, upcoming matches, and performance history are being built. Live tournament results remain available today."
-      icon="monitoring"
+      icon={ChartLineIcon}
     />
   );
 }

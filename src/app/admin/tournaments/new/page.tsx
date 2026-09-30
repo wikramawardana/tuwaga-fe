@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  CircleNotchIcon,
+  GearSixIcon,
+  IdentificationBadgeIcon,
+  PlusIcon,
+  WarningCircleIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
@@ -17,7 +25,7 @@ import {
 
 function RequiredMark() {
   return (
-    <span className="ml-1 text-error" aria-hidden="true">
+    <span className="ml-1 text-rose-600" aria-hidden="true">
       *
     </span>
   );
@@ -116,54 +124,58 @@ export default function NewTournamentPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f6f8fc]">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <Navbar active="admin" />
 
       <main className="flex-1 pt-16">
-        <section className="border-b border-slate-200 bg-white">
-          <div className="relative mx-auto max-w-[1200px] px-6 py-10 md:px-10 md:py-12">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <section className="border-b border-ink-200 bg-white">
+          <div className="container-wide relative py-10 md:py-12">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-brand-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
               Guided tournament setup
             </span>
-            <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">
               Create a new command center
             </h1>
-            <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
+            <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-ink-600 md:text-base">
               Set the tournament identity, operating capacity and match
               divisions. You can refine every rule later from the setup panel.
             </p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1200px] px-6 py-8 md:px-10 md:py-10">
+        <section className="container-wide py-8 md:py-10">
           {error && (
-            <div className="mb-5 rounded-lg border border-error/20 bg-error-container p-4 text-sm font-semibold text-on-error-container">
+            <div className="mb-5 rounded-lg border border-rose-600/20 bg-rose-100 p-4 text-sm font-semibold text-rose-900">
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-lg">error</span>
+                <WarningCircleIcon
+                  className="text-lg"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <p>{error}</p>
               </div>
             </div>
           )}
 
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="admin-rise rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+            <div className="admin-rise rounded-2xl border border-ink-200 bg-white p-5 shadow-[0_16px_50px_rgba(23,23,23,0.06)] sm:p-6">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                  <span className="material-symbols-outlined">badge</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+                  <IdentificationBadgeIcon aria-hidden="true" weight="bold" />
                 </span>
                 <div>
-                  <h2 className="text-lg font-black text-slate-950">
+                  <h2 className="text-lg font-black text-ink-950">
                     Tournament details
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-ink-500">
                     Identity and event timing
                   </p>
                 </div>
               </div>
               <div className="mt-5 grid gap-4">
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Tournament name
                     <RequiredMark />
                   </span>
@@ -172,13 +184,13 @@ export default function NewTournamentPage() {
                     onChange={(event) => updateForm("name", event.target.value)}
                     placeholder="Jakarta Summer Open"
                     required
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   />
                 </label>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                       Venue
                       <RequiredMark />
                     </span>
@@ -189,11 +201,11 @@ export default function NewTournamentPage() {
                       }
                       placeholder="Main Arena"
                       required
-                      className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                     />
                   </label>
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                       Date range
                       <RequiredMark />
                     </span>
@@ -213,7 +225,7 @@ export default function NewTournamentPage() {
                 </div>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Description
                   </span>
                   <textarea
@@ -223,40 +235,38 @@ export default function NewTournamentPage() {
                     }
                     rows={4}
                     placeholder="Describe tournament purpose and operating notes."
-                    className="mt-2 w-full resize-none rounded-lg border border-outline-variant/50 bg-white px-3 py-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 w-full resize-none rounded-lg border border-ink-300/50 bg-white px-3 py-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   />
                 </label>
               </div>
             </div>
 
-            <aside className="admin-rise sticky top-20 rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_50px_rgba(15,23,42,0.06)] sm:p-6">
+            <aside className="admin-rise sticky top-20 rounded-2xl border border-ink-200 bg-white p-5 shadow-[0_16px_50px_rgba(23,23,23,0.06)] sm:p-6">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
-                  <span className="material-symbols-outlined">
-                    manufacturing
-                  </span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ink-200 text-ink-900">
+                  <GearSixIcon aria-hidden="true" weight="bold" />
                 </span>
                 <div>
-                  <h2 className="text-lg font-black text-slate-950">
+                  <h2 className="text-lg font-black text-ink-950">
                     Match setup
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-ink-500">
                     Capacity and draw defaults
                   </p>
                 </div>
               </div>
               <div className="mt-5 space-y-4">
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Entry price per player
                   </span>
-                  <div className="mt-2 grid grid-cols-[86px_1fr] overflow-hidden rounded-lg border border-outline-variant/50 bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+                  <div className="mt-2 grid grid-cols-[86px_1fr] overflow-hidden rounded-lg border border-ink-300/50 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/10">
                     <select
                       value={form.currency}
                       onChange={(event) =>
                         updateForm("currency", event.target.value)
                       }
-                      className="h-11 border-outline-variant/50 border-r bg-surface-container-low px-3 text-sm font-bold text-on-surface outline-none"
+                      className="h-11 border-ink-300/50 border-r bg-ink-100 px-3 text-sm font-bold text-ink-950 outline-none"
                     >
                       <option value="IDR">IDR</option>
                       <option value="USD">USD</option>
@@ -272,13 +282,13 @@ export default function NewTournamentPage() {
                           Number(event.target.value),
                         )
                       }
-                      className="h-11 w-full bg-white px-3 text-sm font-semibold text-on-surface outline-none"
+                      className="h-11 w-full bg-white px-3 text-sm font-semibold text-ink-950 outline-none"
                     />
                   </div>
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Maximum players
                   </span>
                   <input
@@ -289,12 +299,12 @@ export default function NewTournamentPage() {
                     onChange={(event) =>
                       updateForm("maxPlayers", Number(event.target.value))
                     }
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Waitlist limit
                   </span>
                   <input
@@ -305,12 +315,12 @@ export default function NewTournamentPage() {
                     onChange={(event) =>
                       updateForm("waitlistLimit", Number(event.target.value))
                     }
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Active courts
                   </span>
                   <input
@@ -321,15 +331,15 @@ export default function NewTournamentPage() {
                     onChange={(event) =>
                       updateForm("courts", Number(event.target.value))
                     }
-                    className="mt-3 w-full accent-primary"
+                    className="mt-3 w-full accent-brand-500"
                   />
-                  <span className="mt-1 block text-sm font-bold text-primary">
+                  <span className="mt-1 block text-sm font-bold text-brand-600">
                     {form.courts} courts
                   </span>
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Match duration
                   </span>
                   <select
@@ -337,7 +347,7 @@ export default function NewTournamentPage() {
                     onChange={(event) =>
                       updateForm("matchDuration", Number(event.target.value))
                     }
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   >
                     <option value={20}>20 minutes</option>
                     <option value={30}>30 minutes</option>
@@ -347,7 +357,7 @@ export default function NewTournamentPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Match format
                   </span>
                   <select
@@ -358,7 +368,7 @@ export default function NewTournamentPage() {
                         event.target.value as TournamentFormat,
                       )
                     }
-                    className="mt-2 h-11 w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                    className="mt-2 h-11 w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   >
                     <option>Group stage + knockout</option>
                     <option>Single elimination</option>
@@ -367,24 +377,26 @@ export default function NewTournamentPage() {
                 </label>
 
                 <div className="block">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Match divisions
                   </span>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {categories.map((cat) => (
                       <span
                         key={cat}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/8 px-3 py-1.5 text-sm font-bold text-primary"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500/20 bg-brand-500/8 px-3 py-1.5 text-sm font-bold text-brand-600"
                       >
                         {cat}
                         <button
                           type="button"
                           onClick={() => removeCategory(cat)}
-                          className="flex h-4 w-4 items-center justify-center rounded-full text-primary/60 transition-colors hover:bg-primary/15 hover:text-primary"
+                          className="flex h-4 w-4 items-center justify-center rounded-full text-brand-600/60 transition-colors hover:bg-brand-500/15 hover:text-brand-600"
                         >
-                          <span className="material-symbols-outlined text-[14px]">
-                            close
-                          </span>
+                          <XIcon
+                            className="text-[14px]"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                         </button>
                       </span>
                     ))}
@@ -400,7 +412,7 @@ export default function NewTournamentPage() {
                         }
                       }}
                       placeholder="e.g. Men's Doubles"
-                      className="h-10 min-w-[180px] flex-1 rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      className="h-10 min-w-[180px] flex-1 rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                     />
                     <select
                       value={newCategoryLevel}
@@ -409,7 +421,7 @@ export default function NewTournamentPage() {
                           event.target.value as DivisionSkillLevel,
                         )
                       }
-                      className="h-10 w-[160px] max-w-full rounded-lg border border-outline-variant/50 bg-white px-3 text-sm font-semibold text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/10"
+                      className="h-10 w-[160px] max-w-full rounded-lg border border-ink-300/50 bg-white px-3 text-sm font-semibold text-ink-950 outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                     >
                       {DIVISION_SKILL_LEVELS.map((level) => (
                         <option key={level.value} value={level.value}>
@@ -420,15 +432,17 @@ export default function NewTournamentPage() {
                     <button
                       type="button"
                       onClick={addCategory}
-                      className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
+                      className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-brand-500/10 px-3 text-sm font-bold text-brand-600 transition-colors hover:bg-brand-500/20"
                     >
-                      <span className="material-symbols-outlined text-lg">
-                        add
-                      </span>
+                      <PlusIcon
+                        className="text-lg"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Add
                     </button>
                   </div>
-                  <p className="mt-1 text-xs text-on-surface-variant">
+                  <p className="mt-1 text-xs text-ink-600">
                     Each division combines match category and competition level.
                     Teams choose one division during registration.
                   </p>
@@ -438,13 +452,21 @@ export default function NewTournamentPage() {
                   type="button"
                   onClick={createTournament}
                   disabled={submitting}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400 disabled:cursor-wait disabled:opacity-60"
                 >
-                  <span
-                    className={`material-symbols-outlined text-lg ${submitting ? "admin-spin" : ""}`}
-                  >
-                    {submitting ? "progress_activity" : "add"}
-                  </span>
+                  {submitting ? (
+                    <CircleNotchIcon
+                      className="admin-spin text-lg"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <PlusIcon
+                      className="text-lg"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                  )}
                   {submitting ? "Creating..." : "Create control room"}
                 </button>
               </div>

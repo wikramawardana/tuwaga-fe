@@ -11,8 +11,8 @@ export default async function AdminTournamentPage({
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f6f8fc]">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="flex min-h-screen items-center justify-center bg-canvas">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
         </div>
       }
     >

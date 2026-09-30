@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  CalendarBlankIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 
 export function formatDateRange(startDate: string, endDate: string) {
@@ -106,34 +111,36 @@ export default function DateRangePicker({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="mt-2 flex h-11 w-full items-center justify-between rounded-lg border border-outline-variant/50 bg-white px-3 text-left text-sm font-semibold text-on-surface outline-none transition-colors hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="mt-2 flex h-11 w-full items-center justify-between rounded-lg border border-ink-300/50 bg-white px-3 text-left text-sm font-semibold text-ink-950 outline-none transition-colors hover:border-brand-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
       >
-        <span
-          className={hasRange ? "text-on-surface" : "text-on-surface-variant"}
-        >
+        <span className={hasRange ? "text-ink-950" : "text-ink-600"}>
           {hasRange ? formatDateRange(startsAt, endsAt) : "Select date range"}
         </span>
-        <span className="material-symbols-outlined text-lg text-on-surface-variant">
-          date_range
-        </span>
+        <CalendarBlankIcon
+          className="text-lg text-ink-600"
+          aria-hidden="true"
+          weight="bold"
+        />
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 z-20 mt-2 rounded-lg border border-outline-variant/40 bg-white p-4 shadow-[0_16px_40px_rgba(15,23,42,0.14)] sm:left-auto sm:right-0 sm:w-[320px]">
+        <div className="absolute left-0 right-0 z-20 mt-2 rounded-lg border border-ink-300/40 bg-white p-4 shadow-[0_16px_40px_rgba(23,23,23,0.14)] sm:left-auto sm:right-0 sm:w-[320px]">
           <div className="flex items-center justify-between">
             <button
               type="button"
               onClick={() =>
                 setVisibleMonth((current) => addMonths(current, -1))
               }
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
               aria-label="Previous month"
             >
-              <span className="material-symbols-outlined text-xl">
-                chevron_left
-              </span>
+              <CaretLeftIcon
+                className="text-xl"
+                aria-hidden="true"
+                weight="duotone"
+              />
             </button>
-            <p className="text-sm font-extrabold text-on-surface">
+            <p className="text-sm font-extrabold text-ink-950">
               {monthFormatter.format(visibleMonth)}
             </p>
             <button
@@ -141,16 +148,18 @@ export default function DateRangePicker({
               onClick={() =>
                 setVisibleMonth((current) => addMonths(current, 1))
               }
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
               aria-label="Next month"
             >
-              <span className="material-symbols-outlined text-xl">
-                chevron_right
-              </span>
+              <CaretRightIcon
+                className="text-xl"
+                aria-hidden="true"
+                weight="duotone"
+              />
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-on-surface-variant">
+          <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-ink-600">
             {weekdays.map(([key, label]) => (
               <span key={key}>{label}</span>
             ))}
@@ -170,12 +179,12 @@ export default function DateRangePicker({
                   onClick={() => selectDate(day.key)}
                   className={`h-9 rounded-lg text-sm font-bold transition-colors ${
                     isStart || isEnd
-                      ? "bg-primary text-on-primary"
+                      ? "bg-brand-500 text-ink-950"
                       : isInRange
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-brand-500/10 text-brand-600"
                         : day.currentMonth
-                          ? "text-on-surface hover:bg-surface-container-low"
-                          : "text-on-surface-variant/50 hover:bg-surface-container-low"
+                          ? "text-ink-950 hover:bg-ink-100"
+                          : "text-ink-600/50 hover:bg-ink-100"
                   }`}
                 >
                   {day.label}
@@ -184,8 +193,8 @@ export default function DateRangePicker({
             })}
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-outline-variant/20 pt-3">
-            <p className="min-w-0 text-xs font-semibold text-on-surface-variant">
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-300/20 pt-3">
+            <p className="min-w-0 text-xs font-semibold text-ink-600">
               {startsAt && endsAt
                 ? formatDateRange(startsAt, endsAt)
                 : startsAt
@@ -195,7 +204,7 @@ export default function DateRangePicker({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="h-9 rounded-lg bg-primary px-4 text-xs font-bold text-on-primary transition-colors hover:bg-primary/90"
+              className="h-9 rounded-lg bg-brand-500 px-4 text-xs font-bold text-ink-950 transition-colors hover:bg-brand-500/90"
             >
               Done
             </button>

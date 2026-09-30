@@ -18,12 +18,12 @@ export default function PageBreadcrumb({
     >
       <Link
         href={parentHref}
-        className="text-on-surface-variant transition-colors hover:text-primary"
+        className="text-ink-600 transition-colors hover:text-brand-600"
       >
         {parentLabel}
       </Link>
-      <span className="text-outline">/</span>
-      <span className="text-primary">{current}</span>
+      <span className="text-ink-500">/</span>
+      <span className="text-brand-600">{current}</span>
     </nav>
   );
 }

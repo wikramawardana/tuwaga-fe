@@ -1,3 +1,4 @@
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/ssr";
 import PublicFeaturePage from "@/components/PublicFeaturePage";
 
 export default function CommunityPage() {
@@ -6,7 +7,7 @@ export default function CommunityPage() {
       eyebrow="Player community"
       title="Meet your next rival."
       description="Player groups, local match discovery, and community updates are coming soon. For now, join an active tournament from the home page."
-      icon="groups"
+      icon={UsersThreeIcon}
     />
   );
 }

@@ -1,9 +1,17 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CircleNotchIcon,
+  ShieldCheckIcon,
+  WarningIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import RadarArt from "@/components/landing/RadarArt";
 import { authClient, useSession } from "@/lib/auth-client";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -103,143 +111,143 @@ function LoginContent() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f6f8fc] px-4 py-5 text-slate-900 sm:px-6 lg:p-8">
-      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-[1440px] overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="relative hidden overflow-hidden border-r border-blue-900/10 bg-gradient-to-br from-[#0c2461] via-[#1a56db] to-[#1e40af] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-          <div className="relative z-10 flex items-center justify-between">
-            <Link href="/" className="transition hover:opacity-80">
-              <Image
-                src="/tuwaga-logo-cream.png"
-                alt="TUWAGA SKOR"
-                width={136}
-                height={32}
-                priority
-                className="h-8 w-auto"
-              />
-            </Link>
-            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-100 backdrop-blur">
-              Tuwaga Skor
-            </span>
-          </div>
-
-          <div className="relative z-10 max-w-3xl py-12">
-            <p className="mb-4 inline-flex text-xs font-bold uppercase tracking-wider text-blue-200">
-              Tournament OS · 2026
-            </p>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">
-              Run the whole tournament.
-            </h1>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-blue-100/80">
-              Draws, schedules, courts, scoring, and results. One unified
-              workspace for directors, organizers, and court crew.
-            </p>
-          </div>
-
-          <div className="relative z-10 grid grid-cols-3 gap-3">
-            {[
-              ["01", "Build OOP"],
-              ["02", "Run courts"],
-              ["03", "Publish live"],
-            ].map(([number, label]) => (
-              <div
-                key={number}
-                className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur transition hover:border-white/30"
-              >
-                <p className="text-2xl font-black text-white">{number}</p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-blue-100/80">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
+    <main className="grid min-h-screen bg-canvas text-ink-950 lg:grid-cols-[1.15fr_0.85fr]">
+      <section className="relative isolate hidden overflow-hidden bg-ink-950 p-10 text-cream-100 lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <div className="texture-grain pointer-events-none absolute inset-0 -z-10 opacity-60" />
+        <div className="pointer-events-none absolute -bottom-72 -right-72 -z-10 w-[56rem] opacity-80 [&_text]:hidden">
+          <RadarArt className="h-auto w-full" showCourts={false} />
         </div>
 
-        <div className="relative flex min-w-0 items-center justify-center bg-[#f8fafc] p-5 sm:p-10 xl:p-16">
-          <div className="min-w-0 w-full max-w-[440px]">
-            <div className="mb-8 flex items-center justify-between lg:hidden">
-              <Link href="/">
-                <Image
-                  src="/tuwaga-logo.png"
-                  alt="TUWAGA SKOR"
-                  width={124}
-                  height={28}
-                  priority
-                  className="h-7 w-auto"
-                />
-              </Link>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
-                Workspace
-              </span>
-            </div>
+        <Link href="/" className="w-fit transition-opacity hover:opacity-80">
+          <Image
+            src="/tuwaga-logo-cream.png"
+            alt="TUWAGA SKOR"
+            unoptimized
+            width={136}
+            height={32}
+            priority
+            className="h-8 w-auto"
+          />
+        </Link>
 
-            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-9">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Secure sign-in
-              </span>
+        <div className="max-w-xl py-12">
+          <p className="eyebrow flex items-center gap-2.5 text-cream-100/60">
+            <span className="h-1.5 w-1.5 bg-brand-500" />
+            Organizer workspace
+          </p>
+          <h1 className="mt-6 text-[clamp(2.75rem,4.5vw,4.5rem)] font-medium leading-[0.95] tracking-[-0.045em] text-cream-50">
+            Run the whole tournament<span className="text-brand-500">.</span>
+          </h1>
+          <p className="mt-6 max-w-md text-base leading-relaxed text-cream-100/65">
+            Draws, schedules, courts, scoring, and results. One workspace for
+            directors, organizers, and court crew.
+          </p>
+        </div>
 
-              <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                Ready to run the show?
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                Sign in with your Google account to access your Tuwaga Skor
-                workspace and command center.
+        <ol className="grid max-w-xl grid-cols-3 border-t border-cream-200/15">
+          {[
+            ["01", "Build the order of play"],
+            ["02", "Run every court"],
+            ["03", "Publish results live"],
+          ].map(([number, label]) => (
+            <li key={number} className="pr-4 pt-5">
+              <p className="font-mono text-sm text-brand-500">{number}</p>
+              <p className="mt-2 text-sm font-medium leading-snug text-cream-100/80">
+                {label}
               </p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-              <hr className="my-6 border-0 border-t border-slate-200" />
+      <section className="flex min-w-0 flex-col items-center justify-center px-5 py-10 sm:px-10">
+        <div className="w-full max-w-[420px]">
+          <Link
+            href="/"
+            className="mb-10 inline-flex transition-opacity hover:opacity-80 lg:hidden"
+          >
+            <Image
+              src="/tuwaga-logo.png"
+              alt="TUWAGA SKOR"
+              unoptimized
+              width={119}
+              height={28}
+              priority
+              className="h-7 w-auto"
+            />
+          </Link>
 
-              <button
-                type="button"
-                onClick={handleSignIn}
-                disabled={isLoading}
-                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
-              >
-                {isLoading ? (
-                  <>
-                    <span className="material-symbols-outlined admin-spin text-xl">
-                      progress_activity
-                    </span>
-                    Connecting…
-                  </>
-                ) : (
-                  <>
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-xs">
-                      <GoogleIcon className="h-4 w-4" />
-                    </span>
-                    <span>Sign in with Google</span>
-                    <span className="material-symbols-outlined text-lg">
-                      arrow_forward
-                    </span>
-                  </>
-                )}
-              </button>
+          <div className="rounded-2xl border border-ink-200 bg-white p-6 shadow-[0_24px_60px_-30px_rgba(23,23,23,0.25)] sm:p-9">
+            <p className="eyebrow flex items-center gap-2 text-ink-500">
+              <ShieldCheckIcon
+                className="text-sm text-emerald-600"
+                weight="bold"
+                aria-hidden="true"
+              />
+              Secure sign-in
+            </p>
 
-              {accessError && (
-                <div
-                  role="alert"
-                  className="mt-5 rounded-lg border border-error/20 bg-error-container px-4 py-3 text-xs font-semibold text-on-error-container"
-                >
-                  <div className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-lg">
-                      warning
-                    </span>
-                    <span>{accessError}</span>
-                  </div>
-                </div>
+            <h2 className="mt-5 text-3xl font-semibold tracking-[-0.03em] text-ink-950 sm:text-[2.125rem]">
+              Ready to run the show?
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-ink-600">
+              Sign in with your Google account to open your Tuwaga Skor
+              workspace and command center.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleSignIn}
+              disabled={isLoading}
+              className="btn btn-lg btn-dark btn-block mt-8 disabled:cursor-wait"
+            >
+              {isLoading ? (
+                <>
+                  <CircleNotchIcon
+                    className="admin-spin text-xl"
+                    weight="bold"
+                    aria-hidden="true"
+                  />
+                  Connecting…
+                </>
+              ) : (
+                <>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white">
+                    <GoogleIcon className="h-4 w-4" />
+                  </span>
+                  Sign in with Google
+                  <ArrowRightIcon weight="bold" aria-hidden="true" />
+                </>
               )}
+            </button>
 
-              <div className="mt-6 flex items-center gap-2.5 text-xs text-slate-500">
-                <span className="material-symbols-outlined text-base text-emerald-600">
-                  verified_user
-                </span>
-                Access is limited to approved tournament administrators.
+            {accessError && (
+              <div
+                role="alert"
+                className="mt-5 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-900"
+              >
+                <WarningIcon
+                  className="mt-px shrink-0 text-base"
+                  weight="bold"
+                  aria-hidden="true"
+                />
+                <span>{accessError}</span>
               </div>
-            </div>
+            )}
 
-            <p className="mt-8 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Tuwaga Admin System · Keep every court moving
+            <p className="mt-6 border-t border-ink-100 pt-5 text-xs leading-relaxed text-ink-500">
+              Access is limited to approved tournament organizers and
+              administrators.
             </p>
           </div>
+
+          <Link
+            href="/"
+            className="link-arrow mt-8 text-ink-500 hover:text-ink-950"
+          >
+            <ArrowLeftIcon weight="bold" aria-hidden="true" />
+            Back to Tuwaga Skor
+          </Link>
         </div>
       </section>
     </main>

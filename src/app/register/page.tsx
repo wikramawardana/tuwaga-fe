@@ -1,8 +1,20 @@
 "use client";
 
-import Image from "next/image";
+import {
+  CalendarBlankIcon,
+  CaretDownIcon,
+  CheckIcon,
+  LockIcon,
+  MapPinIcon,
+  MoneyIcon,
+  ShapesIcon,
+  UserCirclePlusIcon,
+  UserIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import type { AppIcon } from "@/components/icons/SportIcons";
+import RadarArt from "@/components/landing/RadarArt";
 import RegistrationShell from "@/components/RegistrationShell";
 import { divisionSkillLabel, divisionSkillLevel } from "@/lib/matchDivisions";
 import {
@@ -24,7 +36,7 @@ function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-[14px] font-medium tracking-[0.01em] text-on-surface"
+      className="block text-[14px] font-medium tracking-[0.01em] text-ink-950"
     >
       {children}
     </label>
@@ -32,27 +44,31 @@ function FieldLabel({
 }
 
 function FormSection({
-  icon,
+  icon: SectionIcon,
   title,
   description,
   children,
 }: {
-  icon: string;
+  icon: AppIcon;
   title: string;
   description: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="registration-parallax-section rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
+    <section className="registration-parallax-section rounded-xl border border-ink-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
       <div className="mb-6 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-          <span className="material-symbols-outlined text-[22px]">{icon}</span>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+          <SectionIcon
+            className="text-[22px]"
+            weight="duotone"
+            aria-hidden="true"
+          />
         </div>
         <div>
-          <h2 className="text-[24px] font-semibold leading-[1.3] text-on-surface">
+          <h2 className="text-[24px] font-semibold leading-[1.3] text-ink-950">
             {title}
           </h2>
-          <p className="mt-1 text-[15px] leading-[1.5] text-on-surface-variant">
+          <p className="mt-1 text-[15px] leading-[1.5] text-ink-600">
             {description}
           </p>
         </div>
@@ -83,22 +99,18 @@ function TournamentSummary({
 
   return (
     <aside className="lg:col-span-4 lg:h-full">
-      <div className="custom-scrollbar register-summary-panel overflow-hidden rounded-xl border border-surface-container bg-surface-container-lowest shadow-[0px_4px_20px_rgba(0,0,0,0.04)] lg:sticky lg:top-0 lg:max-h-full lg:overflow-y-auto">
-        <div className="relative h-40 bg-primary-container">
-          <Image
-            src="/arena.png"
-            alt="Jakarta arena tournament venue"
-            fill
-            className="object-cover"
-            loading="eager"
-            unoptimized
+      <div className="custom-scrollbar register-summary-panel overflow-hidden rounded-xl border border-ink-200 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.04)] lg:sticky lg:top-0 lg:max-h-full lg:overflow-y-auto">
+        <div className="relative isolate h-40 overflow-hidden bg-ink-950">
+          <div className="texture-grain pointer-events-none absolute inset-0 -z-10 opacity-60" />
+          <RadarArt
+            className="pointer-events-none absolute -right-24 -top-28 -z-10 w-[26rem] opacity-80"
+            showCourts={false}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-on-surface/80 to-transparent" />
           <div className="absolute bottom-4 left-5">
-            <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-on-secondary">
+            <span className="eyebrow rounded-full border border-brand-500/30 bg-brand-500/10 px-2.5 py-1 text-[10px] text-brand-400">
               {summary?.tournament.badge ?? "Backend event"}
             </span>
-            <h2 className="mt-2 max-w-[260px] text-[24px] font-semibold leading-[1.25] text-white">
+            <h2 className="mt-3 max-w-[260px] text-[24px] font-semibold leading-[1.15] tracking-tight text-cream-50">
               {summary?.tournament.name ?? "Loading tournament"}
             </h2>
           </div>
@@ -108,17 +120,17 @@ function TournamentSummary({
           <div className="grid gap-4">
             {[
               {
-                icon: "calendar_today",
+                icon: CalendarBlankIcon,
                 label: "Date",
                 value: summary?.tournament.dateLabel ?? "Loading",
               },
               {
-                icon: "location_on",
+                icon: MapPinIcon,
                 label: "Location",
                 value: summary?.tournament.location ?? "Loading",
               },
               {
-                icon: "payments",
+                icon: MoneyIcon,
                 label: "Entry",
                 value: summary
                   ? `${formatMoney(summary.tournament.entryFeePerPair)} / pair`
@@ -126,14 +138,16 @@ function TournamentSummary({
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[22px] text-primary">
-                  {item.icon}
-                </span>
+                <item.icon
+                  className="text-[22px] text-brand-600"
+                  weight="duotone"
+                  aria-hidden="true"
+                />
                 <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-wider text-on-surface-variant">
+                  <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-600">
                     {item.label}
                   </p>
-                  <p className="text-[14px] font-semibold text-on-surface">
+                  <p className="text-[14px] font-semibold text-ink-950">
                     {item.value}
                   </p>
                 </div>
@@ -141,15 +155,15 @@ function TournamentSummary({
             ))}
           </div>
 
-          <div className="border-t border-surface-container pt-5">
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-on-surface-variant">
+          <div className="border-t border-ink-200 pt-5">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-ink-600">
               Selected Match Division
             </p>
-            <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-surface-container p-3">
-              <span className="text-[14px] font-semibold text-primary">
+            <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-ink-200 p-3">
+              <span className="text-[14px] font-semibold text-brand-600">
                 {selectedDivision || "Select a division"}
               </span>
-              <span className="text-[12px] font-semibold text-on-surface-variant">
+              <span className="text-[12px] font-semibold text-ink-600">
                 {selectedDivision
                   ? divisionSkillLabel(selectedDivision)
                   : "Required"}
@@ -157,7 +171,7 @@ function TournamentSummary({
             </div>
           </div>
 
-          <div className="rounded-lg border border-primary/10 bg-primary/5 p-4 text-[12px] font-semibold leading-relaxed text-primary">
+          <div className="rounded-lg border border-brand-500/10 bg-brand-500/5 p-4 text-[12px] font-semibold leading-relaxed text-brand-600">
             WhatsApp support: {summary?.support.whatsapp ?? "Loading"}.
             Registration is saved to the backend.
           </div>
@@ -168,11 +182,15 @@ function TournamentSummary({
             disabled={!agreed || !selectedDivision || submitting}
             className={`flex h-12 w-full items-center justify-center gap-2 rounded-lg px-7 text-[14px] font-semibold tracking-[0.01em] shadow-lg transition-all active:scale-95 ${
               agreed && selectedDivision
-                ? "bg-primary text-on-primary shadow-primary/20 hover:bg-on-primary-fixed-variant"
-                : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
+                ? "bg-brand-500 text-ink-950 shadow-ink-950/10 hover:bg-brand-400"
+                : "cursor-not-allowed bg-ink-300 text-ink-600"
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">lock</span>
+            <LockIcon
+              className="text-[20px]"
+              aria-hidden="true"
+              weight="duotone"
+            />
             {submitting ? "Submitting..." : "Submit Registration"}
           </button>
         </div>
@@ -325,12 +343,12 @@ function RegisterPageContent() {
           onSubmit={submitRegistration}
         >
           {message && (
-            <div className="rounded-lg border border-primary/15 bg-primary/5 p-4 text-sm font-semibold text-primary">
+            <div className="rounded-lg border border-brand-500/15 bg-brand-500/5 p-4 text-sm font-semibold text-brand-600">
               {message}
             </div>
           )}
           <FormSection
-            icon="category"
+            icon={ShapesIcon}
             title="Match Division"
             description="Choose one division. Its match category and competition level apply to both players."
           >
@@ -351,23 +369,25 @@ function RegisterPageContent() {
                       <div
                         className={`rounded-xl border bg-white p-4 transition-all ${
                           isSelected
-                            ? "border-primary ring-2 ring-primary/10"
-                            : "border-outline-variant hover:border-primary/40"
+                            ? "border-brand-500 ring-2 ring-brand-500/10"
+                            : "border-ink-300 hover:border-brand-500/40"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className={`flex h-6 w-6 items-center justify-center rounded-full text-on-primary transition-all ${
+                            className={`flex h-6 w-6 items-center justify-center rounded-full text-ink-950 transition-all ${
                               isSelected
-                                ? "bg-primary opacity-100"
+                                ? "bg-brand-500 opacity-100"
                                 : "opacity-0"
                             }`}
                           >
-                            <span className="material-symbols-outlined text-[16px]">
-                              check
-                            </span>
+                            <CheckIcon
+                              className="text-[16px]"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                           </span>
-                          <h3 className="text-[16px] font-semibold text-on-surface">
+                          <h3 className="text-[16px] font-semibold text-ink-950">
                             {cat}
                           </h3>
                         </div>
@@ -377,14 +397,14 @@ function RegisterPageContent() {
                 })}
               </div>
             ) : (
-              <p className="rounded-lg bg-surface-container p-4 text-sm font-semibold text-on-surface-variant">
+              <p className="rounded-lg bg-ink-200 p-4 text-sm font-semibold text-ink-600">
                 No match divisions are available for this tournament.
               </p>
             )}
           </FormSection>
 
           <FormSection
-            icon="person"
+            icon={UserIcon}
             title="Player Information"
             description="Main participant details for tournament verification."
           >
@@ -395,7 +415,7 @@ function RegisterPageContent() {
                   id="full-name"
                   type="text"
                   placeholder="Bima Pratama"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                 />
               </div>
               <div className="space-y-2">
@@ -404,20 +424,20 @@ function RegisterPageContent() {
                   id="email"
                   type="email"
                   placeholder="bima@tuwaga.id"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                 />
               </div>
               <div className="space-y-2">
                 <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-ink-600">
                     +62
                   </span>
                   <input
                     id="phone"
                     type="tel"
                     placeholder="812 3456 7890"
-                    className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-ink-300 bg-white py-3 pl-14 pr-4 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -427,7 +447,7 @@ function RegisterPageContent() {
                   <select
                     id="nationality"
                     defaultValue="ID"
-                    className="w-full cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="w-full cursor-pointer appearance-none rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                   >
                     <option value="ID">Indonesia</option>
                     <option value="MY">Malaysia</option>
@@ -435,16 +455,18 @@ function RegisterPageContent() {
                     <option value="TH">Thailand</option>
                     <option value="PH">Philippines</option>
                   </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
-                    expand_more
-                  </span>
+                  <CaretDownIcon
+                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-ink-600"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 </div>
               </div>
             </div>
           </FormSection>
 
           <FormSection
-            icon="group_add"
+            icon={UserCirclePlusIcon}
             title="Partner Details"
             description="Add a teammate for doubles play. Leave toggled off for singles registration."
           >
@@ -455,7 +477,7 @@ function RegisterPageContent() {
                 aria-checked={hasPartner}
                 onClick={() => setHasPartner((prev) => !prev)}
                 className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors ${
-                  hasPartner ? "bg-primary" : "bg-outline-variant"
+                  hasPartner ? "bg-brand-500" : "bg-ink-300"
                 }`}
               >
                 <span
@@ -464,7 +486,7 @@ function RegisterPageContent() {
                   }`}
                 />
               </button>
-              <span className="text-sm font-semibold text-on-surface">
+              <span className="text-sm font-semibold text-ink-950">
                 {hasPartner ? "Registering with partner" : "Registering solo"}
               </span>
             </div>
@@ -479,7 +501,7 @@ function RegisterPageContent() {
                     id="partner-name"
                     type="text"
                     placeholder="Raka Wijaya"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -488,7 +510,7 @@ function RegisterPageContent() {
                     id="partner-email"
                     type="email"
                     placeholder="raka@tuwaga.id"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -499,7 +521,7 @@ function RegisterPageContent() {
                     id="partner-id"
                     type="text"
                     placeholder="TWG-XXXXXX (optional)"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[16px] leading-[1.5] outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -507,19 +529,19 @@ function RegisterPageContent() {
           </FormSection>
 
           <FormSection
-            icon="lock"
+            icon={LockIcon}
             title="Confirmation"
             description="Review your details before submitting."
           >
             <div className="space-y-6">
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-surface-container-low p-4">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-ink-100 p-4">
                 <input
                   type="checkbox"
                   checked={agreed}
                   onChange={(event) => setAgreed(event.target.checked)}
-                  className="mt-1 h-4 w-4 accent-primary"
+                  className="mt-1 h-4 w-4 accent-brand-500"
                 />
-                <span className="text-[14px] font-medium leading-relaxed text-on-surface-variant">
+                <span className="text-[14px] font-medium leading-relaxed text-ink-600">
                   I confirm all registration details are accurate and agree to
                   the tournament rules and registration terms.
                 </span>

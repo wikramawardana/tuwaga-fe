@@ -1,11 +1,48 @@
 "use client";
 
+import {
+  ArrowSquareOutIcon,
+  BankIcon,
+  BroadcastIcon,
+  CalendarDotsIcon,
+  CalendarXIcon,
+  ChatCircleDotsIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  CopyIcon,
+  DotsThreeCircleIcon,
+  FileArrowUpIcon,
+  GavelIcon,
+  HeadsetIcon,
+  HourglassHighIcon,
+  InfoIcon,
+  ListChecksIcon,
+  LockIcon,
+  MapPinIcon,
+  MapTrifoldIcon,
+  PlusCircleIcon,
+  QuestionIcon,
+  RacquetIcon,
+  ReceiptIcon,
+  SealCheckIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  SignInIcon,
+  StackIcon,
+  TableIcon,
+  TreeStructureIcon,
+  UserCheckIcon,
+  WarningCircleIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
+import RadarArt from "@/components/landing/RadarArt";
 import Navbar from "@/components/Navbar";
+import SportBadge from "@/components/SportBadge";
 import { CaprivalQualificationModal } from "@/components/tournaments/CaprivalQualificationModal";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -201,12 +238,12 @@ function TournamentPortalContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <div className="flex min-h-screen flex-col bg-ink-50">
         <Navbar active="tournaments" />
         <main className="flex flex-1 items-center justify-center p-6 pt-28">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
               Memuat data turnamen...
             </p>
           </div>
@@ -218,24 +255,26 @@ function TournamentPortalContent() {
 
   if (error || !tournament) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <div className="flex min-h-screen flex-col bg-ink-50">
         <Navbar active="tournaments" />
         <main className="flex flex-1 items-center justify-center p-6 pt-28">
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <span className="material-symbols-outlined text-4xl text-rose-500">
-              error_outline
-            </span>
-            <h1 className="mt-3 text-lg font-black text-slate-900">
+          <div className="w-full max-w-md rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-sm">
+            <WarningCircleIcon
+              className="text-4xl text-rose-500"
+              aria-hidden="true"
+              weight="duotone"
+            />
+            <h1 className="mt-3 text-lg font-black text-ink-900">
               Turnamen Tidak Ditemukan
             </h1>
-            <p className="mt-1.5 text-xs text-slate-500">
+            <p className="mt-1.5 text-xs text-ink-500">
               {error ||
                 "Turnamen yang Anda cari tidak tersedia atau belum dipublikasikan."}
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link
                 href="/"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-4 text-xs font-bold text-white transition hover:bg-blue-700"
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-brand-500 px-4 text-xs font-bold text-ink-950 transition hover:bg-brand-400"
               >
                 Kembali ke Beranda
               </Link>
@@ -253,209 +292,201 @@ function TournamentPortalContent() {
     ? "https://maps.app.goo.gl/BLv78wtxoGt2bCLT6"
     : undefined;
 
+  const kpis = [
+    {
+      label: "Slot terkonfirmasi",
+      value: `${summary?.approved ?? 0}`,
+      unit: "tim",
+      detail: "Resmi di main draw",
+      dot: "bg-emerald-500",
+    },
+    {
+      label: "Menunggu verifikasi",
+      value: `${summary?.pending ?? 0}`,
+      unit: "tim",
+      detail: "Proses cek berkas / bukti",
+      dot: "bg-amber-400",
+    },
+    {
+      label: "Kategori / divisi",
+      value: `${categories.length}`,
+      unit: "divisi",
+      detail: "Divisi dibuka",
+      dot: "bg-cream-200",
+    },
+    {
+      label: "Kapasitas turnamen",
+      value: `${summary?.capacityPercent ?? 0}`,
+      unit: "%",
+      detail: tournament.settings?.maxPlayers
+        ? `Maksimal ${tournament.settings.maxPlayers} pemain`
+        : "Kuota terbuka",
+      dot: "bg-brand-500",
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc] text-slate-900">
+    <div className="flex min-h-screen flex-col bg-canvas text-ink-900">
       <Navbar active="tournaments" />
 
-      <main className="flex-1 pb-20 pt-20">
-        {/* ── Top Hero Card ────────────────────────────────────────── */}
-        <section className="relative overflow-hidden border-b border-slate-200 bg-white shadow-xs">
-          <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
+      <main className="flex-1 pb-20 pt-16">
+        {/* ── Event header ─────────────────────────────────────────── */}
+        <section className="relative isolate overflow-hidden bg-ink-950 text-cream-100">
+          <div className="texture-grain pointer-events-none absolute inset-0 -z-10 opacity-60" />
+          <div className="pointer-events-none absolute -right-72 -top-48 -z-10 w-[54rem] opacity-60 max-md:hidden">
+            <RadarArt className="h-auto w-full" showCourts={false} />
+          </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-12">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              {/* Left Info */}
+          <div className="container-page pb-10 pt-12 md:pb-14 md:pt-16">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
-                    {tournament.settings?.sport === "padel"
-                      ? "🎾 Padel Tournament"
-                      : "🏆 Turnamen Olahraga"}
-                  </span>
-
+                  <SportBadge sport={tournament.settings?.sport} tone="dark" />
                   {tournament.status === "live" ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
-                      <span className="h-1.5 w-1.5 rounded-full bg-rose-600 animate-ping" />
-                      Live Sedang Bertanding
+                    <span className="eyebrow inline-flex h-7 items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 text-[10px] text-brand-400">
+                      <span className="live-dot" />
+                      Live · Sedang bertanding
                     </span>
                   ) : tournament.status === "completed" ? (
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                    <span className="eyebrow inline-flex h-7 items-center rounded-full border border-cream-200/15 px-3 text-[10px] text-cream-100/60">
                       Selesai
                     </span>
                   ) : (
-                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                      ✓ Registrasi Aktif
+                    <span className="eyebrow inline-flex h-7 items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 text-[10px] text-emerald-300">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      Registrasi aktif
                     </span>
                   )}
                 </div>
 
-                <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                <h1 className="mt-5 text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[0.95] tracking-[-0.035em] text-cream-50">
                   {tournament.name}
                 </h1>
 
-                <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-base text-blue-600">
-                      calendar_month
-                    </span>
-                    <span>{tournament.dateLabel}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-base text-rose-500">
-                      location_on
-                    </span>
+                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-cream-100/70">
+                  <span className="inline-flex items-center gap-2">
+                    <CalendarDotsIcon
+                      className="text-base text-cream-100/45"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                    {tournament.dateLabel}
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <MapPinIcon
+                      className="text-base text-cream-100/45"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
                     {venueMapLink ? (
                       <a
                         href={venueMapLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="underline decoration-slate-300 underline-offset-2 transition hover:text-blue-600"
+                        className="underline decoration-cream-200/30 underline-offset-4 transition hover:text-cream-50 hover:decoration-brand-500"
                       >
-                        {tournament.venue} (Buka Peta)
+                        {tournament.venue} · Buka peta
                       </a>
                     ) : (
-                      <span>{tournament.venue}</span>
+                      tournament.venue
                     )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-base text-indigo-600">
-                      fact_check
-                    </span>
-                    <span className="font-semibold text-slate-700">
-                      Tahap Kurasi & Verifikasi Kategori
-                    </span>
-                  </div>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <ListChecksIcon
+                      className="text-base text-cream-100/45"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                    Tahap kurasi & verifikasi kategori
+                  </span>
                 </div>
 
                 {tournament.description && (
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-cream-100/55">
                     {tournament.description}
                   </p>
                 )}
               </div>
 
-              {/* Right CTA Actions */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="cta-row shrink-0">
                 {isRegistrationOpen && (
                   <Link
                     href={`/tournaments/${tournament.slug}/register`}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700 active:translate-y-0"
+                    className="btn btn-primary"
                   >
-                    <span className="material-symbols-outlined text-base">
-                      how_to_reg
-                    </span>
+                    <UserCheckIcon weight="bold" aria-hidden="true" />
                     Daftar Tim Sekarang
                   </Link>
                 )}
-
                 <Link
                   href={`/tournaments/bracket?tournament=${tournament.slug}`}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-slate-900"
+                  className="btn btn-outline-dark"
                 >
-                  <span className="material-symbols-outlined text-base text-slate-400">
-                    account_tree
-                  </span>
+                  <TreeStructureIcon weight="bold" aria-hidden="true" />
                   Bagan
                 </Link>
-
                 <Link
                   href={`/tournaments/live?tournament=${tournament.slug}`}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-slate-900"
+                  className="btn btn-outline-dark"
                 >
-                  <span className="material-symbols-outlined text-base text-rose-500">
-                    sensors
-                  </span>
+                  <BroadcastIcon weight="bold" aria-hidden="true" />
                   Live Score
                 </Link>
               </div>
             </div>
 
-            {/* Quick Metrics Cards */}
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Slot Terkonfirmasi
-                </span>
-                <p className="mt-1 text-2xl font-black text-emerald-600">
-                  {summary?.approved ?? 0} Tim
-                </p>
-                <span className="text-[11px] font-medium text-slate-500">
-                  Resmi di Main Draw
-                </span>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Menunggu Verifikasi
-                </span>
-                <p className="mt-1 text-2xl font-black text-amber-600">
-                  {summary?.pending ?? 0} Tim
-                </p>
-                <span className="text-[11px] font-medium text-slate-500">
-                  Proses cek berkas / bukti
-                </span>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Kategori / Divisi
-                </span>
-                <p className="mt-1 text-2xl font-black text-slate-900">
-                  {categories.length}
-                </p>
-                <span className="text-[11px] font-medium text-slate-500">
-                  Divisi Dibuka
-                </span>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                  Kapasitas Turnamen
-                </span>
-                <p className="mt-1 text-2xl font-black text-blue-600">
-                  {summary?.capacityPercent ?? 0}%
-                </p>
-                <span className="text-[11px] font-medium text-slate-500">
-                  {tournament.settings?.maxPlayers
-                    ? `Maksimal ${tournament.settings.maxPlayers} pemain`
-                    : "Kuota terbuka"}
-                </span>
-              </div>
-            </div>
+            <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-cream-200/10 bg-cream-200/10 lg:grid-cols-4">
+              {kpis.map((kpi) => (
+                <div key={kpi.label} className="bg-ink-950 p-5">
+                  <dt className="eyebrow flex items-center gap-2 text-[10px] text-cream-100/45">
+                    <span className={`h-1.5 w-1.5 rounded-full ${kpi.dot}`} />
+                    {kpi.label}
+                  </dt>
+                  <dd className="mt-3 flex items-baseline gap-1.5">
+                    <span className="font-mono text-3xl tabular-nums text-cream-50">
+                      {kpi.value}
+                    </span>
+                    <span className="text-sm text-cream-100/50">
+                      {kpi.unit}
+                    </span>
+                  </dd>
+                  <dd className="mt-1 text-xs text-cream-100/45">
+                    {kpi.detail}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
         {/* ── Main Tabbed Content Area ────────────────────────────── */}
-        <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
+        <div className="container-page py-8 md:py-10">
           {/* Tabs header */}
-          <div className="flex border-b border-slate-200">
+          <div className="flex border-b border-ink-200">
             <div className="flex gap-2 overflow-x-auto pb-px">
               {[
                 {
                   id: "my-registration" as TabType,
                   label: "Pendaftaran Saya",
-                  icon: "verified_user",
+                  icon: ShieldCheckIcon,
                   badge: myTeams.length > 0 ? myTeams.length : undefined,
                 },
                 {
                   id: "categories" as TabType,
                   label: "Kuota & Kategori",
-                  icon: "layers",
+                  icon: StackIcon,
                   badge: categories.length > 0 ? categories.length : undefined,
                 },
                 {
                   id: "matches" as TabType,
                   label: "Jadwal & Pertandingan",
-                  icon: "event_upcoming",
+                  icon: CalendarDotsIcon,
                   badge: matches.length > 0 ? matches.length : undefined,
                 },
                 {
                   id: "info" as TabType,
                   label: "Info & Aturan",
-                  icon: "info",
+                  icon: InfoIcon,
                 },
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
@@ -466,20 +497,22 @@ function TournamentPortalContent() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`inline-flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-bold transition-all whitespace-nowrap ${
                       isActive
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                        ? "border-brand-500 text-brand-600"
+                        : "border-transparent text-ink-600 hover:border-ink-300 hover:text-ink-900"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-base">
-                      {tab.icon}
-                    </span>
+                    <tab.icon
+                      className="text-base"
+                      weight={isActive ? "fill" : "bold"}
+                      aria-hidden="true"
+                    />
                     {tab.label}
                     {tab.badge !== undefined && (
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
                           isActive
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-slate-100 text-slate-600"
+                            ? "bg-brand-100 text-brand-800"
+                            : "bg-ink-100 text-ink-600"
                         }`}
                       >
                         {tab.badge}
@@ -498,57 +531,67 @@ function TournamentPortalContent() {
             <div className="mt-8 space-y-8">
               {sessionPending ? (
                 <div className="flex h-48 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
                 </div>
               ) : !session?.user ? (
                 /* Unauthenticated View: Prompt Login */
                 <div className="mx-auto max-w-xl">
-                  <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10 text-center">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                      <span className="material-symbols-outlined text-3xl">
-                        lock
-                      </span>
+                  <div className="rounded-3xl border border-ink-200/80 bg-white p-6 shadow-sm sm:p-10 text-center">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                      <LockIcon
+                        className="text-3xl"
+                        aria-hidden="true"
+                        weight="duotone"
+                      />
                     </div>
 
                     <div className="mt-5">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                        <span className="material-symbols-outlined text-sm">
-                          security
-                        </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+                        <ShieldCheckIcon
+                          className="text-sm"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Akses Data Pribadi & Aman
                       </span>
-                      <h3 className="mt-3 text-xl font-black text-slate-900 sm:text-2xl">
+                      <h3 className="mt-3 text-xl font-black text-ink-900 sm:text-2xl">
                         Masuk untuk Memantau Pendaftaran Anda
                       </h3>
-                      <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                      <p className="mt-2 text-xs leading-relaxed text-ink-600">
                         Demi menjaga kerahasiaan dan privasi seluruh peserta
                         turnamen, data tim dan status verifikasi hanya dapat
                         dilihat oleh akun terdaftar.
                       </p>
                     </div>
 
-                    <div className="mt-6 text-left space-y-2.5 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-xs font-medium text-slate-700">
+                    <div className="mt-6 text-left space-y-2.5 rounded-2xl border border-ink-100 bg-ink-50/70 p-4 text-xs font-medium text-ink-700">
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-base text-emerald-600">
-                          check_circle
-                        </span>
+                        <CheckCircleIcon
+                          className="text-base text-emerald-600"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         <span>
                           Nama dan data tim Anda terlindungi dari pihak luar
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-base text-emerald-600">
-                          check_circle
-                        </span>
+                        <CheckCircleIcon
+                          className="text-base text-emerald-600"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         <span>
                           Pantau approval panitia & verifikasi bukti transfer
                           otomatis
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-base text-emerald-600">
-                          check_circle
-                        </span>
+                        <CheckCircleIcon
+                          className="text-base text-emerald-600"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         <span>
                           Lihat nomor lapangan & jam main tim Anda saat jadwal
                           dirilis
@@ -559,17 +602,19 @@ function TournamentPortalContent() {
                     <div className="mt-8 flex flex-col gap-3">
                       <Link
                         href={`/login?callbackUrl=/tournaments/${slug}`}
-                        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700 active:scale-95"
+                        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 text-xs font-bold text-ink-950 shadow-md shadow-ink-950/10 transition hover:bg-brand-400 active:scale-95"
                       >
-                        <span className="material-symbols-outlined text-lg">
-                          login
-                        </span>
+                        <SignInIcon
+                          className="text-lg"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Masuk dengan Akun Anda
                       </Link>
                       {isRegistrationOpen && (
                         <Link
                           href={`/tournaments/${slug}/register`}
-                          className="flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+                          className="flex h-11 w-full items-center justify-center rounded-xl border border-ink-200 bg-white px-4 text-xs font-bold text-ink-700 transition hover:bg-ink-50"
                         >
                           Daftar Tim Baru
                         </Link>
@@ -580,8 +625,8 @@ function TournamentPortalContent() {
               ) : loadingMyTeams ? (
                 <div className="flex h-48 items-center justify-center">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                    <p className="text-xs font-semibold text-slate-500">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+                    <p className="text-xs font-semibold text-ink-500">
                       Memuat pendaftaran Anda...
                     </p>
                   </div>
@@ -589,14 +634,14 @@ function TournamentPortalContent() {
               ) : myTeams.length > 0 ? (
                 /* Authenticated View: User's Teams */
                 <div className="space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200/80 pb-4">
                     <div>
-                      <h3 className="text-lg font-black text-slate-900">
+                      <h3 className="text-lg font-black text-ink-900">
                         Pendaftaran Tim Anda ({myTeams.length})
                       </h3>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-ink-500">
                         Terhubung dengan akun:{" "}
-                        <strong className="text-slate-800">
+                        <strong className="text-ink-800">
                           {session.user.email}
                         </strong>
                       </p>
@@ -605,11 +650,13 @@ function TournamentPortalContent() {
                     {isRegistrationOpen && (
                       <Link
                         href={`/tournaments/${slug}/register`}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3.5 text-xs font-bold text-ink-700 hover:bg-ink-50"
                       >
-                        <span className="material-symbols-outlined text-sm text-blue-600">
-                          add_circle
-                        </span>
+                        <PlusCircleIcon
+                          className="text-sm text-brand-600"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Daftar Kategori Lain
                       </Link>
                     )}
@@ -636,7 +683,7 @@ function TournamentPortalContent() {
                     return (
                       <div
                         key={team.id}
-                        className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md"
+                        className="overflow-hidden rounded-3xl border border-ink-200 bg-white shadow-md"
                       >
                         {/* Status Header */}
                         <div
@@ -647,7 +694,7 @@ function TournamentPortalContent() {
                                 ? "border-b border-amber-100 bg-amber-50"
                                 : isRejected
                                   ? "border-b border-rose-100 bg-rose-50"
-                                  : "border-b border-blue-100 bg-blue-50"
+                                  : "border-b border-brand-100 bg-brand-50"
                           }`}
                         >
                           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -657,21 +704,37 @@ function TournamentPortalContent() {
                                   isApproved
                                     ? "bg-emerald-600 text-white"
                                     : isWaitlist
-                                      ? "bg-amber-500 text-white"
+                                      ? "bg-amber-500 text-ink-950"
                                       : isRejected
                                         ? "bg-rose-600 text-white"
-                                        : "bg-blue-600 text-white"
+                                        : "bg-brand-500 text-ink-950"
                                 }`}
                               >
-                                <span className="material-symbols-outlined text-2xl">
-                                  {isApproved
-                                    ? "verified"
-                                    : isWaitlist
-                                      ? "hourglass_top"
-                                      : isRejected
-                                        ? "cancel"
-                                        : "pending"}
-                                </span>
+                                {isApproved ? (
+                                  <SealCheckIcon
+                                    className="text-2xl"
+                                    weight="duotone"
+                                    aria-hidden="true"
+                                  />
+                                ) : isWaitlist ? (
+                                  <HourglassHighIcon
+                                    className="text-2xl"
+                                    weight="duotone"
+                                    aria-hidden="true"
+                                  />
+                                ) : isRejected ? (
+                                  <XCircleIcon
+                                    className="text-2xl"
+                                    weight="duotone"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <DotsThreeCircleIcon
+                                    className="text-2xl"
+                                    weight="duotone"
+                                    aria-hidden="true"
+                                  />
+                                )}
                               </div>
 
                               <div>
@@ -684,7 +747,7 @@ function TournamentPortalContent() {
                                           ? "bg-amber-200/80 text-amber-900"
                                           : isRejected
                                             ? "bg-rose-200/80 text-rose-900"
-                                            : "bg-indigo-100 text-indigo-900"
+                                            : "bg-brand-100 text-ink-900"
                                     }`}
                                   >
                                     {isApproved
@@ -703,21 +766,21 @@ function TournamentPortalContent() {
                                         : isApproved
                                           ? team.paymentProofUrl
                                             ? "bg-amber-100 text-amber-800"
-                                            : "bg-orange-100 text-orange-800"
-                                          : "bg-slate-100 text-slate-600"
+                                            : "bg-brand-100 text-brand-800"
+                                          : "bg-ink-100 text-ink-600"
                                     }`}
                                   >
                                     {team.paid
-                                      ? "✓ Pembayaran Lunas"
+                                      ? "Pembayaran Lunas"
                                       : isApproved
                                         ? team.paymentProofUrl
-                                          ? "⏳ Bukti Sedang Ditinjau"
+                                          ? "Bukti Sedang Ditinjau"
                                           : "Menunggu Pembayaran"
                                         : "Biaya Diumumkan Setelah Kurasi"}
                                   </span>
                                 </div>
 
-                                <h3 className="mt-1 text-xl font-black text-slate-900">
+                                <h3 className="mt-1 text-xl font-black text-ink-900">
                                   {team.player}{" "}
                                   {team.partner && `/ ${team.partner}`}
                                 </h3>
@@ -725,34 +788,42 @@ function TournamentPortalContent() {
                             </div>
 
                             {/* Reference Code */}
-                            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-2xs">
+                            <div className="flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 py-2 shadow-2xs">
                               <div>
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                <span className="block text-[9px] font-bold uppercase tracking-wider text-ink-400">
                                   Kode Tim Anda
                                 </span>
-                                <span className="font-mono text-xs font-extrabold text-slate-900">
+                                <span className="font-mono text-xs font-extrabold text-ink-900">
                                   {team.id}
                                 </span>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleCopyCode(team.id)}
-                                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                className="rounded-lg p-1.5 text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
                                 title="Salin Kode"
                               >
-                                <span className="material-symbols-outlined text-sm">
-                                  {copiedId === team.id
-                                    ? "check"
-                                    : "content_copy"}
-                                </span>
+                                {copiedId === team.id ? (
+                                  <CheckIcon
+                                    className="text-sm"
+                                    weight="bold"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <CopyIcon
+                                    className="text-sm"
+                                    weight="bold"
+                                    aria-hidden="true"
+                                  />
+                                )}
                               </button>
                             </div>
                           </div>
                         </div>
 
                         {/* Stepper Progression */}
-                        <div className="border-b border-slate-100 p-6 sm:p-8">
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                        <div className="border-b border-ink-100 p-6 sm:p-8">
+                          <span className="text-xs font-bold uppercase tracking-wider text-ink-400">
                             Progres Tiket Pendaftaran
                           </span>
 
@@ -818,12 +889,12 @@ function TournamentPortalContent() {
                                   item.status === "done"
                                     ? "border-emerald-200 bg-emerald-50/40"
                                     : item.status === "active"
-                                      ? "border-blue-300 bg-blue-50/40"
+                                      ? "border-brand-300 bg-brand-50/40"
                                       : item.status === "waitlist"
                                         ? "border-amber-200 bg-amber-50/40"
                                         : item.status === "rejected"
                                           ? "border-rose-200 bg-rose-50/40"
-                                          : "border-slate-200 bg-slate-50/40 opacity-70"
+                                          : "border-ink-200 bg-ink-50/40 opacity-70"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -832,24 +903,31 @@ function TournamentPortalContent() {
                                       item.status === "done"
                                         ? "bg-emerald-600 text-white"
                                         : item.status === "active"
-                                          ? "bg-blue-600 text-white"
+                                          ? "bg-brand-500 text-ink-950"
                                           : item.status === "waitlist"
-                                            ? "bg-amber-500 text-white"
+                                            ? "bg-amber-500 text-ink-950"
                                             : item.status === "rejected"
                                               ? "bg-rose-600 text-white"
-                                              : "bg-slate-200 text-slate-600"
+                                              : "bg-ink-200 text-ink-600"
                                     }`}
                                   >
-                                    {item.status === "done" ? "✓" : item.step}
+                                    {item.status === "done" ? (
+                                      <CheckIcon
+                                        weight="bold"
+                                        aria-hidden="true"
+                                      />
+                                    ) : (
+                                      item.step
+                                    )}
                                   </span>
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                     Tahap {item.step}
                                   </span>
                                 </div>
-                                <h4 className="mt-3 text-xs font-bold text-slate-900">
+                                <h4 className="mt-3 text-xs font-bold text-ink-900">
                                   {item.title}
                                 </h4>
-                                <p className="mt-0.5 text-[11px] text-slate-500">
+                                <p className="mt-0.5 text-[11px] text-ink-500">
                                   {item.desc}
                                 </p>
                               </div>
@@ -859,32 +937,36 @@ function TournamentPortalContent() {
 
                         {/* Status Pending: Category Verification Notice */}
                         {!isApproved && !isWaitlist && !isRejected && (
-                          <div className="border-b border-slate-100 bg-indigo-50/40 p-6 sm:p-8">
+                          <div className="border-b border-ink-100 bg-brand-50/40 p-6 sm:p-8">
                             <div className="flex items-start gap-3.5">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
-                                <span className="material-symbols-outlined text-xl">
-                                  fact_check
-                                </span>
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-ink-950 shadow-xs">
+                                <ListChecksIcon
+                                  className="text-xl"
+                                  aria-hidden="true"
+                                  weight="duotone"
+                                />
                               </div>
                               <div className="flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <h4 className="text-sm font-black text-indigo-950">
+                                  <h4 className="text-sm font-black text-ink-950">
                                     Tahap Verifikasi Kategori Sedang Berlangsung
                                   </h4>
-                                  <span className="rounded-full bg-indigo-200/80 px-2 py-0.5 text-[10px] font-bold text-indigo-900">
+                                  <span className="rounded-full bg-brand-200/80 px-2 py-0.5 text-[10px] font-bold text-ink-900">
                                     Kurasi Panitia
                                   </span>
                                 </div>
-                                <p className="mt-1.5 text-xs leading-relaxed text-indigo-900/80">
+                                <p className="mt-1.5 text-xs leading-relaxed text-ink-900/80">
                                   Data pendaftaran Anda di kategori{" "}
                                   <strong>{team.category}</strong> telah kami
                                   terima. Panitia turnamen sedang meninjau
                                   kelayakan berkas dan kesesuaian level pemain.
                                 </p>
-                                <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-indigo-700">
-                                  <span className="material-symbols-outlined text-sm">
-                                    info
-                                  </span>
+                                <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-brand-700">
+                                  <InfoIcon
+                                    className="text-sm"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                   <span>
                                     Nominal biaya pendaftaran & nomor rekening
                                     transfer panitia akan otomatis ditampilkan
@@ -899,21 +981,23 @@ function TournamentPortalContent() {
 
                         {/* Status Approved & Unpaid: Fee Nominal, Bank Details, and Payment Proof Upload */}
                         {isApproved && !team.paid && (
-                          <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50/70 via-white to-blue-50/30 p-6 sm:p-8">
+                          <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50/70 via-white to-brand-50/30 p-6 sm:p-8">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                               <div>
                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-                                  <span className="material-symbols-outlined text-sm">
-                                    check_circle
-                                  </span>
+                                  <CheckCircleIcon
+                                    className="text-sm"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                   Selamat! Kategori Tim Anda Telah Disetujui
                                 </span>
-                                <h4 className="mt-2.5 text-lg font-black text-slate-900 sm:text-xl">
+                                <h4 className="mt-2.5 text-lg font-black text-ink-900 sm:text-xl">
                                   Selesaikan Pembayaran untuk Mengamankan Slot
                                 </h4>
-                                <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-600">
+                                <p className="mt-1 max-w-xl text-xs leading-relaxed text-ink-600">
                                   Tim Anda telah lolos kurasi untuk kategori{" "}
-                                  <strong className="text-slate-900">
+                                  <strong className="text-ink-900">
                                     {team.category}
                                   </strong>
                                   . Silakan selesaikan pembayaran pendaftaran
@@ -924,7 +1008,7 @@ function TournamentPortalContent() {
 
                               {/* Fee Nominal Display */}
                               <div className="shrink-0 rounded-2xl border border-emerald-300/80 bg-white p-4 shadow-xs sm:text-right">
-                                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                   Nominal Pendaftaran Tim
                                 </span>
                                 <p className="text-2xl font-black text-emerald-600">
@@ -936,54 +1020,56 @@ function TournamentPortalContent() {
                                     600000
                                   ).toLocaleString("id-ID")}
                                 </p>
-                                <span className="text-[10px] font-medium text-slate-500">
+                                <span className="text-[10px] font-medium text-ink-500">
                                   Per Pasangan
                                 </span>
                               </div>
                             </div>
 
                             {/* Official Bank Account Details */}
-                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div className="mt-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-xs">
+                              <div className="flex items-center justify-between border-b border-ink-100 pb-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-base text-blue-600">
-                                    account_balance
-                                  </span>
-                                  <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                                  <BankIcon
+                                    className="text-base text-brand-600"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
+                                  <span className="text-xs font-black uppercase tracking-wider text-ink-700">
                                     Rekening Resmi Panitia Turnamen
                                   </span>
                                 </div>
-                                <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-800">
+                                <span className="rounded bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-800">
                                   {paymentInfo?.bankName || "BCA"}
                                 </span>
                               </div>
 
                               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                     Bank Tujuan
                                   </span>
-                                  <p className="text-sm font-black text-slate-900">
+                                  <p className="text-sm font-black text-ink-900">
                                     {paymentInfo?.bankName || "BCA"}
                                   </p>
                                 </div>
 
                                 <div>
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                     Nama Pemilik Rekening
                                   </span>
-                                  <p className="text-sm font-bold text-slate-800">
+                                  <p className="text-sm font-bold text-ink-800">
                                     {paymentInfo?.accountHolder ||
                                       "PT TUWAGA INDONESIA"}
                                   </p>
                                 </div>
 
                                 <div className="sm:col-span-2">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                     Nomor Rekening
                                   </span>
                                   <div className="mt-1 flex items-center gap-3">
-                                    <span className="font-mono text-lg font-black tracking-wider text-slate-900">
+                                    <span className="font-mono text-lg font-black tracking-wider text-ink-900">
                                       {paymentInfo?.accountNumber ||
                                         "8831234567"}
                                     </span>
@@ -995,15 +1081,23 @@ function TournamentPortalContent() {
                                             "8831234567",
                                         )
                                       }
-                                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                                      className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-ink-50 px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-ink-100"
                                     >
-                                      <span className="material-symbols-outlined text-sm">
-                                        {copiedId ===
-                                        (paymentInfo?.accountNumber ||
-                                          "8831234567")
-                                          ? "check"
-                                          : "content_copy"}
-                                      </span>
+                                      {copiedId ===
+                                      (paymentInfo?.accountNumber ||
+                                        "8831234567") ? (
+                                        <CheckIcon
+                                          className="text-sm"
+                                          weight="bold"
+                                          aria-hidden="true"
+                                        />
+                                      ) : (
+                                        <CopyIcon
+                                          className="text-sm"
+                                          weight="bold"
+                                          aria-hidden="true"
+                                        />
+                                      )}
                                       {copiedId ===
                                       (paymentInfo?.accountNumber ||
                                         "8831234567")
@@ -1015,7 +1109,7 @@ function TournamentPortalContent() {
                               </div>
 
                               {paymentInfo?.paymentInstructions && (
-                                <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3 text-xs leading-relaxed text-blue-900">
+                                <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/50 p-3 text-xs leading-relaxed text-ink-900">
                                   <strong>Instruksi Panitia:</strong>{" "}
                                   {paymentInfo.paymentInstructions}
                                 </div>
@@ -1023,27 +1117,29 @@ function TournamentPortalContent() {
                             </div>
 
                             {/* Payment Proof Upload Section */}
-                            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div className="mt-6 rounded-2xl border border-ink-200 bg-white p-5 shadow-xs">
+                              <div className="flex items-center justify-between border-b border-ink-100 pb-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="material-symbols-outlined text-base text-emerald-600">
-                                    receipt_long
-                                  </span>
-                                  <h5 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                                  <ReceiptIcon
+                                    className="text-base text-emerald-600"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
+                                  <h5 className="text-xs font-black uppercase tracking-wider text-ink-800">
                                     Kirim Bukti Pembayaran
                                   </h5>
                                 </div>
 
                                 {team.paymentProofUrl && (
                                   <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-amber-800">
-                                    ⏳ Bukti Terkirim · Menunggu Approval
+                                    Bukti Terkirim · Menunggu Approval
                                   </span>
                                 )}
                               </div>
 
                               {team.paymentProofUrl && (
-                                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:flex-row sm:items-center">
-                                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-slate-300 bg-white">
+                                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-ink-200 bg-ink-50 p-3.5 sm:flex-row sm:items-center">
+                                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-ink-300 bg-white">
                                     <Image
                                       src={team.paymentProofUrl}
                                       alt="Bukti Transfer"
@@ -1053,10 +1149,10 @@ function TournamentPortalContent() {
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-slate-900">
+                                    <p className="text-xs font-bold text-ink-900">
                                       Bukti transfer telah berhasil kami terima
                                     </p>
-                                    <p className="text-[11px] text-slate-500">
+                                    <p className="text-[11px] text-ink-500">
                                       Panitia akan memeriksa transfer Anda. Slot
                                       Main Draw akan otomatis terkunci begitu
                                       pembayaran diverifikasi.
@@ -1065,11 +1161,13 @@ function TournamentPortalContent() {
                                       href={team.paymentProofUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:underline"
+                                      className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:underline"
                                     >
-                                      <span className="material-symbols-outlined text-xs">
-                                        open_in_new
-                                      </span>
+                                      <ArrowSquareOutIcon
+                                        className="text-xs"
+                                        aria-hidden="true"
+                                        weight="bold"
+                                      />
                                       Lihat Bukti Ukuran Penuh
                                     </a>
                                   </div>
@@ -1077,8 +1175,13 @@ function TournamentPortalContent() {
                               )}
 
                               {uploadSuccessMessage && (
-                                <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
-                                  ✓ {uploadSuccessMessage}
+                                <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+                                  <CheckCircleIcon
+                                    className="shrink-0 text-base"
+                                    weight="fill"
+                                    aria-hidden="true"
+                                  />
+                                  {uploadSuccessMessage}
                                 </div>
                               )}
 
@@ -1089,7 +1192,7 @@ function TournamentPortalContent() {
                               )}
 
                               <div className="mt-4">
-                                <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/60 p-5 transition hover:border-emerald-500 hover:bg-emerald-50/20">
+                                <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-ink-300 bg-ink-50/60 p-5 transition hover:border-emerald-500 hover:bg-emerald-50/20">
                                   <input
                                     type="file"
                                     accept="image/jpeg,image/png,image/webp"
@@ -1108,15 +1211,17 @@ function TournamentPortalContent() {
                                     </div>
                                   ) : (
                                     <div className="flex flex-col items-center text-center">
-                                      <span className="material-symbols-outlined text-3xl text-slate-400">
-                                        upload_file
-                                      </span>
-                                      <span className="mt-1.5 text-xs font-bold text-slate-700">
+                                      <FileArrowUpIcon
+                                        className="text-3xl text-ink-400"
+                                        aria-hidden="true"
+                                        weight="duotone"
+                                      />
+                                      <span className="mt-1.5 text-xs font-bold text-ink-700">
                                         {team.paymentProofUrl
                                           ? "Klik untuk Mengganti / Mengunggah Ulang Bukti Transfer"
                                           : "Klik untuk Mengunggah Foto Bukti Transfer"}
                                       </span>
-                                      <span className="mt-0.5 text-[10px] text-slate-400">
+                                      <span className="mt-0.5 text-[10px] text-ink-400">
                                         Format JPG, PNG, atau WebP (Maksimal
                                         5MB)
                                       </span>
@@ -1133,9 +1238,11 @@ function TournamentPortalContent() {
                           <div className="border-b border-emerald-100 bg-emerald-50/40 p-6 sm:p-8">
                             <div className="flex items-start gap-3.5">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-xs">
-                                <span className="material-symbols-outlined text-xl">
-                                  verified
-                                </span>
+                                <SealCheckIcon
+                                  className="text-xl"
+                                  aria-hidden="true"
+                                  weight="duotone"
+                                />
                               </div>
                               <div className="flex-1">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1169,9 +1276,11 @@ function TournamentPortalContent() {
                                       rel="noreferrer"
                                       className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline"
                                     >
-                                      <span className="material-symbols-outlined text-xs">
-                                        receipt_long
-                                      </span>
+                                      <ReceiptIcon
+                                        className="text-xs"
+                                        aria-hidden="true"
+                                        weight="bold"
+                                      />
                                       Lihat Bukti Transfer Tersimpan ↗
                                     </a>
                                   </div>
@@ -1186,9 +1295,11 @@ function TournamentPortalContent() {
                           <div className="border-b border-amber-100 bg-amber-50/40 p-6 sm:p-8">
                             <div className="flex items-start gap-3.5">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
-                                <span className="material-symbols-outlined text-xl">
-                                  hourglass_top
-                                </span>
+                                <HourglassHighIcon
+                                  className="text-xl"
+                                  aria-hidden="true"
+                                  weight="duotone"
+                                />
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-sm font-black text-amber-950">
@@ -1212,9 +1323,11 @@ function TournamentPortalContent() {
                           <div className="border-b border-rose-100 bg-rose-50/40 p-6 sm:p-8">
                             <div className="flex items-start gap-3.5">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-600 text-white shadow-xs">
-                                <span className="material-symbols-outlined text-xl">
-                                  cancel
-                                </span>
+                                <XCircleIcon
+                                  className="text-xl"
+                                  aria-hidden="true"
+                                  weight="duotone"
+                                />
                               </div>
                               <div className="flex-1">
                                 <h4 className="text-sm font-black text-rose-950">
@@ -1235,43 +1348,43 @@ function TournamentPortalContent() {
 
                         {/* Team Details & Schedule */}
                         <div className="p-6 sm:p-8">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
                             Rincian Pendaftaran
                           </h4>
 
                           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <div className="rounded-xl border border-ink-100 bg-ink-50 p-3.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                 Kategori
                               </span>
-                              <p className="mt-0.5 text-xs font-bold text-slate-900">
+                              <p className="mt-0.5 text-xs font-bold text-ink-900">
                                 {team.category}
                               </p>
                             </div>
 
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <div className="rounded-xl border border-ink-100 bg-ink-50 p-3.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                 Pemain 1
                               </span>
-                              <p className="mt-0.5 text-xs font-bold text-slate-900">
+                              <p className="mt-0.5 text-xs font-bold text-ink-900">
                                 {team.player}
                               </p>
                             </div>
 
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <div className="rounded-xl border border-ink-100 bg-ink-50 p-3.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                 Pasangan (Partner)
                               </span>
-                              <p className="mt-0.5 text-xs font-bold text-slate-900">
+                              <p className="mt-0.5 text-xs font-bold text-ink-900">
                                 {team.partner || "- (Single)"}
                               </p>
                             </div>
 
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <div className="rounded-xl border border-ink-100 bg-ink-50 p-3.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
                                 Waktu Mendaftar
                               </span>
-                              <p className="mt-0.5 text-xs font-bold text-slate-900">
+                              <p className="mt-0.5 text-xs font-bold text-ink-900">
                                 {new Date(team.registeredAt).toLocaleDateString(
                                   "id-ID",
                                   {
@@ -1288,27 +1401,29 @@ function TournamentPortalContent() {
 
                           {/* Scheduled Match info if available */}
                           {teamMatches.length > 0 && (
-                            <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50/60 p-5">
+                            <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50/60 p-5">
                               <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-blue-600">
-                                  sports_tennis
-                                </span>
-                                <h5 className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                                <RacquetIcon
+                                  className="text-brand-600"
+                                  aria-hidden="true"
+                                  weight="bold"
+                                />
+                                <h5 className="text-xs font-bold uppercase tracking-wider text-ink-900">
                                   Jadwal Laga Tim Anda
                                 </h5>
                               </div>
-                              <div className="mt-3 divide-y divide-blue-100">
+                              <div className="mt-3 divide-y divide-brand-100">
                                 {teamMatches.map((m) => (
                                   <div
                                     key={m.id}
                                     className="flex flex-col justify-between gap-2 py-3 sm:flex-row sm:items-center"
                                   >
                                     <div>
-                                      <span className="text-[10px] font-bold text-blue-600">
+                                      <span className="text-[10px] font-bold text-brand-600">
                                         {m.round} · Court {m.courtId ?? "TBA"} ·{" "}
                                         {m.time}
                                       </span>
-                                      <p className="text-xs font-bold text-slate-900">
+                                      <p className="text-xs font-bold text-ink-900">
                                         {m.teamAName} vs {m.teamBName}
                                       </p>
                                     </div>
@@ -1318,8 +1433,8 @@ function TournamentPortalContent() {
                                           m.status === "live"
                                             ? "bg-rose-100 text-rose-700"
                                             : m.status === "completed"
-                                              ? "bg-slate-100 text-slate-700"
-                                              : "bg-blue-100 text-blue-700"
+                                              ? "bg-ink-100 text-ink-700"
+                                              : "bg-brand-100 text-brand-700"
                                         }`}
                                       >
                                         {m.status === "live"
@@ -1330,7 +1445,7 @@ function TournamentPortalContent() {
                                       </span>
                                       <Link
                                         href={`/tournaments/live?tournament=${tournament.slug}`}
-                                        className="text-xs font-semibold text-blue-600 hover:underline"
+                                        className="text-xs font-semibold text-brand-600 hover:underline"
                                       >
                                         Pantau Skor →
                                       </Link>
@@ -1342,12 +1457,14 @@ function TournamentPortalContent() {
                           )}
 
                           {/* WhatsApp assistance */}
-                          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+                          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-200 bg-ink-50/50 p-4">
                             <div className="flex items-center gap-2">
-                              <span className="material-symbols-outlined text-slate-400">
-                                help
-                              </span>
-                              <span className="text-xs text-slate-600">
+                              <QuestionIcon
+                                className="text-ink-400"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
+                              <span className="text-xs text-ink-600">
                                 Butuh verifikasi cepat atau konfirmasi transfer?
                               </span>
                             </div>
@@ -1357,9 +1474,11 @@ function TournamentPortalContent() {
                               rel="noreferrer"
                               className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700"
                             >
-                              <span className="material-symbols-outlined text-sm">
-                                chat
-                              </span>
+                              <ChatCircleDotsIcon
+                                className="text-sm"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                               Chat Panitia WhatsApp
                             </a>
                           </div>
@@ -1370,16 +1489,18 @@ function TournamentPortalContent() {
                 </div>
               ) : (
                 /* Authenticated but no teams registered yet */
-                <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-xs">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                    <span className="material-symbols-outlined text-3xl">
-                      sports_tennis
-                    </span>
+                <div className="rounded-3xl border border-ink-200 bg-white p-10 text-center shadow-xs">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                    <RacquetIcon
+                      className="text-3xl"
+                      aria-hidden="true"
+                      weight="duotone"
+                    />
                   </div>
-                  <h3 className="mt-4 text-base font-bold text-slate-900">
+                  <h3 className="mt-4 text-base font-bold text-ink-900">
                     Anda Belum Terdaftar di Turnamen Ini
                   </h3>
-                  <p className="mt-1 max-w-md mx-auto text-xs text-slate-500">
+                  <p className="mt-1 max-w-md mx-auto text-xs text-ink-500">
                     Akun Anda ({session.user.email}) belum memiliki tim aktif di{" "}
                     {tournament.name}. Daftarkan tim Anda sekarang untuk
                     mengamankan slot pertandingan.
@@ -1388,11 +1509,13 @@ function TournamentPortalContent() {
                     <div className="mt-6">
                       <Link
                         href={`/tournaments/${slug}/register`}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700 active:scale-95"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 text-xs font-bold text-ink-950 shadow-md shadow-ink-950/10 transition hover:bg-brand-400 active:scale-95"
                       >
-                        <span className="material-symbols-outlined text-base">
-                          how_to_reg
-                        </span>
+                        <UserCheckIcon
+                          className="text-base"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Daftar Tim Sekarang
                       </Link>
                     </div>
@@ -1409,21 +1532,23 @@ function TournamentPortalContent() {
             <div className="mt-8 space-y-6">
               {/* Caprival Qualification Banner */}
               {isCaprival && (
-                <div className="rounded-2xl border border-indigo-900/30 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-md">
+                <div className="rounded-2xl border border-ink-900/30 bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 p-6 text-white shadow-md">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
-                          <span className="material-symbols-outlined text-[13px]">
-                            verified
-                          </span>
+                          <SealCheckIcon
+                            className="text-[13px]"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           The Grand Caprival
                         </span>
                       </div>
                       <h3 className="text-base font-extrabold text-white">
                         Panduan & Matriks Kualifikasi Kategori Resmi
                       </h3>
-                      <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                      <p className="text-xs text-ink-300 max-w-xl leading-relaxed">
                         Turnamen The Grand Caprival memberlakukan standarisasi
                         level ketat untuk cabang Tenis & Padel. Pastikan Anda
                         memeriksa matriks kualifikasi sebelum mendaftar.
@@ -1432,27 +1557,31 @@ function TournamentPortalContent() {
                     <button
                       type="button"
                       onClick={() => setShowCaprivalModal(true)}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-2.5 text-xs font-black text-slate-950 shadow-md transition hover:bg-amber-300"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-2.5 text-xs font-black text-ink-950 shadow-md transition hover:bg-amber-300"
                     >
-                      <span className="material-symbols-outlined text-base">
-                        table_chart
-                      </span>
+                      <TableIcon
+                        className="text-base"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Buka Matriks Kualifikasi
                     </button>
                   </div>
                 </div>
               )}
 
-              <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5">
+              <div className="rounded-2xl border border-brand-200 bg-brand-50/50 p-5">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600">
-                    shield
-                  </span>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                  <ShieldIcon
+                    className="text-brand-600"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-ink-900">
                     Kebijakan Privasi Peserta
                   </h4>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-blue-800/80">
+                <p className="mt-1 text-xs leading-relaxed text-brand-800/80">
                   Untuk melindungi kerahasiaan data seluruh pemain, daftar nama
                   peserta tidak dipublikasikan secara terbuka. Peserta dapat
                   memantau pendaftarannya masing-masing di tab{" "}
@@ -1476,16 +1605,16 @@ function TournamentPortalContent() {
                   return (
                     <div
                       key={cat}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition hover:border-blue-300"
+                      className="rounded-2xl border border-ink-200 bg-white p-5 shadow-xs transition hover:border-brand-300"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h4 className="text-base font-extrabold text-slate-900">
+                          <h4 className="text-base font-extrabold text-ink-900">
                             {displayCat}
                           </h4>
                           {caprivalEligibility && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700">
+                              <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[10px] font-bold text-brand-700">
                                 {caprivalEligibility.badgeText}
                               </span>
                             </div>
@@ -1497,8 +1626,8 @@ function TournamentPortalContent() {
                       </div>
 
                       {caprivalEligibility && (
-                        <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-600">
-                          <span className="font-bold text-slate-900 block mb-0.5">
+                        <div className="mt-3 rounded-xl border border-ink-100 bg-ink-50/80 p-3 text-xs text-ink-600">
+                          <span className="font-bold text-ink-900 block mb-0.5">
                             Kriteria Kelayakan:
                           </span>
                           <p className="text-[11px] leading-relaxed">
@@ -1507,17 +1636,17 @@ function TournamentPortalContent() {
                         </div>
                       )}
 
-                      <div className="mt-5 border-t border-slate-100 pt-4">
-                        <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+                      <div className="mt-5 border-t border-ink-100 pt-4">
+                        <div className="flex items-center justify-between text-xs font-semibold text-ink-600">
                           <span>Format Pertandingan</span>
-                          <span className="text-slate-900 font-bold">
+                          <span className="text-ink-900 font-bold">
                             {tournament.settings?.format ||
                               "Group stage + knockout"}
                           </span>
                         </div>
-                        <div className="mt-2 flex items-center justify-between text-xs font-semibold text-slate-600">
+                        <div className="mt-2 flex items-center justify-between text-xs font-semibold text-ink-600">
                           <span>Biaya Pendaftaran</span>
-                          <span className="text-indigo-600 font-bold">
+                          <span className="text-brand-600 font-bold">
                             Diberikan setelah lolos kurasi
                           </span>
                         </div>
@@ -1527,11 +1656,13 @@ function TournamentPortalContent() {
                         <div className="mt-5">
                           <Link
                             href={`/tournaments/${slug}/register`}
-                            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 text-xs font-bold text-blue-700 transition hover:bg-blue-600 hover:text-white"
+                            className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 text-xs font-bold text-brand-700 transition hover:bg-brand-500 hover:text-ink-950"
                           >
-                            <span className="material-symbols-outlined text-base">
-                              how_to_reg
-                            </span>
+                            <UserCheckIcon
+                              className="text-base"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                             Daftar di Kategori Ini
                           </Link>
                         </div>
@@ -1556,8 +1687,8 @@ function TournamentPortalContent() {
                     onClick={() => setMatchCategoryFilter("all")}
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                       matchCategoryFilter === "all"
-                        ? "bg-blue-600 text-white"
-                        : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        ? "bg-brand-500 text-ink-950"
+                        : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
                     }`}
                   >
                     Semua Kategori ({matches.length})
@@ -1569,8 +1700,8 @@ function TournamentPortalContent() {
                       onClick={() => setMatchCategoryFilter(cat)}
                       className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                         matchCategoryFilter === cat
-                          ? "bg-blue-600 text-white"
-                          : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          ? "bg-brand-500 text-ink-950"
+                          : "border border-ink-200 bg-white text-ink-700 hover:bg-ink-50"
                       }`}
                     >
                       {cat}
@@ -1581,20 +1712,24 @@ function TournamentPortalContent() {
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/tournaments/bracket?tournament=${tournament.slug}`}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink-700 hover:bg-ink-50"
                   >
-                    <span className="material-symbols-outlined text-sm text-slate-400">
-                      account_tree
-                    </span>
+                    <TreeStructureIcon
+                      className="text-sm text-ink-400"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
                     Bagan Knockout
                   </Link>
                   <Link
                     href={`/tournaments/live?tournament=${tournament.slug}`}
                     className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-rose-600 px-3 text-xs font-bold text-white hover:bg-rose-700"
                   >
-                    <span className="material-symbols-outlined text-sm">
-                      sensors
-                    </span>
+                    <BroadcastIcon
+                      className="text-sm"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
                     Live Score
                   </Link>
                 </div>
@@ -1605,14 +1740,14 @@ function TournamentPortalContent() {
                   {filteredMatches.map((m) => (
                     <div
                       key={m.id}
-                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition hover:border-blue-300"
+                      className="rounded-2xl border border-ink-200 bg-white p-5 shadow-xs transition hover:border-brand-300"
                     >
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                        <span className="text-[11px] font-bold text-blue-600">
+                      <div className="flex items-center justify-between border-b border-ink-100 pb-2.5">
+                        <span className="text-[11px] font-bold text-brand-600">
                           {m.category} · {m.round}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-semibold text-slate-500">
+                          <span className="text-[11px] font-semibold text-ink-500">
                             Court {m.courtId ?? "TBA"} · {m.time}
                           </span>
                           <span
@@ -1620,8 +1755,8 @@ function TournamentPortalContent() {
                               m.status === "live"
                                 ? "bg-rose-100 text-rose-700 animate-pulse"
                                 : m.status === "completed"
-                                  ? "bg-slate-100 text-slate-700"
-                                  : "bg-blue-100 text-blue-700"
+                                  ? "bg-ink-100 text-ink-700"
+                                  : "bg-brand-100 text-brand-700"
                             }`}
                           >
                             {m.status}
@@ -1635,13 +1770,13 @@ function TournamentPortalContent() {
                             className={`text-xs font-bold ${
                               m.winnerTeamId && m.winnerTeamId === m.teamAId
                                 ? "text-emerald-700 font-extrabold"
-                                : "text-slate-900"
+                                : "text-ink-900"
                             }`}
                           >
                             {m.teamAName}
                           </span>
                           {m.score && (
-                            <span className="font-mono text-xs font-bold text-slate-700">
+                            <span className="font-mono text-xs font-bold text-ink-700">
                               {simplifyScore(m.score).split("-")[0] || ""}
                             </span>
                           )}
@@ -1652,13 +1787,13 @@ function TournamentPortalContent() {
                             className={`text-xs font-bold ${
                               m.winnerTeamId && m.winnerTeamId === m.teamBId
                                 ? "text-emerald-700 font-extrabold"
-                                : "text-slate-900"
+                                : "text-ink-900"
                             }`}
                           >
                             {m.teamBName}
                           </span>
                           {m.score && (
-                            <span className="font-mono text-xs font-bold text-slate-700">
+                            <span className="font-mono text-xs font-bold text-ink-700">
                               {simplifyScore(m.score).split("-")[1] || ""}
                             </span>
                           )}
@@ -1668,14 +1803,16 @@ function TournamentPortalContent() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-xs">
-                  <span className="material-symbols-outlined text-5xl text-slate-300">
-                    event_busy
-                  </span>
-                  <h4 className="mt-3 text-base font-bold text-slate-900">
+                <div className="rounded-3xl border border-ink-200 bg-white p-10 text-center shadow-xs">
+                  <CalendarXIcon
+                    className="text-5xl text-ink-300"
+                    aria-hidden="true"
+                    weight="duotone"
+                  />
+                  <h4 className="mt-3 text-base font-bold text-ink-900">
                     Jadwal Pertandingan Belum Dirilis
                   </h4>
-                  <p className="mt-1 max-w-md mx-auto text-xs text-slate-500">
+                  <p className="mt-1 max-w-md mx-auto text-xs text-ink-500">
                     Panitia sedang menyelesaikan proses pendaftaran dan drawing
                     bagan. Jadwal Order of Play (nomor lapangan & estimasi jam
                     tanding) akan tampil di sini segera setelah diterbitkan.
@@ -1683,7 +1820,7 @@ function TournamentPortalContent() {
                   <div className="mt-6 flex justify-center gap-3">
                     <Link
                       href={`/tournaments/bracket?tournament=${tournament.slug}`}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                      className="rounded-xl border border-ink-200 bg-white px-4 py-2 text-xs font-bold text-ink-700 hover:bg-ink-50"
                     >
                       Lihat Bagan Sementara
                     </Link>
@@ -1700,24 +1837,26 @@ function TournamentPortalContent() {
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Caprival Qualification Card in Tab 4 */}
               {isCaprival && (
-                <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-slate-50 p-6 sm:p-8 shadow-xs lg:col-span-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-indigo-100 pb-4">
+                <div className="rounded-3xl border border-brand-200 bg-gradient-to-br from-brand-50/70 via-white to-ink-50 p-6 sm:p-8 shadow-xs lg:col-span-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-100 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
-                        <span className="material-symbols-outlined text-2xl">
-                          verified
-                        </span>
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-ink-950 shadow-sm">
+                        <SealCheckIcon
+                          className="text-2xl"
+                          aria-hidden="true"
+                          weight="duotone"
+                        />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-extrabold text-slate-900">
+                          <h3 className="text-base font-extrabold text-ink-900">
                             Standar Kualifikasi Level Pemain (Tenis & Padel)
                           </h3>
                           <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-black uppercase text-amber-900">
                             The Grand Caprival
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-ink-500 mt-0.5">
                           Untuk menjaga integritas kompetisi, seluruh tim akan
                           melewati tahap kurasi & verifikasi profil secara
                           ketat.
@@ -1727,11 +1866,13 @@ function TournamentPortalContent() {
                     <button
                       type="button"
                       onClick={() => setShowCaprivalModal(true)}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-indigo-700"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-bold text-ink-950 shadow-md transition hover:bg-brand-400"
                     >
-                      <span className="material-symbols-outlined text-base">
-                        table_chart
-                      </span>
+                      <TableIcon
+                        className="text-base"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Buka Matriks Lengkap (Pop-up)
                     </button>
                   </div>
@@ -1741,39 +1882,39 @@ function TournamentPortalContent() {
                       <span className="font-extrabold text-amber-900 block text-sm">
                         Upper Beginner Women
                       </span>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                      <p className="text-ink-600 text-[11px] leading-relaxed">
                         Khusus pemula tenis & padel. Dilarang bagi mantan atlet
                         pro raket (5 thn), tenis intermediate/advanced, peraih
                         gelar resmi, dan coach.
                       </p>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1.5">
-                      <span className="font-extrabold text-slate-900 block text-sm">
+                    <div className="rounded-2xl border border-ink-200 bg-white p-4 space-y-1.5">
+                      <span className="font-extrabold text-ink-900 block text-sm">
                         Bronze (Men & Women)
                       </span>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                      <p className="text-ink-600 text-[11px] leading-relaxed">
                         Pemain intermediate tenis atau 2x juara beginner
                         (partner beda). Dilarang untuk advanced tenis, coach,
                         dan peraih podium silver/gold.
                       </p>
                     </div>
 
-                    <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-1.5">
-                      <span className="font-extrabold text-indigo-950 block text-sm">
+                    <div className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 space-y-1.5">
+                      <span className="font-extrabold text-ink-950 block text-sm">
                         Mens Open
                       </span>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                      <p className="text-ink-600 text-[11px] leading-relaxed">
                         Kategori terbuka putra tanpa batasan kualifikasi khusus,
                         terbuka bagi pemain dari berbagai level kompetisi.
                       </p>
                     </div>
 
-                    <div className="rounded-2xl border border-sky-200 bg-sky-50/40 p-4 space-y-1.5">
-                      <span className="font-extrabold text-sky-950 block text-sm">
+                    <div className="rounded-2xl border border-cream-200 bg-cream-50/40 p-4 space-y-1.5">
+                      <span className="font-extrabold text-cream-950 block text-sm">
                         KU-14 Men
                       </span>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                      <p className="text-ink-600 text-[11px] leading-relaxed">
                         Pembinaan junior putra kelahiran tahun 2012 atau
                         setelahnya. Wajib melampirkan identitas resmi saat
                         mendaftar.
@@ -1784,21 +1925,23 @@ function TournamentPortalContent() {
               )}
 
               {/* Venue Card */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+              <div className="rounded-3xl border border-ink-200 bg-white p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-rose-500">
-                    location_on
-                  </span>
-                  <h3 className="text-base font-bold text-slate-900">
+                  <MapPinIcon
+                    className="text-rose-500"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
+                  <h3 className="text-base font-bold text-ink-900">
                     Lokasi & Venue
                   </h3>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <p className="text-sm font-bold text-slate-900">
+                <div className="mt-4 rounded-2xl border border-ink-100 bg-ink-50 p-4">
+                  <p className="text-sm font-bold text-ink-900">
                     {tournament.venue}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-ink-500">
                     {tournament.location || "Jakarta, Indonesia"}
                   </p>
 
@@ -1807,34 +1950,36 @@ function TournamentPortalContent() {
                       href={venueMapLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:underline"
                     >
-                      <span className="material-symbols-outlined text-sm">
-                        map
-                      </span>
+                      <MapTrifoldIcon
+                        className="text-sm"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Petunjuk Arah Google Maps
                     </a>
                   )}
                 </div>
 
                 <div className="mt-6">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
                     Tanggal Pertandingan
                   </h4>
-                  <p className="mt-1 text-sm font-semibold text-slate-800">
+                  <p className="mt-1 text-sm font-semibold text-ink-800">
                     {tournament.dateLabel}
                   </p>
                 </div>
 
                 <div className="mt-6">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-ink-400">
                     Kategori Dibuka
                   </h4>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {categories.map((cat) => (
                       <span
                         key={cat}
-                        className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                        className="rounded-lg border border-ink-200 bg-ink-50 px-2.5 py-1 text-xs font-semibold text-ink-700"
                       >
                         {cat}
                       </span>
@@ -1846,28 +1991,30 @@ function TournamentPortalContent() {
               {/* Rules & Payment info */}
               <div className="space-y-6">
                 {/* Registration & Curation Workflow */}
-                <div className="rounded-3xl border border-indigo-200 bg-indigo-50/50 p-6 sm:p-8 shadow-xs">
+                <div className="rounded-3xl border border-brand-200 bg-brand-50/50 p-6 sm:p-8 shadow-xs">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-indigo-600">
-                      fact_check
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <ListChecksIcon
+                      className="text-brand-600"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
+                    <h3 className="text-base font-bold text-ink-900">
                       Alur Registrasi & Pembayaran
                     </h3>
                   </div>
 
-                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                  <p className="mt-2 text-xs leading-relaxed text-ink-600">
                     Turnamen menerapkan sistem kurasi kategori terlebih dahulu
                     untuk memastikan kompetisi yang adil dan seimbang:
                   </p>
 
                   <div className="mt-4 space-y-3 text-xs">
-                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                    <div className="flex items-start gap-3 rounded-xl border border-brand-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-black text-ink-950">
                         1
                       </span>
                       <div>
-                        <strong className="text-slate-900">
+                        <strong className="text-ink-900">
                           Pendaftaran Bebas Biaya di Awal:
                         </strong>{" "}
                         Tim mendaftarkan diri secara online dengan melengkapi
@@ -1875,12 +2022,12 @@ function TournamentPortalContent() {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                    <div className="flex items-start gap-3 rounded-xl border border-brand-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-black text-ink-950">
                         2
                       </span>
                       <div>
-                        <strong className="text-slate-900">
+                        <strong className="text-ink-900">
                           Verifikasi & Kurasi Kategori:
                         </strong>{" "}
                         Panitia melakukan pengecekan data, rekam jejak, dan
@@ -1888,12 +2035,12 @@ function TournamentPortalContent() {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                    <div className="flex items-start gap-3 rounded-xl border border-brand-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-black text-ink-950">
                         3
                       </span>
                       <div>
-                        <strong className="text-slate-900">
+                        <strong className="text-ink-900">
                           Penetapan Biaya & Pembayaran:
                         </strong>{" "}
                         Setelah tim disetujui (Approved), nominal pendaftaran
@@ -1902,12 +2049,12 @@ function TournamentPortalContent() {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white p-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-black text-white">
+                    <div className="flex items-start gap-3 rounded-xl border border-brand-100 bg-white p-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-black text-ink-950">
                         4
                       </span>
                       <div>
-                        <strong className="text-slate-900">
+                        <strong className="text-ink-900">
                           Konfirmasi Main Draw:
                         </strong>{" "}
                         Begitu bukti transfer diverifikasi, slot tim Anda resmi
@@ -1917,19 +2064,21 @@ function TournamentPortalContent() {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+                <div className="rounded-3xl border border-ink-200 bg-white p-6 sm:p-8 shadow-xs">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-blue-600">
-                      gavel
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <GavelIcon
+                      className="text-brand-600"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
+                    <h3 className="text-base font-bold text-ink-900">
                       Format Pertandingan
                     </h3>
                   </div>
 
-                  <ul className="mt-4 space-y-2 text-xs text-slate-600">
+                  <ul className="mt-4 space-y-2 text-xs text-ink-600">
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-slate-900">1.</span>
+                      <span className="font-bold text-ink-900">1.</span>
                       <span>
                         <strong>Sistem:</strong>{" "}
                         {tournament.settings?.format ||
@@ -1937,7 +2086,7 @@ function TournamentPortalContent() {
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-slate-900">2.</span>
+                      <span className="font-bold text-ink-900">2.</span>
                       <span>
                         <strong>Aturan Skor:</strong> Menggunakan scoring resmi{" "}
                         {tournament.settings?.sport === "padel"
@@ -1947,7 +2096,7 @@ function TournamentPortalContent() {
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="font-bold text-slate-900">3.</span>
+                      <span className="font-bold text-ink-900">3.</span>
                       <span>
                         <strong>Wasit & Live Scoring:</strong> Skor dicatat
                         langsung oleh referee lapangan menggunakan sistem
@@ -1958,16 +2107,18 @@ function TournamentPortalContent() {
                 </div>
 
                 {/* Organizer Contact */}
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+                <div className="rounded-3xl border border-ink-200 bg-white p-6 sm:p-8 shadow-xs">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-emerald-600">
-                      support_agent
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <HeadsetIcon
+                      className="text-emerald-600"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
+                    <h3 className="text-base font-bold text-ink-900">
                       Bantuan & Panitia
                     </h3>
                   </div>
-                  <p className="mt-2 text-xs text-slate-600">
+                  <p className="mt-2 text-xs text-ink-600">
                     Ada pertanyaan seputar verifikasi pembayaran, transfer, atau
                     pergantian pemain?
                   </p>
@@ -1978,9 +2129,11 @@ function TournamentPortalContent() {
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
                     >
-                      <span className="material-symbols-outlined text-base">
-                        chat
-                      </span>
+                      <ChatCircleDotsIcon
+                        className="text-base"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Hubungi Helpdesk Panitia
                     </a>
                   </div>
@@ -2008,8 +2161,8 @@ export default function TournamentPortalPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="flex min-h-screen items-center justify-center bg-ink-50">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
         </div>
       }
     >

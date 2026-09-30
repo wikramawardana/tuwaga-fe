@@ -1,3 +1,4 @@
+import { TreeStructureIcon } from "@phosphor-icons/react/dist/ssr";
 import { simplifyScore } from "@/lib/matchScore";
 import type { Match } from "@/lib/tuwagaApi";
 
@@ -398,8 +399,8 @@ export function KnockoutBaganTree({
           width="68"
           height="24"
           rx="5"
-          fill={live ? "#fee2e2" : completed ? "#f1f5f9" : "#ffffff"}
-          stroke={live ? "#ef4444" : completed ? "#cbd5e1" : "#94a3b8"}
+          fill={live ? "#fff5ee" : completed ? "#f5f2ec" : "#ffffff"}
+          stroke={live ? "#e06d30" : completed ? "#d6d1c8" : "#a7a399"}
           strokeWidth="1.2"
         />
         <text
@@ -408,7 +409,7 @@ export function KnockoutBaganTree({
           textAnchor="middle"
           fontSize="10"
           fontWeight="bold"
-          fill={live ? "#b91c1c" : completed ? "#0f172a" : "#1e40af"}
+          fill={live ? "#9c421d" : completed ? "#171717" : "#9c421d"}
         >
           {live
             ? "● Live"
@@ -427,28 +428,30 @@ export function KnockoutBaganTree({
       {/* Slide Top Bar */}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-blue-900">
-            <span className="material-symbols-outlined text-sm text-blue-700">
-              account_tree
-            </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-ink-900">
+            <TreeStructureIcon
+              className="text-sm text-brand-700"
+              aria-hidden="true"
+              weight="bold"
+            />
             Scene 03 · Knockout Bagan
           </span>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-ink-950 md:text-3xl">
             {title}
           </h2>
-          <p className="mt-0.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+          <p className="mt-0.5 text-xs font-bold uppercase tracking-wider text-ink-500">
             {subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-xl border border-blue-900/20 bg-[#071c4d] px-4 py-1.5 text-xs font-black uppercase tracking-wider text-white shadow-xs">
+          <span className="rounded-xl border border-ink-900/20 bg-ink-950 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-white shadow-xs">
             Slide {slideIndex + 1} / {totalSlides}
           </span>
         </div>
       </div>
 
       {/* SVG Canvas Bagan Tree */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-300 bg-white p-2 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-ink-300 bg-white p-2 shadow-sm">
         <svg
           viewBox={`0 0 ${SVG_W} ${SVG_H}`}
           className="h-auto w-full"
@@ -458,13 +461,13 @@ export function KnockoutBaganTree({
         >
           <title>{title}</title>
           {/* Column Headers */}
-          <g className="font-extrabold uppercase tracking-wider text-slate-700">
+          <g className="font-extrabold uppercase tracking-wider text-ink-700">
             <text
               x="130"
               y="24"
               textAnchor="middle"
               fontSize="12"
-              fill="#0f172a"
+              fill="#171717"
             >
               Peserta
             </text>
@@ -473,7 +476,7 @@ export function KnockoutBaganTree({
               y="24"
               textAnchor="middle"
               fontSize="11"
-              fill="#475569"
+              fill="#5f5c55"
             >
               {roundLabels[0]}
             </text>
@@ -482,7 +485,7 @@ export function KnockoutBaganTree({
               y="24"
               textAnchor="middle"
               fontSize="11"
-              fill="#475569"
+              fill="#5f5c55"
             >
               {roundLabels[1]}
             </text>
@@ -491,7 +494,7 @@ export function KnockoutBaganTree({
               y="24"
               textAnchor="middle"
               fontSize="11"
-              fill="#475569"
+              fill="#5f5c55"
             >
               {roundLabels[2]}
             </text>
@@ -500,7 +503,7 @@ export function KnockoutBaganTree({
               y="24"
               textAnchor="middle"
               fontSize="11"
-              fill="#475569"
+              fill="#5f5c55"
             >
               {roundLabels[3]}
             </text>
@@ -509,7 +512,7 @@ export function KnockoutBaganTree({
               y="24"
               textAnchor="middle"
               fontSize="11"
-              fill="#1e40af"
+              fill="#9c421d"
             >
               {roundLabels[4]}
             </text>
@@ -521,7 +524,7 @@ export function KnockoutBaganTree({
             y1="34"
             x2={SVG_W - 10}
             y2="34"
-            stroke="#e2e8f0"
+            stroke="#e9e5dc"
             strokeWidth="1"
           />
 
@@ -537,8 +540,8 @@ export function KnockoutBaganTree({
                   width={C0_W}
                   height="26"
                   rx="4"
-                  fill="#f8fafc"
-                  stroke="#cbd5e1"
+                  fill="#fbfaf5"
+                  stroke="#d6d1c8"
                   strokeWidth="1"
                 />
                 {/* Seed Number Badge */}
@@ -548,7 +551,7 @@ export function KnockoutBaganTree({
                   width="22"
                   height="22"
                   rx="3"
-                  fill="#071c4d"
+                  fill="#171717"
                 />
                 <text
                   x={C0_X + 13}
@@ -566,7 +569,7 @@ export function KnockoutBaganTree({
                   y={y + 3.5}
                   fontSize="11"
                   fontWeight="800"
-                  fill="#0f172a"
+                  fill="#171717"
                 >
                   {s.name}
                 </text>
@@ -577,7 +580,7 @@ export function KnockoutBaganTree({
                     y={y + 3.5}
                     fontSize="9.5"
                     fontWeight="600"
-                    fill="#64748b"
+                    fill="#78746c"
                     textAnchor="end"
                   >
                     ({s.club})
@@ -592,7 +595,7 @@ export function KnockoutBaganTree({
                       width="18"
                       height="16"
                       rx="3"
-                      fill="#e0e7ff"
+                      fill="#ffe9d9"
                     />
                     <text
                       x={C0_X + C0_W - 15}
@@ -600,7 +603,7 @@ export function KnockoutBaganTree({
                       textAnchor="middle"
                       fontSize="9.5"
                       fontWeight="800"
-                      fill="#3730a3"
+                      fill="#9c421d"
                     >
                       {s.rating}
                     </text>
@@ -617,7 +620,7 @@ export function KnockoutBaganTree({
             y1={trackY(0)}
             x2={C2_X}
             y2={trackY(0)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -627,7 +630,7 @@ export function KnockoutBaganTree({
             y1={trackY(1)}
             x2={C1_FORK_X}
             y2={trackY(1)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -635,7 +638,7 @@ export function KnockoutBaganTree({
             y1={trackY(2)}
             x2={C1_FORK_X}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -643,7 +646,7 @@ export function KnockoutBaganTree({
             y1={trackY(1)}
             x2={C1_FORK_X}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {/* Stem of P0 goes to track 2 of R0 */}
@@ -652,7 +655,7 @@ export function KnockoutBaganTree({
             y1={yP0}
             x2={C1_FORK_X + 24}
             y2={yP0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -660,7 +663,7 @@ export function KnockoutBaganTree({
             y1={yP0}
             x2={C1_FORK_X + 24}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -668,7 +671,7 @@ export function KnockoutBaganTree({
             y1={trackY(2)}
             x2={C2_X}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(prelimMatches[0], C1_FORK_X - 6, yP0, "09:00")}
@@ -679,7 +682,7 @@ export function KnockoutBaganTree({
             y1={trackY(3)}
             x2={C2_X}
             y2={trackY(3)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -687,7 +690,7 @@ export function KnockoutBaganTree({
             y1={trackY(4)}
             x2={C2_X}
             y2={trackY(4)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -695,7 +698,7 @@ export function KnockoutBaganTree({
             y1={trackY(5)}
             x2={C2_X}
             y2={trackY(5)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -703,7 +706,7 @@ export function KnockoutBaganTree({
             y1={trackY(6)}
             x2={C2_X}
             y2={trackY(6)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -713,7 +716,7 @@ export function KnockoutBaganTree({
             y1={trackY(7)}
             x2={C1_FORK_X}
             y2={trackY(7)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -721,7 +724,7 @@ export function KnockoutBaganTree({
             y1={trackY(8)}
             x2={C1_FORK_X}
             y2={trackY(8)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -729,7 +732,7 @@ export function KnockoutBaganTree({
             y1={trackY(7)}
             x2={C1_FORK_X}
             y2={trackY(8)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -737,7 +740,7 @@ export function KnockoutBaganTree({
             y1={yP1}
             x2={C1_FORK_X + 24}
             y2={yP1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -745,7 +748,7 @@ export function KnockoutBaganTree({
             y1={yP1}
             x2={C1_FORK_X + 24}
             y2={trackY(7)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -753,7 +756,7 @@ export function KnockoutBaganTree({
             y1={trackY(7)}
             x2={C2_X}
             y2={trackY(7)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(prelimMatches[1], C1_FORK_X - 6, yP1, "09:20")}
@@ -764,7 +767,7 @@ export function KnockoutBaganTree({
             y1={trackY(9)}
             x2={C2_X}
             y2={trackY(9)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -774,7 +777,7 @@ export function KnockoutBaganTree({
             y1={trackY(10)}
             x2={C2_X}
             y2={trackY(10)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -784,7 +787,7 @@ export function KnockoutBaganTree({
             y1={trackY(11)}
             x2={C1_FORK_X}
             y2={trackY(11)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -792,7 +795,7 @@ export function KnockoutBaganTree({
             y1={trackY(12)}
             x2={C1_FORK_X}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -800,7 +803,7 @@ export function KnockoutBaganTree({
             y1={trackY(11)}
             x2={C1_FORK_X}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -808,7 +811,7 @@ export function KnockoutBaganTree({
             y1={yP2}
             x2={C1_FORK_X + 24}
             y2={yP2}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -816,7 +819,7 @@ export function KnockoutBaganTree({
             y1={yP2}
             x2={C1_FORK_X + 24}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -824,7 +827,7 @@ export function KnockoutBaganTree({
             y1={trackY(12)}
             x2={C2_X}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(prelimMatches[2], C1_FORK_X - 6, yP2, "10:00")}
@@ -835,7 +838,7 @@ export function KnockoutBaganTree({
             y1={trackY(13)}
             x2={C2_X}
             y2={trackY(13)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -843,7 +846,7 @@ export function KnockoutBaganTree({
             y1={trackY(14)}
             x2={C2_X}
             y2={trackY(14)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -851,7 +854,7 @@ export function KnockoutBaganTree({
             y1={trackY(15)}
             x2={C2_X}
             y2={trackY(15)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -859,7 +862,7 @@ export function KnockoutBaganTree({
             y1={trackY(16)}
             x2={C2_X}
             y2={trackY(16)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -869,7 +872,7 @@ export function KnockoutBaganTree({
             y1={trackY(17)}
             x2={C1_FORK_X}
             y2={trackY(17)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -877,7 +880,7 @@ export function KnockoutBaganTree({
             y1={trackY(18)}
             x2={C1_FORK_X}
             y2={trackY(18)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -885,7 +888,7 @@ export function KnockoutBaganTree({
             y1={trackY(17)}
             x2={C1_FORK_X}
             y2={trackY(18)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -893,7 +896,7 @@ export function KnockoutBaganTree({
             y1={yP3}
             x2={C1_FORK_X + 24}
             y2={yP3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -901,7 +904,7 @@ export function KnockoutBaganTree({
             y1={yP3}
             x2={C1_FORK_X + 24}
             y2={trackY(17)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -909,7 +912,7 @@ export function KnockoutBaganTree({
             y1={trackY(17)}
             x2={C2_X}
             y2={trackY(17)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(prelimMatches[3], C1_FORK_X - 6, yP3, "10:20")}
@@ -920,7 +923,7 @@ export function KnockoutBaganTree({
             y1={trackY(19)}
             x2={C2_X}
             y2={trackY(19)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
 
@@ -931,7 +934,7 @@ export function KnockoutBaganTree({
             y1={trackY(0)}
             x2={C2_FORK_X}
             y2={trackY(0)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -939,7 +942,7 @@ export function KnockoutBaganTree({
             y1={trackY(2)}
             x2={C2_FORK_X}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -947,7 +950,7 @@ export function KnockoutBaganTree({
             y1={trackY(0)}
             x2={C2_FORK_X}
             y2={trackY(2)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -955,7 +958,7 @@ export function KnockoutBaganTree({
             y1={yR0}
             x2={C3_X}
             y2={yR0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[0], C2_FORK_X - 10, yR0, "13:20")}
@@ -966,7 +969,7 @@ export function KnockoutBaganTree({
             y1={trackY(3)}
             x2={C2_FORK_X}
             y2={trackY(3)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -974,7 +977,7 @@ export function KnockoutBaganTree({
             y1={trackY(4)}
             x2={C2_FORK_X}
             y2={trackY(4)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -982,7 +985,7 @@ export function KnockoutBaganTree({
             y1={trackY(3)}
             x2={C2_FORK_X}
             y2={trackY(4)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -990,7 +993,7 @@ export function KnockoutBaganTree({
             y1={yR1}
             x2={C3_X}
             y2={yR1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[1], C2_FORK_X - 10, yR1, "11:00")}
@@ -1001,7 +1004,7 @@ export function KnockoutBaganTree({
             y1={trackY(5)}
             x2={C2_FORK_X}
             y2={trackY(5)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1009,7 +1012,7 @@ export function KnockoutBaganTree({
             y1={trackY(6)}
             x2={C2_FORK_X}
             y2={trackY(6)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1017,7 +1020,7 @@ export function KnockoutBaganTree({
             y1={trackY(5)}
             x2={C2_FORK_X}
             y2={trackY(6)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1025,7 +1028,7 @@ export function KnockoutBaganTree({
             y1={yR2}
             x2={C3_X}
             y2={yR2}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[2], C2_FORK_X - 10, yR2, "11:20")}
@@ -1036,7 +1039,7 @@ export function KnockoutBaganTree({
             y1={trackY(7)}
             x2={C2_FORK_X}
             y2={trackY(7)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1044,7 +1047,7 @@ export function KnockoutBaganTree({
             y1={trackY(9)}
             x2={C2_FORK_X}
             y2={trackY(9)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1052,7 +1055,7 @@ export function KnockoutBaganTree({
             y1={trackY(7)}
             x2={C2_FORK_X}
             y2={trackY(9)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1060,7 +1063,7 @@ export function KnockoutBaganTree({
             y1={yR3}
             x2={C3_X}
             y2={yR3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[3], C2_FORK_X - 10, yR3, "13:40")}
@@ -1071,7 +1074,7 @@ export function KnockoutBaganTree({
             y1={trackY(10)}
             x2={C2_FORK_X}
             y2={trackY(10)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1079,7 +1082,7 @@ export function KnockoutBaganTree({
             y1={trackY(12)}
             x2={C2_FORK_X}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1087,7 +1090,7 @@ export function KnockoutBaganTree({
             y1={trackY(10)}
             x2={C2_FORK_X}
             y2={trackY(12)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1095,7 +1098,7 @@ export function KnockoutBaganTree({
             y1={yR4}
             x2={C3_X}
             y2={yR4}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[4], C2_FORK_X - 10, yR4, "14:20")}
@@ -1106,7 +1109,7 @@ export function KnockoutBaganTree({
             y1={trackY(13)}
             x2={C2_FORK_X}
             y2={trackY(13)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1114,7 +1117,7 @@ export function KnockoutBaganTree({
             y1={trackY(14)}
             x2={C2_FORK_X}
             y2={trackY(14)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1122,7 +1125,7 @@ export function KnockoutBaganTree({
             y1={trackY(13)}
             x2={C2_FORK_X}
             y2={trackY(14)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1130,7 +1133,7 @@ export function KnockoutBaganTree({
             y1={yR5}
             x2={C3_X}
             y2={yR5}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[5], C2_FORK_X - 10, yR5, "12:00")}
@@ -1141,7 +1144,7 @@ export function KnockoutBaganTree({
             y1={trackY(15)}
             x2={C2_FORK_X}
             y2={trackY(15)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1149,7 +1152,7 @@ export function KnockoutBaganTree({
             y1={trackY(16)}
             x2={C2_FORK_X}
             y2={trackY(16)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1157,7 +1160,7 @@ export function KnockoutBaganTree({
             y1={trackY(15)}
             x2={C2_FORK_X}
             y2={trackY(16)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1165,7 +1168,7 @@ export function KnockoutBaganTree({
             y1={yR6}
             x2={C3_X}
             y2={yR6}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[6], C2_FORK_X - 10, yR6, "12:20")}
@@ -1176,7 +1179,7 @@ export function KnockoutBaganTree({
             y1={trackY(17)}
             x2={C2_FORK_X}
             y2={trackY(17)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1184,7 +1187,7 @@ export function KnockoutBaganTree({
             y1={trackY(19)}
             x2={C2_FORK_X}
             y2={trackY(19)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1192,7 +1195,7 @@ export function KnockoutBaganTree({
             y1={trackY(17)}
             x2={C2_FORK_X}
             y2={trackY(19)}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1200,7 +1203,7 @@ export function KnockoutBaganTree({
             y1={yR7}
             x2={C3_X}
             y2={yR7}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round2Matches[7], C2_FORK_X - 10, yR7, "14:40")}
@@ -1212,7 +1215,7 @@ export function KnockoutBaganTree({
             y1={yR0}
             x2={C3_FORK_X}
             y2={yR0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1220,7 +1223,7 @@ export function KnockoutBaganTree({
             y1={yR1}
             x2={C3_FORK_X}
             y2={yR1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1228,7 +1231,7 @@ export function KnockoutBaganTree({
             y1={yR0}
             x2={C3_FORK_X}
             y2={yR1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1236,7 +1239,7 @@ export function KnockoutBaganTree({
             y1={yQ0}
             x2={C4_X}
             y2={yQ0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round3Matches[0], C3_FORK_X - 10, yQ0, "15:20")}
@@ -1247,7 +1250,7 @@ export function KnockoutBaganTree({
             y1={yR2}
             x2={C3_FORK_X}
             y2={yR2}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1255,7 +1258,7 @@ export function KnockoutBaganTree({
             y1={yR3}
             x2={C3_FORK_X}
             y2={yR3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1263,7 +1266,7 @@ export function KnockoutBaganTree({
             y1={yR2}
             x2={C3_FORK_X}
             y2={yR3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1271,7 +1274,7 @@ export function KnockoutBaganTree({
             y1={yQ1}
             x2={C4_X}
             y2={yQ1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round3Matches[1], C3_FORK_X - 10, yQ1, "15:40")}
@@ -1282,7 +1285,7 @@ export function KnockoutBaganTree({
             y1={yR4}
             x2={C3_FORK_X}
             y2={yR4}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1290,7 +1293,7 @@ export function KnockoutBaganTree({
             y1={yR5}
             x2={C3_FORK_X}
             y2={yR5}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1298,7 +1301,7 @@ export function KnockoutBaganTree({
             y1={yR4}
             x2={C3_FORK_X}
             y2={yR5}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1306,7 +1309,7 @@ export function KnockoutBaganTree({
             y1={yQ2}
             x2={C4_X}
             y2={yQ2}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round3Matches[2], C3_FORK_X - 10, yQ2, "16:20")}
@@ -1317,7 +1320,7 @@ export function KnockoutBaganTree({
             y1={yR6}
             x2={C3_FORK_X}
             y2={yR6}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1325,7 +1328,7 @@ export function KnockoutBaganTree({
             y1={yR7}
             x2={C3_FORK_X}
             y2={yR7}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1333,7 +1336,7 @@ export function KnockoutBaganTree({
             y1={yR6}
             x2={C3_FORK_X}
             y2={yR7}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1341,7 +1344,7 @@ export function KnockoutBaganTree({
             y1={yQ3}
             x2={C4_X}
             y2={yQ3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round3Matches[3], C3_FORK_X - 10, yQ3, "16:40")}
@@ -1353,7 +1356,7 @@ export function KnockoutBaganTree({
             y1={yQ0}
             x2={C4_FORK_X}
             y2={yQ0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1361,7 +1364,7 @@ export function KnockoutBaganTree({
             y1={yQ1}
             x2={C4_FORK_X}
             y2={yQ1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1369,7 +1372,7 @@ export function KnockoutBaganTree({
             y1={yQ0}
             x2={C4_FORK_X}
             y2={yQ1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1377,7 +1380,7 @@ export function KnockoutBaganTree({
             y1={yS0}
             x2={C5_X}
             y2={yS0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round4Matches[0], C4_FORK_X - 10, yS0, "18:30")}
@@ -1388,7 +1391,7 @@ export function KnockoutBaganTree({
             y1={yQ2}
             x2={C4_FORK_X}
             y2={yQ2}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1396,7 +1399,7 @@ export function KnockoutBaganTree({
             y1={yQ3}
             x2={C4_FORK_X}
             y2={yQ3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1404,7 +1407,7 @@ export function KnockoutBaganTree({
             y1={yQ2}
             x2={C4_FORK_X}
             y2={yQ3}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1412,7 +1415,7 @@ export function KnockoutBaganTree({
             y1={yS1}
             x2={C5_X}
             y2={yS1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {renderMatchBadge(round4Matches[1], C4_FORK_X - 10, yS1, "19:00")}
@@ -1423,7 +1426,7 @@ export function KnockoutBaganTree({
             y1={yS0}
             x2={C5_FINISH_X}
             y2={yS0}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1431,7 +1434,7 @@ export function KnockoutBaganTree({
             y1={yS1}
             x2={C5_FINISH_X}
             y2={yS1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           <line
@@ -1439,7 +1442,7 @@ export function KnockoutBaganTree({
             y1={yS0}
             x2={C5_FINISH_X}
             y2={yS1}
-            stroke="#94a3b8"
+            stroke="#a7a399"
             strokeWidth="1.4"
           />
           {/* Finish Stem */}
@@ -1448,7 +1451,7 @@ export function KnockoutBaganTree({
             y1={yF0}
             x2={SVG_W - 20}
             y2={yF0}
-            stroke="#1e40af"
+            stroke="#9c421d"
             strokeWidth="2"
           />
           {renderMatchBadge(
@@ -1464,8 +1467,8 @@ export function KnockoutBaganTree({
               width="100"
               height="32"
               rx="6"
-              fill="#071c4d"
-              stroke="#1e40af"
+              fill="#171717"
+              stroke="#9c421d"
               strokeWidth="1.5"
             />
             <text
@@ -1476,7 +1479,7 @@ export function KnockoutBaganTree({
               fontWeight="900"
               fill="#ffffff"
             >
-              {isFinalRound ? "🏆 JUARA 1" : "FINALIS ➔"}
+              {isFinalRound ? "JUARA 1" : "FINALIS →"}
             </text>
           </g>
         </svg>

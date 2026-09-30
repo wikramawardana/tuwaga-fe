@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function Loader() {
@@ -7,12 +8,11 @@ export default function Loader() {
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    // Wait for fonts to be ready before showing the page
+    // Wait for fonts to be ready before revealing the page
     document.fonts.ready.then(() => {
-      // Small artificial delay to ensure smooth rendering
       setTimeout(() => {
         setFading(true);
-        // Wait for the fade-out animation to finish before unmounting
+        // Unmount once the fade-out has finished
         setTimeout(() => setLoading(false), 300);
       }, 100);
     });
@@ -22,16 +22,23 @@ export default function Loader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-surface-bright transition-opacity duration-300 ${
-        fading ? "opacity-0 pointer-events-none" : "opacity-100"
+      className={`fixed inset-0 z-[10000] flex items-center justify-center bg-ink-950 transition-opacity duration-300 ${
+        fading ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
       <div className="flex flex-col items-center gap-6">
-        <span className="text-[32px] font-bold leading-[1.4] text-primary animate-pulse">
-          TUWAGA
-        </span>
-        {/* Simple elegant spinner matching the theme */}
-        <div className="w-10 h-10 border-4 border-surface-container-highest border-t-primary rounded-full animate-spin"></div>
+        <Image
+          src="/tuwaga-logo-cream.png"
+          alt="TUWAGA SKOR"
+          unoptimized
+          width={170}
+          height={40}
+          priority
+          className="h-10 w-auto"
+        />
+        <div className="h-0.5 w-32 overflow-hidden rounded-full bg-cream-200/10">
+          <div className="loader-bar h-full w-1/3 rounded-full bg-brand-500" />
+        </div>
       </div>
     </div>
   );

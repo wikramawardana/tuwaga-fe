@@ -1,5 +1,22 @@
 "use client";
 
+import {
+  ArrowClockwiseIcon,
+  CheckCircleIcon,
+  ConfettiIcon,
+  CopyIcon,
+  CornersInIcon,
+  CornersOutIcon,
+  DiceFiveIcon,
+  FloppyDiskIcon,
+  HourglassHighIcon,
+  PinwheelIcon,
+  ShuffleIcon,
+  SpeakerHighIcon,
+  SpeakerSlashIcon,
+  TargetIcon,
+  WarningIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RegistrationTeam, Tournament } from "@/lib/tuwagaApi";
 
@@ -13,20 +30,21 @@ interface TechnicalMeetingDrawingProps {
   ) => Promise<void>;
 }
 
-// Vibrant colors for wheel slices
+// Wheel slices use mid/dark brand tones so the white labels stay legible
+// and neighbouring slices always contrast (warm, neutral, warm, …).
 const WHEEL_COLORS = [
-  "#2563eb", // blue-600
-  "#06b6d4", // cyan-500
-  "#10b981", // emerald-500
-  "#f59e0b", // amber-500
-  "#8b5cf6", // violet-500
-  "#ec4899", // pink-500
-  "#3b82f6", // blue-500
-  "#14b8a6", // teal-500
-  "#f97316", // orange-500
-  "#a855f7", // purple-500
-  "#0ea5e9", // sky-500
-  "#84cc16", // lime-500
+  "#e06d30", // brand-500
+  "#232220", // ink-900
+  "#8c7148", // cream-600
+  "#ba501c", // brand-600
+  "#484641", // ink-700
+  "#2a7645", // emerald-700
+  "#9c421d", // brand-700
+  "#6c5535", // cream-700
+  "#33312e", // ink-800
+  "#a36102", // amber-700
+  "#5f5c55", // ink-600
+  "#7b351a", // brand-800
 ];
 
 interface DrawnTeamEntry {
@@ -204,27 +222,27 @@ export default function TechnicalMeetingDrawing({
         ctx.save();
         ctx.beginPath();
         ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
-        ctx.fillStyle = "#0f172a";
+        ctx.fillStyle = "#171717";
         ctx.fill();
         ctx.lineWidth = 4;
-        ctx.strokeStyle = "#334155";
+        ctx.strokeStyle = "#484641";
         ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(center, center, radius, 0, 2 * Math.PI);
-        ctx.fillStyle = "#1e293b";
+        ctx.fillStyle = "#33312e";
         ctx.fill();
         ctx.setLineDash([8, 8]);
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#475569";
+        ctx.strokeStyle = "#5f5c55";
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.fillStyle = "#94a3b8";
+        ctx.fillStyle = "#a7a399";
         ctx.textAlign = "center";
         ctx.font = "bold 15px sans-serif";
         ctx.fillText("Belum Ada Tim untuk Diundi", center, center - 10);
-        ctx.fillStyle = "#64748b";
+        ctx.fillStyle = "#78746c";
         ctx.font = "bold 12px sans-serif";
         ctx.fillText(
           "Ubah filter status / kategori di atas",
@@ -242,10 +260,10 @@ export default function TechnicalMeetingDrawing({
       ctx.save();
       ctx.beginPath();
       ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
-      ctx.fillStyle = "#0f172a";
+      ctx.fillStyle = "#171717";
       ctx.fill();
       ctx.lineWidth = 6;
-      ctx.strokeStyle = "#38bdf8";
+      ctx.strokeStyle = "#e06d30";
       ctx.stroke();
 
       // Outer golden dots (lights)
@@ -256,7 +274,7 @@ export default function TechnicalMeetingDrawing({
         const y = center + (radius + 4) * Math.sin(dotAngle);
         ctx.beginPath();
         ctx.arc(x, y, 3.5, 0, 2 * Math.PI);
-        ctx.fillStyle = i % 2 === 0 ? "#fbbf24" : "#ffffff";
+        ctx.fillStyle = i % 2 === 0 ? "#eddebd" : "#ffffff";
         ctx.shadowColor = "#f59e0b";
         ctx.shadowBlur = 4;
         ctx.fill();
@@ -275,7 +293,7 @@ export default function TechnicalMeetingDrawing({
         ctx.arc(center, center, radius, start, end);
         ctx.closePath();
 
-        ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length] ?? "#2563eb";
+        ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length] ?? "#e06d30";
         ctx.fill();
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = "#ffffff";
@@ -314,13 +332,13 @@ export default function TechnicalMeetingDrawing({
       ctx.shadowBlur = 10;
       ctx.fill();
       ctx.lineWidth = 4;
-      ctx.strokeStyle = "#2563eb";
+      ctx.strokeStyle = "#e06d30";
       ctx.stroke();
 
       // Center Inner Hub
       ctx.beginPath();
       ctx.arc(center, center, 36, 0, 2 * Math.PI);
-      ctx.fillStyle = "#1e293b";
+      ctx.fillStyle = "#33312e";
       ctx.fill();
 
       // TUWAGA center text
@@ -328,7 +346,7 @@ export default function TechnicalMeetingDrawing({
       ctx.textAlign = "center";
       ctx.font = "black 11px sans-serif";
       ctx.fillText("TUWAGA", center, center - 2);
-      ctx.fillStyle = "#38bdf8";
+      ctx.fillStyle = "#e06d30";
       ctx.font = "bold 9px sans-serif";
       ctx.fillText("DRAW", center, center + 10);
       ctx.restore();
@@ -379,14 +397,15 @@ export default function TechnicalMeetingDrawing({
       alpha: number;
     }> = [];
 
+    // Confetti in the brand palette: orange, cream, charcoal, gold, court green.
     const colors = [
-      "#2563eb",
-      "#38bdf8",
-      "#10b981",
-      "#f59e0b",
-      "#ec4899",
-      "#8b5cf6",
-      "#ef4444",
+      "#e06d30",
+      "#f7905b",
+      "#eddebd",
+      "#ffffff",
+      "#232220",
+      "#febc23",
+      "#45b569",
     ];
     for (let i = 0; i < 90; i++) {
       particles.push({
@@ -395,7 +414,7 @@ export default function TechnicalMeetingDrawing({
         vx: (Math.random() - 0.5) * 14,
         vy: -Math.random() * 14 - 4,
         size: Math.random() * 8 + 4,
-        color: colors[Math.floor(Math.random() * colors.length)] ?? "#2563eb",
+        color: colors[Math.floor(Math.random() * colors.length)] ?? "#e06d30",
         rotation: Math.random() * 360,
         vr: (Math.random() - 0.5) * 10,
         alpha: 1,
@@ -633,7 +652,7 @@ export default function TechnicalMeetingDrawing({
   return (
     <div
       ref={containerRef}
-      className={`space-y-6 ${isFullscreen ? "fixed inset-0 z-[200] overflow-y-auto bg-slate-950 p-6 text-white" : ""}`}
+      className={`space-y-6 ${isFullscreen ? "fixed inset-0 z-[200] overflow-y-auto bg-ink-950 p-6 text-white" : ""}`}
     >
       {/* Confetti Overlay Canvas */}
       <canvas
@@ -642,20 +661,24 @@ export default function TechnicalMeetingDrawing({
       />
 
       {/* Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-3xl border border-ink-200/80 bg-white p-6 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
-              <span className="material-symbols-outlined text-xl">casino</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cream-100 text-cream-700">
+              <DiceFiveIcon
+                className="text-xl"
+                aria-hidden="true"
+                weight="duotone"
+              />
             </span>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-purple-700">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-cream-700">
               Live Drawing Ceremony
             </p>
           </div>
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-ink-950">
             Technical Meeting & Undian Grup
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-500">
             Putar roda keberuntungan interaktif secara live di depan peserta
             atau siaran streaming.
           </p>
@@ -672,14 +695,24 @@ export default function TechnicalMeetingDrawing({
             }}
             className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition ${
               soundOn
-                ? "border-purple-200 bg-purple-50 text-purple-700"
-                : "border-slate-200 bg-slate-100 text-slate-400"
+                ? "border-cream-200 bg-cream-50 text-cream-700"
+                : "border-ink-200 bg-ink-100 text-ink-400"
             }`}
             title={soundOn ? "Suara Aktif" : "Mute"}
           >
-            <span className="material-symbols-outlined text-base">
-              {soundOn ? "volume_up" : "volume_off"}
-            </span>
+            {soundOn ? (
+              <SpeakerHighIcon
+                className="text-base"
+                weight="bold"
+                aria-hidden="true"
+              />
+            ) : (
+              <SpeakerSlashIcon
+                className="text-base"
+                weight="bold"
+                aria-hidden="true"
+              />
+            )}
             <span>{soundOn ? "Audio On" : "Mute"}</span>
           </button>
 
@@ -687,11 +720,21 @@ export default function TechnicalMeetingDrawing({
           <button
             type="button"
             onClick={() => setIsFullscreen((prev) => !prev)}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink-700 shadow-sm transition hover:bg-ink-50"
           >
-            <span className="material-symbols-outlined text-base">
-              {isFullscreen ? "fullscreen_exit" : "fullscreen"}
-            </span>
+            {isFullscreen ? (
+              <CornersInIcon
+                className="text-base"
+                weight="bold"
+                aria-hidden="true"
+              />
+            ) : (
+              <CornersOutIcon
+                className="text-base"
+                weight="bold"
+                aria-hidden="true"
+              />
+            )}
             <span>
               {isFullscreen ? "Keluar Layar Penuh" : "Mode Presentasi TM"}
             </span>
@@ -700,9 +743,9 @@ export default function TechnicalMeetingDrawing({
       </div>
 
       {/* Control Strip (Filter Division, Status & Group Count) */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-2xl border border-ink-200 bg-white p-4 shadow-sm">
         <label className="block">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
             Divisi / Kategori
           </span>
           <select
@@ -713,7 +756,7 @@ export default function TechnicalMeetingDrawing({
               setLatestWinner(null);
             }}
             disabled={isSpinning}
-            className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-800 outline-none hover:border-blue-400 focus:border-blue-600 transition"
+            className="mt-1.5 h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-xs font-extrabold text-ink-800 outline-none hover:border-brand-400 focus:border-brand-500 transition"
           >
             <option value="all">Semua Kategori ({teams.length} tim)</option>
             {categories.map((cat) => (
@@ -725,7 +768,7 @@ export default function TechnicalMeetingDrawing({
         </label>
 
         <label className="block">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
             Status Tim Diundi
           </span>
           <select
@@ -738,7 +781,7 @@ export default function TechnicalMeetingDrawing({
               setLatestWinner(null);
             }}
             disabled={isSpinning}
-            className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-800 outline-none hover:border-blue-400 focus:border-blue-600 transition"
+            className="mt-1.5 h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-xs font-extrabold text-ink-800 outline-none hover:border-brand-400 focus:border-brand-500 transition"
           >
             <option value="all_active">
               Semua Tim Aktif (
@@ -753,7 +796,7 @@ export default function TechnicalMeetingDrawing({
         </label>
 
         <label className="block">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
             Jumlah Grup Dibentuk
           </span>
           <select
@@ -764,7 +807,7 @@ export default function TechnicalMeetingDrawing({
               setLatestWinner(null);
             }}
             disabled={isSpinning}
-            className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-800 outline-none hover:border-blue-400 focus:border-blue-600 transition"
+            className="mt-1.5 h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-xs font-extrabold text-ink-800 outline-none hover:border-brand-400 focus:border-brand-500 transition"
           >
             <option value={2}>2 Grup (Grup A & B)</option>
             <option value={4}>4 Grup (Grup A, B, C, D)</option>
@@ -779,23 +822,27 @@ export default function TechnicalMeetingDrawing({
               type="button"
               onClick={handleAutoDrawAll}
               disabled={isSpinning || remainingTeams.length === 0}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-purple-200 bg-purple-50 px-3 text-xs font-extrabold text-purple-700 transition hover:bg-purple-100 disabled:opacity-50"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-cream-200 bg-cream-50 px-3 text-xs font-extrabold text-cream-700 transition hover:bg-cream-100 disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-base">
-                shuffle
-              </span>
+              <ShuffleIcon
+                className="text-base"
+                aria-hidden="true"
+                weight="bold"
+              />
               Acak Semua
             </button>
             <button
               type="button"
               onClick={handleReset}
               disabled={isSpinning || drawnList.length === 0}
-              className="inline-flex h-11 items-center justify-center gap-1 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
+              className="inline-flex h-11 items-center justify-center gap-1 rounded-xl border border-ink-200 px-3 text-xs font-bold text-ink-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
               title="Reset Undian"
             >
-              <span className="material-symbols-outlined text-base">
-                refresh
-              </span>
+              <ArrowClockwiseIcon
+                className="text-base"
+                aria-hidden="true"
+                weight="bold"
+              />
             </button>
           </div>
         </div>
@@ -804,23 +851,27 @@ export default function TechnicalMeetingDrawing({
       {/* Main Drawing Arena: Wheel + Live Group Board */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Left Column: Interactive Wheel (5 cols on lg) */}
-        <div className="flex flex-col items-center justify-between rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-6 shadow-sm lg:col-span-5">
+        <div className="flex flex-col items-center justify-between rounded-3xl border border-ink-200/80 bg-gradient-to-b from-white to-ink-50/50 p-6 shadow-sm lg:col-span-5">
           {/* Target Group Indicator */}
           <div className="w-full text-center">
             {eligibleTeams.length === 0 ? (
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-extrabold text-amber-800">
-                <span className="material-symbols-outlined text-sm">
-                  warning
-                </span>
+                <WarningIcon
+                  className="text-sm"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   Belum ada tim yang dapat diundi di kategori/status ini
                 </span>
               </div>
             ) : remainingTeams.length > 0 ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-4 py-1.5 text-xs font-extrabold text-purple-800 animate-pulse">
-                <span className="material-symbols-outlined text-sm">
-                  target
-                </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cream-200 bg-cream-50 px-4 py-1.5 text-xs font-extrabold text-cream-800 animate-pulse">
+                <TargetIcon
+                  className="text-sm"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   Putaran Selanjutnya:{" "}
                   <strong>{nextTargetGroup.groupName}</strong> (Slot{" "}
@@ -829,9 +880,11 @@ export default function TechnicalMeetingDrawing({
               </div>
             ) : (
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-extrabold text-emerald-800">
-                <span className="material-symbols-outlined text-sm">
-                  check_circle
-                </span>
+                <CheckCircleIcon
+                  className="text-sm"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   Semua {drawnList.length > 0 ? `(${drawnList.length}) ` : ""}
                   tim telah berhasil diundi!
@@ -856,11 +909,21 @@ export default function TechnicalMeetingDrawing({
               type="button"
               onClick={spinWheel}
               disabled={isSpinning || remainingTeams.length === 0}
-              className="relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 text-base font-black uppercase tracking-wider text-white shadow-xl shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-500 via-brand-500 to-cream-600 px-6 text-base font-black uppercase tracking-wider text-white shadow-xl shadow-ink-950/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-ink-950/10 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-2xl animate-spin">
-                {isSpinning ? "hourglass_top" : "toys"}
-              </span>
+              {isSpinning ? (
+                <HourglassHighIcon
+                  className="animate-spin text-2xl"
+                  weight="duotone"
+                  aria-hidden="true"
+                />
+              ) : (
+                <PinwheelIcon
+                  className="animate-spin text-2xl"
+                  weight="duotone"
+                  aria-hidden="true"
+                />
+              )}
               <span>
                 {isSpinning
                   ? "Sedang Memutar Roda…"
@@ -872,7 +935,7 @@ export default function TechnicalMeetingDrawing({
               </span>
             </button>
 
-            <p className="text-center text-[11px] font-medium text-slate-400">
+            <p className="text-center text-[11px] font-medium text-ink-400">
               {eligibleTeams.length === 0
                 ? "Ganti pilihan status atau pilih kategori lain yang memiliki pendaftar"
                 : `${remainingTeams.length} dari ${eligibleTeams.length} tim belum diundi`}
@@ -881,14 +944,14 @@ export default function TechnicalMeetingDrawing({
         </div>
 
         {/* Right Column: Live Groups Board (7 cols on lg) */}
-        <div className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm lg:col-span-7">
+        <div className="flex flex-col justify-between rounded-3xl border border-ink-200/80 bg-white p-6 shadow-sm lg:col-span-7">
           <div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-ink-100 pb-4">
               <div>
-                <h3 className="text-lg font-black text-slate-950">
+                <h3 className="text-lg font-black text-ink-950">
                   Papan Hasil Drawing Grup
                 </h3>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-xs text-ink-500">
                   Tim yang ditarik otomatis mengisi slot grup sesuai urutan TM.
                 </p>
               </div>
@@ -898,11 +961,13 @@ export default function TechnicalMeetingDrawing({
                   type="button"
                   onClick={handleCopyWhatsapp}
                   disabled={drawnList.length === 0}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition disabled:opacity-40"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink-700 hover:bg-ink-50 transition disabled:opacity-40"
                 >
-                  <span className="material-symbols-outlined text-sm">
-                    content_copy
-                  </span>
+                  <CopyIcon
+                    className="text-sm"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   <span>{copiedWhatsapp ? "Tersalin!" : "Salin ke WA"}</span>
                 </button>
               </div>
@@ -910,16 +975,20 @@ export default function TechnicalMeetingDrawing({
 
             {/* Winner Announcement Toast Banner */}
             {showCelebration && latestWinner && (
-              <div className="my-4 flex items-center justify-between rounded-2xl border border-purple-300 bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 p-4 shadow-sm animate-bounce">
+              <div className="my-4 flex items-center justify-between rounded-2xl border border-cream-300 bg-gradient-to-r from-cream-50 via-brand-50 to-amber-50 p-4 shadow-sm animate-bounce">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600 text-lg text-white">
-                    🎉
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cream-600 text-lg text-white">
+                    <ConfettiIcon
+                      className="text-xl"
+                      weight="fill"
+                      aria-hidden="true"
+                    />
                   </span>
                   <div>
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-purple-700">
+                    <p className="text-xs font-extrabold uppercase tracking-wider text-cream-700">
                       Terundi Masuk {latestWinner.groupName}!
                     </p>
-                    <p className="font-black text-slate-900 text-sm">
+                    <p className="font-black text-ink-900 text-sm">
                       {latestWinner.team.player}{" "}
                       {latestWinner.team.partner
                         ? `/ ${latestWinner.team.partner}`
@@ -927,7 +996,7 @@ export default function TechnicalMeetingDrawing({
                     </p>
                   </div>
                 </div>
-                <span className="rounded-lg bg-purple-600 px-3 py-1 text-xs font-black text-white">
+                <span className="rounded-lg bg-cream-600 px-3 py-1 text-xs font-black text-white">
                   Slot #{latestWinner.slotIndex}
                 </span>
               </div>
@@ -947,47 +1016,47 @@ export default function TechnicalMeetingDrawing({
                     key={letter}
                     className={`rounded-2xl border p-4 transition ${
                       isTarget
-                        ? "border-purple-400 bg-purple-50/30 ring-2 ring-purple-200"
-                        : "border-slate-200 bg-slate-50/50"
+                        ? "border-cream-400 bg-cream-50/30 ring-2 ring-cream-200"
+                        : "border-ink-200 bg-ink-50/50"
                     }`}
                   >
-                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div className="flex items-center justify-between border-b border-ink-200/80 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-xs font-black text-white">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink-900 text-xs font-black text-white">
                           {letter}
                         </span>
-                        <span className="font-black text-slate-900 text-sm">
+                        <span className="font-black text-ink-900 text-sm">
                           {gName}
                         </span>
                       </div>
-                      <span className="text-[11px] font-bold text-slate-500">
+                      <span className="text-[11px] font-bold text-ink-500">
                         {members.length} Tim
                       </span>
                     </div>
 
                     <div className="mt-3 space-y-2">
                       {members.length === 0 ? (
-                        <p className="py-4 text-center text-xs text-slate-400 italic">
+                        <p className="py-4 text-center text-xs text-ink-400 italic">
                           Menunggu giliran undian…
                         </p>
                       ) : (
                         members.map((entry, idx) => (
                           <div
                             key={entry.team.id}
-                            className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-slate-200/80 text-xs shadow-sm"
+                            className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-ink-200/80 text-xs shadow-sm"
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-600">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink-100 text-[10px] font-black text-ink-600">
                                 {idx + 1}
                               </span>
-                              <span className="truncate font-bold text-slate-900">
+                              <span className="truncate font-bold text-ink-900">
                                 {entry.team.player}
                                 {entry.team.partner
                                   ? ` / ${entry.team.partner}`
                                   : ""}
                               </span>
                             </div>
-                            <span className="text-[10px] font-semibold text-slate-400 shrink-0 ml-2">
+                            <span className="text-[10px] font-semibold text-ink-400 shrink-0 ml-2">
                               {entry.team.city || "ID"}
                             </span>
                           </div>
@@ -1001,14 +1070,14 @@ export default function TechnicalMeetingDrawing({
           </div>
 
           {/* Footer Actions: Save to Tournament */}
-          <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="mt-6 border-t border-ink-100 pt-5">
             {applyMessage && (
-              <div className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs font-bold text-blue-800">
+              <div className="mb-3 rounded-xl border border-brand-200 bg-brand-50 p-3 text-xs font-bold text-brand-800">
                 {applyMessage}
               </div>
             )}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-500">
                 {drawnList.length > 0
                   ? `${drawnList.length} tim siap dimasukkan ke bagan resmi turnamen.`
                   : "Mulai undian untuk membagi tim ke grup pertandingan."}
@@ -1017,11 +1086,13 @@ export default function TechnicalMeetingDrawing({
                 type="button"
                 onClick={handleApplyToSchedule}
                 disabled={applying || drawnList.length === 0}
-                className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-xs font-extrabold text-white shadow-lg shadow-emerald-200 transition hover:bg-emerald-700 disabled:opacity-50"
+                className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-xs font-extrabold text-white shadow-lg shadow-ink-950/10 transition hover:bg-emerald-700 disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-base">
-                  save
-                </span>
+                <FloppyDiskIcon
+                  className="text-base"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   {applying
                     ? "Menyimpan ke Jadwal…"

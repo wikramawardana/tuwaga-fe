@@ -1,5 +1,21 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  CircleNotchIcon,
+  CornersInIcon,
+  CornersOutIcon,
+  MegaphoneIcon,
+  PauseIcon,
+  PlayIcon,
+  RankingIcon,
+  TelevisionIcon,
+  TreeStructureIcon,
+  TrophyIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -10,6 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
+import type { AppIcon } from "@/components/icons/SportIcons";
 import {
   buildBaganSlides,
   KnockoutBaganTree,
@@ -38,22 +55,22 @@ type DisplayBracketPage = { rounds: DisplayBracketRound[] };
 
 const sceneMeta: Record<
   DisplayScene,
-  { label: string; shortLabel: string; icon: string }
+  { label: string; shortLabel: string; icon: AppIcon }
 > = {
   groups: {
     label: "Group standings",
     shortLabel: "Groups",
-    icon: "leaderboard",
+    icon: RankingIcon,
   },
   oop: {
     label: "Order of Play",
     shortLabel: "OOP",
-    icon: "calendar_view_week",
+    icon: CalendarIcon,
   },
   bracket: {
     label: "Knockout bracket",
     shortLabel: "Bracket",
-    icon: "account_tree",
+    icon: TreeStructureIcon,
   },
 };
 
@@ -79,30 +96,32 @@ function publicOopTimeLabel(value: string) {
 
 function categoryTone(category: string) {
   const value = category.toLowerCase();
-  if (value.includes("women")) return "bg-violet-200";
-  if (value.includes("men")) return "bg-blue-200";
+  if (value.includes("women")) return "bg-cream-200";
+  if (value.includes("men")) return "bg-brand-200";
   return "bg-emerald-200";
 }
 
 function EmptyDisplay({
-  icon,
+  icon: EmptyIcon,
   title,
   description,
 }: {
-  icon: string;
+  icon: AppIcon;
   title: string;
   description: string;
 }) {
   return (
     <div className="display-scene-enter flex min-h-[55vh] items-center justify-center">
-      <div className="max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <span className="material-symbols-outlined text-6xl text-slate-400">
-          {icon}
-        </span>
-        <h2 className="mt-5 text-3xl font-black tracking-tight text-slate-950">
+      <div className="max-w-xl rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-sm">
+        <EmptyIcon
+          className="mx-auto text-6xl text-ink-400"
+          weight="duotone"
+          aria-hidden="true"
+        />
+        <h2 className="mt-5 text-3xl font-black tracking-tight text-ink-950">
           {title}
         </h2>
-        <p className="mt-4 text-base leading-relaxed text-slate-600">
+        <p className="mt-4 text-base leading-relaxed text-ink-600">
           {description}
         </p>
       </div>
@@ -122,7 +141,7 @@ function GroupsScene({
   if (groups.length === 0) {
     return (
       <EmptyDisplay
-        icon="leaderboard"
+        icon={RankingIcon}
         title="Standings are warming up"
         description="Group rankings will appear here as soon as the draw and match results are available."
       />
@@ -133,14 +152,14 @@ function GroupsScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-brand-600">
             Scene 01 · Group stage
           </span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-ink-950 md:text-4xl">
             Road to qualification
           </h2>
         </div>
-        <p className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:block">
+        <p className="hidden rounded-full border border-ink-200 bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700 sm:block">
           Page {page + 1} / {totalPages}
         </p>
       </div>
@@ -154,15 +173,15 @@ function GroupsScene({
         {groups.map((group) => (
           <article
             key={group.group}
-            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm"
           >
-            <div className="flex items-center justify-between border-b border-blue-900/20 bg-[#071c4d] px-5 py-3 text-white">
+            <div className="flex items-center justify-between border-b border-ink-900/20 bg-ink-950 px-5 py-3 text-white">
               <h3 className="text-base font-bold text-white">
                 {group.group.includes(" · ")
                   ? group.group
                   : `Group ${group.group}`}
               </h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200/80">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cream-200/80">
                 Top teams advance
               </span>
             </div>
@@ -193,13 +212,13 @@ function GroupsScene({
                             "inline-flex h-7 w-7 items-center justify-center rounded-md border text-xs font-bold",
                             team.qualified
                               ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-                              : "border-slate-200 bg-white text-slate-600",
+                              : "border-ink-200 bg-white text-ink-600",
                           )}
                         >
                           {team.groupRank}
                         </span>
                       </td>
-                      <td className="max-w-56 truncate px-4 py-3 font-black text-slate-950">
+                      <td className="max-w-56 truncate px-4 py-3 font-black text-ink-950">
                         {team.teamName}
                         {team.qualified && (
                           <span className="ml-2 bg-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-white">
@@ -225,7 +244,7 @@ function GroupsScene({
                       <td className="px-2 py-3 text-center font-bold">
                         {team.diff}
                       </td>
-                      <td className="px-4 py-3 text-center text-lg font-black text-blue-700">
+                      <td className="px-4 py-3 text-center text-lg font-black text-brand-700">
                         {team.points}
                       </td>
                     </tr>
@@ -254,7 +273,7 @@ function OopScene({
   if (!session) {
     return (
       <EmptyDisplay
-        icon="calendar_view_week"
+        icon={CalendarIcon}
         title="Order of Play is not published"
         description="The official court and session sequence will appear here after the tournament draw is generated."
       />
@@ -276,27 +295,27 @@ function OopScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-brand-600">
             Scene 02 · Order of Play
           </span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-ink-950 md:text-4xl">
             {publicOopTimeLabel(session.timeLabel)}
           </h2>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
-          <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-800 shadow-sm">
+          <span className="rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-ink-800 shadow-sm">
             Session {sessionIndex + 1}/{plan.sessions.length}
           </span>
-          <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-800">
+          <span className="rounded-xl border border-ink-200 bg-ink-50 px-3 py-1.5 text-ink-800">
             {matchCount} matches
           </span>
-          <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-800">
+          <span className="rounded-xl border border-ink-200 bg-ink-50 px-3 py-1.5 text-ink-800">
             {plan.courts} courts
           </span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm">
         <div className="overflow-auto" data-display-scroll>
           <div
             className="grid"
@@ -305,14 +324,14 @@ function OopScene({
               minWidth: `${String(84 + plan.courts * 230)}px`,
             }}
           >
-            <div className="sticky left-0 z-20 flex items-center justify-center border-b border-slate-200 bg-slate-50 py-3 text-[10px] font-bold uppercase text-slate-700">
+            <div className="sticky left-0 z-20 flex items-center justify-center border-b border-ink-200 bg-ink-50 py-3 text-[10px] font-bold uppercase text-ink-700">
               Run · Time
             </div>
             {Array.from({ length: plan.courts }, (_, index) => index + 1).map(
               (court) => (
                 <div
                   key={court}
-                  className="border-b border-l border-slate-200 bg-slate-50 px-3 py-3 text-center text-xs font-bold uppercase text-slate-800"
+                  className="border-b border-l border-ink-200 bg-ink-50 px-3 py-3 text-center text-xs font-bold uppercase text-ink-800"
                 >
                   Court {court}
                 </div>
@@ -330,21 +349,23 @@ function OopScene({
               if (firstEntry?.kind === "event") {
                 return (
                   <Fragment key={slot.number}>
-                    <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-slate-200 bg-slate-50 py-2 text-center text-xs font-bold text-slate-700">
+                    <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-ink-200 bg-ink-50 py-2 text-center text-xs font-bold text-ink-700">
                       <span>{String(slot.number).padStart(2, "0")}</span>
                       {slotTime && (
-                        <span className="mt-0.5 rounded bg-blue-100 px-1.5 py-0.5 text-[9.5px] font-black text-blue-900">
+                        <span className="mt-0.5 rounded bg-brand-100 px-1.5 py-0.5 text-[9.5px] font-black text-ink-900">
                           {slotTime}
                         </span>
                       )}
                     </div>
                     <div
                       style={{ gridColumn: "2 / -1" }}
-                      className="flex items-center justify-center gap-3 border-l border-t border-slate-200 bg-blue-50/80 px-5 py-4 text-sm font-bold uppercase text-blue-900"
+                      className="flex items-center justify-center gap-3 border-l border-t border-ink-200 bg-brand-50/80 px-5 py-4 text-sm font-bold uppercase text-ink-900"
                     >
-                      <span className="material-symbols-outlined text-base">
-                        campaign
-                      </span>
+                      <MegaphoneIcon
+                        className="text-base"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       {firstEntry.title}
                     </div>
                   </Fragment>
@@ -353,12 +374,12 @@ function OopScene({
 
               return (
                 <Fragment key={slot.number}>
-                  <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-slate-200 bg-slate-50 py-2 text-center text-xs font-bold text-slate-700">
-                    <span className="font-extrabold text-slate-900">
+                  <div className="sticky left-0 z-10 flex flex-col items-center justify-center border-t border-ink-200 bg-ink-50 py-2 text-center text-xs font-bold text-ink-700">
+                    <span className="font-extrabold text-ink-900">
                       {String(slot.number).padStart(2, "0")}
                     </span>
                     {slotTime && (
-                      <span className="mt-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[10px] font-black text-blue-800">
+                      <span className="mt-1 rounded border border-brand-200 bg-brand-50 px-1.5 py-0.5 text-[10px] font-black text-brand-800">
                         {slotTime}
                       </span>
                     )}
@@ -366,20 +387,20 @@ function OopScene({
                   {slot.courts.map((entry, courtIndex) => (
                     <div
                       key={`${slot.number}-${courtIndex}`}
-                      className="min-h-24 border-l border-t border-slate-200 bg-white p-2"
+                      className="min-h-24 border-l border-t border-ink-200 bg-white p-2"
                     >
                       {entry?.kind === "match" ? (
                         <div
                           className={cx(
-                            "h-full rounded-xl border border-slate-200 p-2.5 bg-slate-50/70",
+                            "h-full rounded-xl border border-ink-200 p-2.5 bg-ink-50/70",
                             categoryTone(entry.category),
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <p className="truncate text-[10px] font-bold uppercase tracking-wide text-slate-900">
+                            <p className="truncate text-[10px] font-bold uppercase tracking-wide text-ink-900">
                               {entry.stageLabel}
                             </p>
-                            <span className="text-[9px] font-semibold text-slate-400">
+                            <span className="text-[9px] font-semibold text-ink-400">
                               {entry.matchLabel}
                             </span>
                           </div>
@@ -389,7 +410,7 @@ function OopScene({
                               return (
                                 <div
                                   key={id}
-                                  className="rounded-lg border border-slate-200 bg-white px-2 py-1.5"
+                                  className="rounded-lg border border-ink-200 bg-white px-2 py-1.5"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span
@@ -399,7 +420,7 @@ function OopScene({
                                           ? "admin-live-dot bg-rose-500"
                                           : match?.status === "completed"
                                             ? "bg-emerald-500"
-                                            : "bg-blue-500",
+                                            : "bg-brand-500",
                                       )}
                                     />
                                     <p className="min-w-0 flex-1 truncate text-[10px] font-black">
@@ -407,7 +428,7 @@ function OopScene({
                                       {match?.teamBName || "TBD"}
                                     </p>
                                     {match?.score && (
-                                      <span className="shrink-0 text-[10px] font-black text-blue-800">
+                                      <span className="shrink-0 text-[10px] font-black text-brand-800">
                                         {simplifyScore(
                                           match.score,
                                           match.scoreSets,
@@ -421,7 +442,7 @@ function OopScene({
                           </div>
                         </div>
                       ) : (
-                        <div className="flex h-full min-h-16 items-center justify-center border-2 border-dashed border-slate-200 text-[10px] font-black uppercase text-slate-300">
+                        <div className="flex h-full min-h-16 items-center justify-center border-2 border-dashed border-ink-200 text-[10px] font-black uppercase text-ink-300">
                           Open
                         </div>
                       )}
@@ -453,7 +474,7 @@ function BracketScene({
   if (rounds.length === 0) {
     return (
       <EmptyDisplay
-        icon="account_tree"
+        icon={TreeStructureIcon}
         title="The bracket is waiting"
         description="Knockout rounds will populate as qualifiers are confirmed from the group stage."
       />
@@ -464,14 +485,14 @@ function BracketScene({
     <section className="display-scene-enter">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="inline-flex items-center rounded-full border border-brand-500/20 bg-brand-500/8 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-brand-600">
             Scene 03 · Knockout
           </span>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-ink-950 md:text-4xl">
             Win or go home
           </h2>
         </div>
-        <p className="hidden rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:block">
+        <p className="hidden rounded-full border border-ink-200 bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700 sm:block">
           Bracket {page + 1} / {totalPages}
         </p>
       </div>
@@ -487,14 +508,16 @@ function BracketScene({
           {rounds.map((round, roundIndex) => (
             <article
               key={round.name}
-              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+              className="relative overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm"
             >
               {roundIndex > 0 && (
-                <span className="material-symbols-outlined absolute -left-5 top-1/2 hidden -translate-y-1/2 text-4xl text-slate-400 xl:block">
-                  arrow_forward
-                </span>
+                <ArrowRightIcon
+                  className="absolute -left-5 top-1/2 hidden -translate-y-1/2 text-4xl text-ink-400 xl:block"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               )}
-              <div className="border-b border-blue-900/20 bg-[#071c4d] px-4 py-3 text-white">
+              <div className="border-b border-ink-900/20 bg-ink-950 px-4 py-3 text-white">
                 <p className="text-xs font-bold uppercase tracking-wider text-white">
                   {round.name}
                 </p>
@@ -507,18 +530,18 @@ function BracketScene({
                     <div
                       key={bracketMatch.id}
                       className={cx(
-                        "relative rounded-xl border border-slate-200 p-3",
-                        live ? "bg-rose-50/50" : "bg-slate-50/70",
+                        "relative rounded-xl border border-ink-200 p-3",
+                        live ? "bg-rose-50/50" : "bg-ink-50/70",
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-blue-700">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-brand-700">
                           {bracketMatch.label}
                         </p>
                         <span
                           className={cx(
                             "text-[9px] font-semibold uppercase",
-                            live ? "text-rose-600" : "text-slate-400",
+                            live ? "text-rose-600" : "text-ink-400",
                           )}
                         >
                           {live ? "● Live" : (match?.status ?? "Pending")}
@@ -534,22 +557,24 @@ function BracketScene({
                               <div
                                 key={`${bracketMatch.id}-${teamIndex}`}
                                 className={cx(
-                                  "flex items-center gap-2 rounded-lg border border-slate-200 px-2 py-1.5",
+                                  "flex items-center gap-2 rounded-lg border border-ink-200 px-2 py-1.5",
                                   winner
                                     ? "bg-amber-50 border-amber-200 text-amber-900"
                                     : "bg-white",
                                 )}
                               >
-                                <span className="w-5 text-center text-[10px] font-bold text-slate-400">
+                                <span className="w-5 text-center text-[10px] font-bold text-ink-400">
                                   {team?.seed ?? "—"}
                                 </span>
-                                <span className="min-w-0 flex-1 truncate text-xs font-bold text-slate-900">
+                                <span className="min-w-0 flex-1 truncate text-xs font-bold text-ink-900">
                                   {team?.teamName ?? "TBD"}
                                 </span>
                                 {winner && (
-                                  <span className="material-symbols-outlined text-base text-amber-700">
-                                    trophy
-                                  </span>
+                                  <TrophyIcon
+                                    className="text-base text-amber-700"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                 )}
                               </div>
                             );
@@ -557,7 +582,7 @@ function BracketScene({
                         )}
                       </div>
                       {match?.score && (
-                        <p className="mt-2 text-right text-xs font-bold text-slate-700">
+                        <p className="mt-2 text-right text-xs font-bold text-ink-700">
                           {simplifyScore(match.score, match.scoreSets)}
                         </p>
                       )}
@@ -565,7 +590,7 @@ function BracketScene({
                   );
                 })}
                 {round.matches.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-xs font-semibold uppercase text-slate-400">
+                  <div className="rounded-xl border border-dashed border-ink-300 p-5 text-center text-xs font-semibold uppercase text-ink-400">
                     {round.continuedFromPrevious
                       ? "Shown on previous screen"
                       : "Waiting for qualifiers"}
@@ -578,10 +603,8 @@ function BracketScene({
       </div>
 
       {championTeamId && (
-        <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-xl border border-blue-500 bg-blue-600 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-white shadow-md shadow-blue-500/25">
-          <span className="material-symbols-outlined text-base">
-            emoji_events
-          </span>
+        <div className="mx-auto mt-5 flex w-fit items-center gap-2 rounded-xl border border-brand-500 bg-brand-500 px-5 py-2 text-xs font-extrabold uppercase tracking-wider text-ink-950 shadow-md shadow-ink-950/10">
+          <TrophyIcon className="text-base" aria-hidden="true" weight="bold" />
           Champion confirmed
         </div>
       )}
@@ -790,12 +813,14 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (loading && !tournament) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] p-6 text-slate-900">
+      <main className="flex min-h-screen items-center justify-center bg-canvas p-6 text-ink-900">
         <div className="text-center">
-          <span className="material-symbols-outlined admin-spin text-5xl text-blue-600">
-            progress_activity
-          </span>
-          <p className="mt-5 text-xs font-bold uppercase tracking-widest text-slate-500">
+          <CircleNotchIcon
+            className="admin-spin text-5xl text-brand-600"
+            aria-hidden="true"
+            weight="duotone"
+          />
+          <p className="mt-5 text-xs font-bold uppercase tracking-widest text-ink-500">
             Opening tournament display
           </p>
         </div>
@@ -805,9 +830,9 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   if (!tournament) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] p-6">
+      <main className="flex min-h-screen items-center justify-center bg-canvas p-6">
         <EmptyDisplay
-          icon="tv_off"
+          icon={TelevisionIcon}
           title="Display unavailable"
           description={error || "This tournament could not be found."}
         />
@@ -817,7 +842,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
   return (
     <main
-      className="flex min-h-screen flex-col overflow-x-hidden bg-[#f6f8fc] pb-20"
+      className="flex min-h-screen flex-col overflow-x-hidden bg-canvas pb-20"
       onTouchStart={(event) => {
         if (
           event.target instanceof Element &&
@@ -840,7 +865,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
         touchStartX.current = null;
       }}
     >
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#071c4d] text-white shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-ink-950 text-white shadow-sm">
         <div className="mx-auto flex max-w-[1800px] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
@@ -848,14 +873,14 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               aria-label="Exit tournament display"
             >
-              <span className="material-symbols-outlined text-lg">close</span>
+              <XIcon className="text-lg" aria-hidden="true" weight="bold" />
             </Link>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-bold uppercase tracking-wide">
                   {tournament.name}
                 </p>
-                <span className="hidden rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase text-blue-200 sm:inline-flex">
+                <span className="hidden rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase text-cream-200 sm:inline-flex">
                   Live display
                 </span>
               </div>
@@ -879,13 +904,20 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
                   className={cx(
                     "flex h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-bold uppercase tracking-wider transition",
                     selected
-                      ? "border-white bg-white text-blue-900 shadow-sm"
+                      ? "border-white bg-white text-ink-900 shadow-sm"
                       : "border-white/20 bg-white/10 text-white hover:bg-white/15",
                   )}
                 >
-                  <span className="material-symbols-outlined text-base">
-                    {sceneMeta[scene].icon}
-                  </span>
+                  {(() => {
+                    const SceneIcon = sceneMeta[scene].icon;
+                    return (
+                      <SceneIcon
+                        className="text-base"
+                        weight="bold"
+                        aria-hidden="true"
+                      />
+                    );
+                  })()}
                   {sceneMeta[scene].shortLabel}
                 </button>
               );
@@ -894,7 +926,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
 
           <div className="flex items-center justify-between gap-3 lg:justify-end">
             <span
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-blue-100"
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-cream-100"
               title={
                 lastUpdated
                   ? `Updated ${lastUpdated.toLocaleTimeString("en-GB")}`
@@ -959,7 +991,7 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
         </div>
       </div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
+      <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-ink-200 bg-white px-4 py-3 shadow-sm sm:px-6">
         <div className="mx-auto flex max-w-[1800px] flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             {slides.map((slide, index) => (
@@ -968,14 +1000,14 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
                 type="button"
                 onClick={() => setActiveSlide(index)}
                 className={cx(
-                  "relative h-2 min-w-4 flex-1 overflow-hidden rounded-full border border-slate-200",
-                  index === activeSlide ? "bg-blue-100" : "bg-slate-100",
+                  "relative h-2 min-w-4 flex-1 overflow-hidden rounded-full border border-ink-200",
+                  index === activeSlide ? "bg-brand-100" : "bg-ink-100",
                 )}
                 aria-label={`${sceneMeta[slide.scene].label}, slide ${slide.page + 1}`}
               >
                 {index === activeSlide && !paused && (
                   <span
-                    className="display-progress absolute inset-y-0 left-0 bg-blue-600"
+                    className="display-progress absolute inset-y-0 left-0 bg-brand-500"
                     style={{
                       animationDuration: `${String(intervalSeconds)}s`,
                     }}
@@ -986,49 +1018,73 @@ export default function TournamentDisplay({ slug }: { slug: string }) {
           </div>
 
           <div className="flex items-center justify-between gap-2 sm:justify-end">
-            <span className="mr-2 hidden text-[10px] font-bold uppercase tracking-wider text-slate-500 md:block">
+            <span className="mr-2 hidden text-[10px] font-bold uppercase tracking-wider text-ink-500 md:block">
               {sceneMeta[active.scene].label} · {activeSlide + 1}/
               {slides.length}
             </span>
             <button
               type="button"
               onClick={previousSlide}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-800 transition hover:bg-ink-50 active:scale-95"
               aria-label="Previous slide"
             >
-              <span className="material-symbols-outlined text-lg">
-                arrow_back
-              </span>
+              <ArrowLeftIcon
+                className="text-lg"
+                aria-hidden="true"
+                weight="bold"
+              />
             </button>
             <button
               type="button"
               onClick={() => setPaused((current) => !current)}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 text-xs font-bold uppercase tracking-wider text-ink-950 shadow-sm transition hover:bg-brand-400 active:scale-95"
             >
-              <span className="material-symbols-outlined text-base">
-                {paused ? "play_arrow" : "pause"}
-              </span>
+              {paused ? (
+                <PlayIcon
+                  className="text-base"
+                  weight="fill"
+                  aria-hidden="true"
+                />
+              ) : (
+                <PauseIcon
+                  className="text-base"
+                  weight="fill"
+                  aria-hidden="true"
+                />
+              )}
               {paused ? "Play" : "Pause"}
             </button>
             <button
               type="button"
               onClick={nextSlide}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-800 transition hover:bg-ink-50 active:scale-95"
               aria-label="Next slide"
             >
-              <span className="material-symbols-outlined text-lg">
-                arrow_forward
-              </span>
+              <ArrowRightIcon
+                className="text-lg"
+                aria-hidden="true"
+                weight="bold"
+              />
             </button>
             <button
               type="button"
               onClick={() => void toggleFullscreen()}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 transition hover:bg-slate-50 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-800 transition hover:bg-ink-50 active:scale-95"
               aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             >
-              <span className="material-symbols-outlined text-lg">
-                {fullscreen ? "fullscreen_exit" : "fullscreen"}
-              </span>
+              {fullscreen ? (
+                <CornersInIcon
+                  className="text-lg"
+                  weight="bold"
+                  aria-hidden="true"
+                />
+              ) : (
+                <CornersOutIcon
+                  className="text-lg"
+                  weight="bold"
+                  aria-hidden="true"
+                />
+              )}
             </button>
           </div>
         </div>

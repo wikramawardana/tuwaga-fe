@@ -1,3 +1,4 @@
+import { RacquetIcon } from "@phosphor-icons/react/dist/ssr";
 import PublicFeaturePage from "@/components/PublicFeaturePage";
 
 export default function CourtsPage() {
@@ -6,7 +7,7 @@ export default function CourtsPage() {
       eyebrow="Find your court"
       title="More places to play."
       description="Court discovery and booking are being prepared for the next Tuwaga release. Tournament courts remain visible from each live event."
-      icon="sports_tennis"
+      icon={RacquetIcon}
     />
   );
 }

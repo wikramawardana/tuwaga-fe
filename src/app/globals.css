@@ -1,104 +1,374 @@
 @import "tailwindcss";
 
+/*
+ * Tuwaga Skor design tokens — "Control the Game".
+ * Brand palette (brand guidelines): 60% charcoal #171717 · 30% cream #EDDEBD
+ * · 10% orange #E06D30. Scales are built in OKLCH around those anchors so
+ * every shade keeps the same warm undertone.
+ */
 @theme {
-  /* ── Brand palette ─────────────────────────────────────────── */
-  --color-primary: #1a56db;
-  --color-on-primary: #ffffff;
-  --color-primary-container: #2563eb;
-  --color-on-primary-container: #eeefff;
-  --color-primary-fixed: #dbe1ff;
-  --color-primary-fixed-dim: #b4c5ff;
-  --color-on-primary-fixed: #00174b;
-  --color-on-primary-fixed-variant: #003ea8;
-  --color-inverse-primary: #b4c5ff;
-  --color-surface-tint: #0053db;
+  /* ── Orange — the 10% accent (CTAs, live state, highlights) ───────── */
+  --color-brand-50: #fff5ee;
+  --color-brand-100: #ffe9d9;
+  --color-brand-200: #ffd5b7;
+  --color-brand-300: #ffb489;
+  --color-brand-400: #f7905b;
+  --color-brand-500: #e06d30;
+  --color-brand-600: #ba501c;
+  --color-brand-700: #9c421d;
+  --color-brand-800: #7b351a;
+  --color-brand-900: #5e2916;
+  --color-brand-950: #3a180b;
 
-  --color-secondary: #047857;
-  --color-on-secondary: #ffffff;
-  --color-secondary-container: #6cf8bb;
-  --color-on-secondary-container: #00714d;
-  --color-secondary-fixed: #6ffbbe;
-  --color-secondary-fixed-dim: #4edea3;
-  --color-on-secondary-fixed: #002113;
-  --color-on-secondary-fixed-variant: #005236;
+  /* ── Ink — warm neutrals anchored on brand charcoal (the 60%) ─────── */
+  --color-ink-50: #fbfaf5;
+  --color-ink-100: #f5f2ec;
+  --color-ink-200: #e9e5dc;
+  --color-ink-300: #d6d1c8;
+  --color-ink-400: #a7a399;
+  --color-ink-500: #78746c;
+  --color-ink-600: #5f5c55;
+  --color-ink-700: #484641;
+  --color-ink-800: #33312e;
+  --color-ink-900: #232220;
+  --color-ink-950: #171717;
 
-  --color-tertiary: #982669;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #b74082;
-  --color-on-tertiary-container: #ffecf1;
-  --color-tertiary-fixed: #ffd8e7;
-  --color-tertiary-fixed-dim: #ffafd3;
-  --color-on-tertiary-fixed: #3d0026;
-  --color-on-tertiary-fixed-variant: #85145a;
+  /* ── Cream — the 30% surface and on-dark text colour ──────────────── */
+  --color-cream-50: #fefaf2;
+  --color-cream-100: #f9f1df;
+  --color-cream-200: #eddebd;
+  --color-cream-300: #e0cba0;
+  --color-cream-400: #cbb17f;
+  --color-cream-500: #ad9162;
+  --color-cream-600: #8c7148;
+  --color-cream-700: #6c5535;
+  --color-cream-800: #503d26;
+  --color-cream-900: #382a19;
+  --color-cream-950: #21180d;
 
-  --color-error: #dc2626;
-  --color-on-error: #ffffff;
-  --color-error-container: #ffd6d6;
-  --color-on-error-container: #93000a;
+  /* ── Status colours, re-tuned to sit with the warm palette ────────── */
+  --color-emerald-50: #eefdf2;
+  --color-emerald-100: #d5f9e0;
+  --color-emerald-200: #b1f2c5;
+  --color-emerald-300: #85e5a3;
+  --color-emerald-400: #5dcd82;
+  --color-emerald-500: #45b569;
+  --color-emerald-600: #359253;
+  --color-emerald-700: #2a7645;
+  --color-emerald-800: #215d38;
+  --color-emerald-900: #1d4c2f;
+  --color-emerald-950: #0d2c1b;
 
-  /* ── Neutral surfaces (warm-grey tinted) ──────────────────── */
-  --color-background: #fafafa;
-  --color-on-background: #111827;
-  --color-surface: #fafafa;
-  --color-on-surface: #111827;
-  --color-surface-variant: #e5e7eb;
-  --color-on-surface-variant: #4b5563;
-  --color-surface-bright: #ffffff;
-  --color-surface-dim: #d1d5db;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f3f4f6;
-  --color-surface-container: #e5e7eb;
-  --color-surface-container-high: #d1d5db;
-  --color-surface-container-highest: #c7cad3;
-  --color-inverse-surface: #111827;
-  --color-inverse-on-surface: #f9fafb;
+  --color-amber-50: #fffae8;
+  --color-amber-100: #fff2c7;
+  --color-amber-200: #ffe394;
+  --color-amber-300: #ffcf53;
+  --color-amber-400: #febc23;
+  --color-amber-500: #f0aa15;
+  --color-amber-600: #cc8400;
+  --color-amber-700: #a36102;
+  --color-amber-800: #844a0d;
+  --color-amber-900: #6d3c10;
+  --color-amber-950: #401f04;
 
-  --color-outline: #6b7280;
-  --color-outline-variant: #d1d5db;
+  /* ── Surfaces ─────────────────────────────────────────────────────── */
+  --color-canvas: #f4f1e9;
 
-  /* ── Typography ─────────────────────────────────────────────── */
-  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
-  --font-inter: var(--font-inter), system-ui, sans-serif;
+  /* ── Typography ───────────────────────────────────────────────────── */
+  --font-sans:
+    var(--font-inter-tight), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* ── Border radius ──────────────────────────────────────────── */
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  /* ── Shape — crisper corners than Tailwind defaults ───────────────── */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.875rem;
+  --radius-3xl: 1.125rem;
 
-  /* ── Spacing tokens ─────────────────────────────────────────── */
-  --spacing-gutter: 24px;
-  --spacing-margin-mobile: 16px;
-  --spacing-margin-desktop: 40px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Base resets ──────────────────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ── Base ────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-950);
+  }
+
+  ::selection {
+    background-color: var(--color-brand-500);
+    color: var(--color-ink-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  /*
+   * Icons (Phosphor + sport glyphs) are sized in em and sit inline with text,
+   * like the icon font they replaced. Preflight would otherwise make every
+   * SVG a block and break text-centred and inline placements.
+   */
+  svg[width="1em"] {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
 }
 
-/* Material Symbols icon rendering */
-.material-symbols-outlined {
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
-  vertical-align: middle;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  overflow: hidden;
-  max-width: 1em;
-  line-height: 1;
-  text-transform: none;
+/* ── Components ──────────────────────────────────────────────────────── */
+@layer components {
+  /*
+   * One button system for the whole product. Variants:
+   *  btn-primary        orange, the single main action of a view
+   *  btn-dark           charcoal, strong action on light surfaces
+   *  btn-outline        quiet secondary action on light surfaces
+   *  btn-ghost          tertiary / toolbar action
+   *  btn-cream          primary-contrast action on charcoal surfaces
+   *  btn-outline-dark   secondary action on charcoal surfaces
+   * Sizes: btn-sm (36px) · default (44px) · btn-lg (52px)
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.75rem;
+    padding-inline: 1.125rem;
+    border: 1px solid transparent;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1;
+    white-space: nowrap;
+    user-select: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .btn > svg {
+    flex-shrink: 0;
+    font-size: 1.125em;
+  }
+
+  .btn-sm {
+    height: 2.25rem;
+    gap: 0.375rem;
+    padding-inline: 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-lg {
+    height: 3.25rem;
+    padding-inline: 1.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .btn-primary {
+    background-color: var(--color-brand-500);
+    color: var(--color-ink-950);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-brand-400);
+  }
+
+  .btn-dark {
+    background-color: var(--color-ink-950);
+    color: var(--color-cream-50);
+  }
+
+  .btn-dark:hover:not(:disabled) {
+    background-color: var(--color-ink-800);
+  }
+
+  .btn-outline {
+    border-color: var(--color-ink-200);
+    background-color: #fff;
+    color: var(--color-ink-900);
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--color-ink-300);
+    background-color: var(--color-ink-50);
+  }
+
+  .btn-ghost {
+    color: var(--color-ink-700);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--color-ink-100);
+    color: var(--color-ink-950);
+  }
+
+  .btn-cream {
+    background-color: var(--color-cream-200);
+    color: var(--color-ink-950);
+  }
+
+  .btn-cream:hover:not(:disabled) {
+    background-color: var(--color-cream-100);
+  }
+
+  .btn-outline-dark {
+    border-color: rgb(237 222 189 / 0.22);
+    color: var(--color-cream-100);
+  }
+
+  .btn-outline-dark:hover:not(:disabled) {
+    border-color: rgb(237 222 189 / 0.45);
+    background-color: rgb(237 222 189 / 0.06);
+  }
+
+  .btn-ghost-dark {
+    color: rgb(249 241 223 / 0.72);
+  }
+
+  .btn-ghost-dark:hover:not(:disabled) {
+    background-color: rgb(237 222 189 / 0.07);
+    color: var(--color-cream-50);
+  }
+
+  /* Secondary action on orange surfaces. */
+  .btn-outline-ink {
+    border-color: rgb(23 23 23 / 0.28);
+    color: var(--color-ink-950);
+  }
+
+  .btn-outline-ink:hover:not(:disabled) {
+    border-color: rgb(23 23 23 / 0.5);
+    background-color: rgb(23 23 23 / 0.06);
+  }
+
+  .btn-icon {
+    width: 2.75rem;
+    padding-inline: 0;
+  }
+
+  .btn-sm.btn-icon {
+    width: 2.25rem;
+  }
+
+  /* Text link with a trailing arrow that nudges on hover. */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: color 160ms ease;
+  }
+
+  .link-arrow > svg {
+    transition: transform 200ms var(--ease-out-expo);
+  }
+
+  .link-arrow:hover > svg {
+    transform: translateX(3px);
+  }
+
+  /*
+   * Call-to-action row: primary, secondary, then an optional text link.
+   * Buttons share one width and stack full-width on phones so placement is
+   * identical in every section.
+   */
+  .cta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .cta-row > .link-arrow {
+    align-self: center;
+    padding-block: 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .cta-row {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .cta-row > .link-arrow {
+      align-self: auto;
+      padding-inline: 0.5rem;
+    }
+  }
+
+  /* Small uppercase mono label — the "control room" voice of the brand. */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Page gutter shared by the navbar, footer and public pages. */
+  .container-page {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  /* Wider gutter for data-dense admin screens. */
+  .container-wide {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page,
+    .container-wide {
+      padding-inline: 2.5rem;
+    }
+  }
 }
 
-/* Custom focus ring */
+/* ── Form helpers (legacy class names kept for existing screens) ─────── */
 .form-input-focus:focus {
-  box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.16);
-  border-color: #1a56db;
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 3px rgb(224 109 48 / 0.16);
 }
 
 /* Custom scrollbar */
@@ -107,10 +377,10 @@ html {
   height: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-ink-100);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-ink-300);
   border-radius: 10px;
 }
 
@@ -123,48 +393,54 @@ html {
   scrollbar-width: none;
 }
 
-/* Landing motion */
-.parallax-layer {
-  transform: translate3d(0, var(--parallax-y, 0), 0);
-  will-change: transform;
+/* ── Brand textures ──────────────────────────────────────────────────── */
+
+/* Halftone dots — echoes the halftone racket artwork in the brand deck. */
+.texture-halftone {
+  background-image: radial-gradient(
+    circle at center,
+    rgb(237 222 189 / 0.16) 0.9px,
+    transparent 1.3px
+  );
+  background-size: 7px 7px;
 }
 
+/* Film grain for charcoal surfaces. */
+.texture-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Fine technical grid for light surfaces. */
+.texture-grid {
+  background-image:
+    linear-gradient(90deg, rgb(23 23 23 / 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgb(23 23 23 / 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* ── Landing motion ──────────────────────────────────────────────────── */
 .hero-reveal {
-  animation: hero-copy-in 950ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-copy-in 950ms var(--ease-out-expo) both;
 }
 
 .hero-reveal-1 {
-  animation-delay: 120ms;
+  animation-delay: 80ms;
 }
 
 .hero-reveal-2 {
-  animation-delay: 260ms;
+  animation-delay: 200ms;
 }
 
 .hero-reveal-3 {
-  animation-delay: 420ms;
+  animation-delay: 340ms;
+}
+
+.hero-reveal-4 {
+  animation-delay: 480ms;
 }
 
 .animate-hero-card {
-  animation: hero-card-in 1100ms cubic-bezier(0.16, 1, 0.3, 1) 280ms both;
-}
-
-.hero-image-reveal::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.78) 42%,
-    transparent 72%
-  );
-  transform: translateX(-120%);
-  animation: image-sheen 1050ms ease-out 800ms both;
-}
-
-.motion-chip {
-  animation: subtle-pulse-border 2.8s ease-in-out infinite;
+  animation: hero-card-in 1100ms var(--ease-out-expo) 280ms both;
 }
 
 .motion-card {
@@ -175,33 +451,69 @@ html {
 }
 
 .motion-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 50px rgba(17, 24, 39, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 50px rgb(23 23 23 / 0.08);
 }
 
 .motion-float {
-  animation: float-y 4.8s ease-in-out 1.4s infinite;
+  animation: float-y 5.2s ease-in-out 1.4s infinite;
 }
 
 .motion-float-delay {
-  animation-delay: 2s;
+  animation-delay: 2.2s;
 }
 
-.motion-pop-in {
+/* Scroll reveal (see components/landing/Reveal). */
+.reveal-pending {
   opacity: 0;
-  animation:
-    pop-in 650ms cubic-bezier(0.16, 1, 0.3, 1) 1s both,
-    float-y 4.8s ease-in-out 1.65s infinite;
+  transform: translateY(28px);
 }
 
-.motion-pop-delay {
-  animation:
-    pop-in 650ms cubic-bezier(0.16, 1, 0.3, 1) 1.18s both,
-    float-y 4.8s ease-in-out 2s infinite;
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 700ms var(--ease-out-expo),
+    transform 700ms var(--ease-out-expo);
+}
+
+/* Pulsing live dot. */
+.live-dot {
+  position: relative;
+  display: inline-flex;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-brand-500);
+}
+
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: inherit;
+  animation: live-ping 1.8s var(--ease-out-expo) infinite;
+}
+
+/* Slowly rotating radar sweep used in the hero artwork. */
+.radar-sweep {
+  transform-origin: center;
+  animation: radar-spin 9s linear infinite;
+}
+
+/* Indeterminate progress bar in the boot loader. */
+.loader-bar {
+  animation: loader-slide 1.1s var(--ease-out-expo) infinite;
+}
+
+/* Horizontal ticker for the sports strip. */
+.marquee-track {
+  animation: marquee 38s linear infinite;
 }
 
 .page-transition {
-  animation: page-route-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: page-route-in 460ms var(--ease-out-expo) both;
 }
 
 .route-transition-bar {
@@ -209,18 +521,22 @@ html {
   top: 0;
   left: 0;
   z-index: 10001;
-  height: 3px;
+  height: 2px;
   width: 100%;
   pointer-events: none;
-  background: linear-gradient(90deg, #047857 0%, #1a56db 58%, #982669 100%);
-  box-shadow: 0 0 18px rgba(26, 86, 219, 0.28);
+  background: linear-gradient(
+    90deg,
+    var(--color-cream-200) 0%,
+    var(--color-brand-500) 70%,
+    var(--color-brand-400) 100%
+  );
   opacity: 0;
   transform: scaleX(0);
   transform-origin: left;
 }
 
 .route-transition-bar.is-active {
-  animation: route-progress-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: route-progress-in 520ms var(--ease-out-expo) both;
 }
 
 .register-summary-panel {
@@ -254,7 +570,7 @@ html {
 @keyframes hero-copy-in {
   from {
     opacity: 0;
-    transform: translateY(42px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
@@ -265,30 +581,11 @@ html {
 @keyframes hero-card-in {
   from {
     opacity: 0;
-    transform: translateX(56px) translateY(24px) scale(0.94) rotate(1deg);
+    transform: translateY(32px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateX(0) translateY(0) scale(1) rotate(0);
-  }
-}
-
-@keyframes image-sheen {
-  from {
-    transform: translateX(-120%);
-  }
-  to {
-    transform: translateX(120%);
-  }
-}
-
-@keyframes subtle-pulse-border {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(26, 86, 219, 0.14);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(26, 86, 219, 0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -298,31 +595,50 @@ html {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
 }
 
-@keyframes pop-in {
-  from {
+@keyframes live-ping {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(18px) scale(0.92);
+    transform: scale(2.6);
+  }
+}
+
+@keyframes radar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-slide {
+  from {
+    transform: translateX(-110%);
   }
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(310%);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
 @keyframes page-route-in {
   from {
     opacity: 0;
-    filter: blur(8px);
-    clip-path: inset(0 0 10% 0);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    filter: blur(0);
-    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
   }
 }
 
@@ -345,38 +661,30 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .parallax-layer,
+  html {
+    scroll-behavior: auto;
+  }
+
   .hero-reveal,
   .animate-hero-card,
-  .hero-image-reveal::after,
-  .motion-chip,
   .motion-card,
-  .motion-pop-in,
   .motion-float,
+  .live-dot::after,
+  .radar-sweep,
+  .marquee-track,
+  .loader-bar,
+  .reveal-pending,
+  .reveal-in,
   .page-transition,
   .route-transition-bar,
   .registration-parallax-section {
     animation: none;
     transition: none;
     transform: none;
-    filter: none;
-    clip-path: none;
   }
 }
 
-/* Clean Minimalist Hero Grid Pattern */
-.hero-grid {
-  background-image:
-    linear-gradient(115deg, rgba(26, 86, 219, 0.06) 0, transparent 36%),
-    linear-gradient(90deg, rgba(209, 213, 219, 0.35) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(209, 213, 219, 0.28) 1px, transparent 1px);
-  background-size:
-    auto,
-    72px 72px,
-    72px 72px;
-}
-
-/* TV Presentation Display Scene Animation */
+/* ── TV presentation display ─────────────────────────────────────────── */
 @keyframes display-scene-enter {
   from {
     opacity: 0;
@@ -398,7 +706,7 @@ html {
 }
 
 .display-scene-enter {
-  animation: display-scene-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: display-scene-enter 420ms var(--ease-out-expo) both;
 }
 
 .display-progress {
@@ -414,11 +722,11 @@ html {
   }
 }
 
-/* Admin command-center motion and shared controls */
+/* ── Admin command centre: shared controls and motion ────────────────── */
 .admin-label {
   display: block;
   margin-bottom: 0.4rem;
-  color: #64748b;
+  color: var(--color-ink-500);
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -428,19 +736,18 @@ html {
 .admin-input {
   width: 100%;
   height: 2.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border: 1px solid var(--color-ink-200);
+  border-radius: 0.625rem;
   background: #fff;
   padding-left: 0.875rem;
   padding-right: 0.875rem;
-  color: #0f172a;
+  color: var(--color-ink-950);
   font-size: 0.875rem;
-  font-weight: 650;
+  font-weight: 600;
   outline: none;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
-    transform 180ms ease,
     background-color 180ms ease;
 }
 
@@ -449,12 +756,12 @@ html {
 }
 
 .admin-input:hover {
-  border-color: #bfdbfe;
+  border-color: var(--color-ink-300);
 }
 
 .admin-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 3px rgb(224 109 48 / 0.14);
 }
 
 @keyframes admin-rise {
@@ -511,10 +818,10 @@ html {
 @keyframes admin-live-dot {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgb(34 211 238 / 0.35);
+    box-shadow: 0 0 0 0 rgb(224 109 48 / 0.4);
   }
   50% {
-    box-shadow: 0 0 0 7px rgb(34 211 238 / 0);
+    box-shadow: 0 0 0 7px rgb(224 109 48 / 0);
   }
 }
 
@@ -545,11 +852,11 @@ html {
 }
 
 .admin-rise {
-  animation: admin-rise 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: admin-rise 480ms var(--ease-out-expo) both;
 }
 
 .admin-section-enter {
-  animation: admin-section-enter 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: admin-section-enter 380ms var(--ease-out-expo) both;
 }
 
 .admin-float {
@@ -582,7 +889,7 @@ html {
 }
 
 .admin-dialog-enter {
-  animation: admin-dialog-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: admin-dialog-enter 300ms var(--ease-out-expo) both;
 }
 
 .admin-spin {
@@ -598,8 +905,7 @@ html {
   .admin-live-dot,
   .admin-live-sweep,
   .admin-modal,
-  .admin-dialog-enter,
-  .admin-spin {
+  .admin-dialog-enter {
     animation: none;
   }
 }

@@ -1,28 +1,32 @@
-import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist_Mono, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import Loader from "@/components/Loader";
 import PageTransition from "@/components/PageTransition";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "TUWAGA — Live Scoring & Tournament Operations",
+  title: "TUWAGA SKOR — Control the Game",
   description:
-    "Run live scoring, brackets, and referee scoring workflows from one tournament operations platform.",
+    "Live scoring, brackets, order of play, and referee workflows for tournament organizers in one control room.",
   icons: {
     icon: "/tuwaga-favicon.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#171717",
 };
 
 export default function RootLayout({
@@ -31,17 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
-      <head>
-        {/* Material Symbols */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        />
-      </head>
-      <body
-        className={`${plusJakartaSans.variable} ${inter.variable} bg-background font-sans text-on-surface antialiased min-h-screen flex flex-col`}
-      >
+    <html lang="en" className={`${interTight.variable} ${geistMono.variable}`}>
+      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink-950 antialiased">
         <Loader />
         <PageTransition>{children}</PageTransition>
       </body>

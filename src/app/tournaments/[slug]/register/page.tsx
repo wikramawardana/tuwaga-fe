@@ -1,5 +1,26 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BabyIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  CircleNotchIcon,
+  ClipboardTextIcon,
+  CloudArrowUpIcon,
+  ListChecksIcon,
+  LockIcon,
+  PushPinIcon,
+  SealCheckIcon,
+  ShapesIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  SignInIcon,
+  TableIcon,
+  UserCirclePlusIcon,
+  UserIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -37,7 +58,7 @@ function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="block text-[14px] font-bold tracking-[0.01em] text-on-surface"
+      className="block text-[14px] font-bold tracking-[0.01em] text-ink-950"
     >
       {children} {required && <span className="text-rose-500">*</span>}
     </label>
@@ -62,7 +83,7 @@ function FileUploadBox({
   return (
     <div className="space-y-2">
       <FieldLabel required={required}>{label}</FieldLabel>
-      <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/60 bg-white p-5 transition hover:border-primary hover:bg-surface-container-low/50">
+      <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-ink-300/60 bg-white p-5 transition hover:border-brand-500 hover:bg-ink-100/50">
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -75,7 +96,7 @@ function FileUploadBox({
         />
         {url ? (
           <div className="flex w-full items-center gap-4">
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-outline-variant bg-slate-100">
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-ink-300 bg-ink-100">
               <Image
                 src={url}
                 alt={label}
@@ -86,23 +107,37 @@ function FileUploadBox({
             </div>
             <div className="min-w-0 flex-1">
               <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                <span className="material-symbols-outlined text-sm">check</span>
+                <CheckIcon
+                  className="text-sm"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 File terunggah
               </span>
-              <p className="mt-1 text-xs text-on-surface-variant truncate">
+              <p className="mt-1 text-xs text-ink-600 truncate">
                 Klik untuk mengganti gambar
               </p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
-            <span className="material-symbols-outlined text-3xl text-on-surface-variant">
-              {loading ? "progress_activity" : "cloud_upload"}
-            </span>
-            <p className="mt-2 text-xs font-bold text-on-surface">
+            {loading ? (
+              <CircleNotchIcon
+                className="admin-spin text-3xl text-ink-600"
+                weight="bold"
+                aria-hidden="true"
+              />
+            ) : (
+              <CloudArrowUpIcon
+                className="text-3xl text-ink-600"
+                weight="duotone"
+                aria-hidden="true"
+              />
+            )}
+            <p className="mt-2 text-xs font-bold text-ink-950">
               {loading ? "Mengunggah..." : "Pilih atau seret gambar ke sini"}
             </p>
-            <p className="text-[11px] text-on-surface-variant">{description}</p>
+            <p className="text-[11px] text-ink-600">{description}</p>
           </div>
         )}
       </label>
@@ -134,9 +169,9 @@ function StepActions({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex h-11 items-center gap-2 rounded-lg border border-outline-variant/50 bg-white px-5 text-sm font-bold text-on-surface transition hover:bg-surface-container-low"
+          className="inline-flex h-11 items-center gap-2 rounded-lg border border-ink-300/50 bg-white px-5 text-sm font-bold text-ink-950 transition hover:bg-ink-100"
         >
-          <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <ArrowLeftIcon className="text-lg" aria-hidden="true" weight="bold" />
           Kembali
         </button>
       ) : (
@@ -149,13 +184,15 @@ function StepActions({
           disabled={!canNext || submitting}
           className={`inline-flex h-12 items-center gap-2 rounded-lg px-7 text-[14px] font-semibold shadow-lg transition-all active:scale-95 ${
             canNext && !submitting
-              ? "bg-primary text-on-primary shadow-primary/20 hover:bg-on-primary-fixed-variant"
-              : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
+              ? "bg-brand-500 text-ink-950 shadow-ink-950/10 hover:bg-brand-400"
+              : "cursor-not-allowed bg-ink-300 text-ink-600"
           }`}
         >
-          <span className="material-symbols-outlined text-[20px]">
-            verified_user
-          </span>
+          <ShieldCheckIcon
+            className="text-[20px]"
+            aria-hidden="true"
+            weight="duotone"
+          />
           {submitting ? "Memproses..." : "Konfirmasi & Kirim Pendaftaran"}
         </button>
       ) : (
@@ -165,14 +202,16 @@ function StepActions({
           disabled={!canNext}
           className={`inline-flex h-11 items-center gap-2 rounded-lg px-6 text-sm font-bold transition-colors ${
             canNext
-              ? "bg-primary text-on-primary hover:bg-primary/90"
-              : "cursor-not-allowed bg-outline-variant text-on-surface-variant"
+              ? "bg-brand-500 text-ink-950 hover:bg-brand-500/90"
+              : "cursor-not-allowed bg-ink-300 text-ink-600"
           }`}
         >
           Lanjut
-          <span className="material-symbols-outlined text-lg">
-            arrow_forward
-          </span>
+          <ArrowRightIcon
+            className="text-lg"
+            aria-hidden="true"
+            weight="bold"
+          />
         </button>
       )}
     </div>
@@ -423,7 +462,7 @@ export default function TournamentRegisterPage() {
         hideFooter={true}
       >
         <div className="flex h-64 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
         </div>
       </RegistrationShell>
     );
@@ -436,7 +475,7 @@ export default function TournamentRegisterPage() {
         showProgress={false}
         hideFooter={true}
       >
-        <div className="rounded-lg border border-error/20 bg-error-container p-6 text-sm font-semibold text-on-error-container">
+        <div className="rounded-lg border border-rose-600/20 bg-rose-100 p-6 text-sm font-semibold text-rose-900">
           {message || "Informasi turnamen tidak dapat ditemukan."}
         </div>
       </RegistrationShell>
@@ -456,48 +495,60 @@ export default function TournamentRegisterPage() {
         hideFooter={true}
       >
         <div className="mx-auto max-w-xl">
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-              <span className="material-symbols-outlined text-3xl">lock</span>
+          <div className="rounded-3xl border border-ink-200/80 bg-white p-6 shadow-sm sm:p-10">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <LockIcon
+                className="text-3xl"
+                aria-hidden="true"
+                weight="duotone"
+              />
             </div>
 
             <div className="mt-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                <span className="material-symbols-outlined text-sm">
-                  shield
-                </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700">
+                <ShieldIcon
+                  className="text-sm"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 Pendaftaran Terverifikasi & Aman
               </span>
-              <h2 className="mt-3 text-2xl font-black text-slate-900 sm:text-3xl">
+              <h2 className="mt-3 text-2xl font-black text-ink-900 sm:text-3xl">
                 Masuk untuk Mendaftar Turnamen
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-ink-600">
                 Untuk menjaga keamanan data pribadi dan verifikasi tiket resmi
                 turnamen, seluruh calon peserta wajib masuk menggunakan akun
                 Tuwaga.
               </p>
             </div>
 
-            <div className="mt-6 space-y-2.5 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-xs font-medium text-slate-700">
+            <div className="mt-6 space-y-2.5 rounded-2xl border border-ink-100 bg-ink-50/70 p-4 text-xs font-medium text-ink-700">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-emerald-600">
-                  check_circle
-                </span>
+                <CheckCircleIcon
+                  className="text-base text-emerald-600"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>Data pendaftaran langsung terhubung ke akun Anda</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-emerald-600">
-                  check_circle
-                </span>
+                <CheckCircleIcon
+                  className="text-base text-emerald-600"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   Privasi terjamin: nama dan detail tim Anda aman dari pihak
                   luar
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-emerald-600">
-                  check_circle
-                </span>
+                <CheckCircleIcon
+                  className="text-base text-emerald-600"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 <span>
                   Pantau verifikasi pembayaran & jadwal tanding langsung di
                   dashboard pribadi
@@ -508,14 +559,18 @@ export default function TournamentRegisterPage() {
             <div className="mt-8 flex flex-col gap-3">
               <Link
                 href={`/login?callbackUrl=${callbackUrl}`}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-blue-700 active:scale-95"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 text-sm font-bold text-ink-950 shadow-md shadow-ink-950/10 transition hover:bg-brand-400 active:scale-95"
               >
-                <span className="material-symbols-outlined text-lg">login</span>
+                <SignInIcon
+                  className="text-lg"
+                  aria-hidden="true"
+                  weight="bold"
+                />
                 Masuk dengan Akun Anda
               </Link>
               <Link
                 href={`/tournaments/${slug}`}
-                className="flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+                className="flex h-11 w-full items-center justify-center rounded-xl border border-ink-200 bg-white px-4 text-xs font-bold text-ink-700 transition hover:bg-ink-50"
               >
                 Kembali ke Info Turnamen
               </Link>
@@ -547,18 +602,20 @@ export default function TournamentRegisterPage() {
 
         {/* STEP 0: PILIH KATEGORI */}
         {step === 0 && (
-          <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
+          <section className="rounded-xl border border-ink-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">
-                  category
-                </span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+                <ShapesIcon
+                  className="text-[22px]"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </div>
               <div>
-                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                <h2 className="text-[24px] font-bold leading-[1.3] text-ink-950">
                   Pilihan Kategori
                 </h2>
-                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                <p className="mt-1 text-[14px] leading-[1.5] text-ink-600">
                   Pilih salah satu kategori turnamen untuk pasangan Anda.
                 </p>
               </div>
@@ -566,21 +623,23 @@ export default function TournamentRegisterPage() {
 
             {/* Caprival Qualification Guide Banner */}
             {isCaprival && (
-              <div className="mb-6 rounded-2xl border border-indigo-900/30 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-5 text-white shadow-md">
+              <div className="mb-6 rounded-2xl border border-ink-900/30 bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 p-5 text-white shadow-md">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-300 border border-amber-400/30">
-                        <span className="material-symbols-outlined text-[13px]">
-                          verified
-                        </span>
+                        <SealCheckIcon
+                          className="text-[13px]"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         The Grand Caprival
                       </span>
                     </div>
                     <h3 className="text-base font-extrabold text-white">
                       Panduan & Syarat Kualifikasi Kategori
                     </h3>
-                    <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+                    <p className="text-xs text-ink-300 max-w-xl leading-relaxed">
                       Turnamen menerapkan kurasi ketat level pemain (Tenis &
                       Padel). Pastikan pasangan Anda memenuhi kriteria sebelum
                       memilih kategori.
@@ -589,11 +648,13 @@ export default function TournamentRegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowCaprivalModal(true)}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-md transition hover:bg-amber-300"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-xs font-black text-ink-950 shadow-md transition hover:bg-amber-300"
                   >
-                    <span className="material-symbols-outlined text-base">
-                      table_chart
-                    </span>
+                    <TableIcon
+                      className="text-base"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
                     Lihat Matriks Kualifikasi
                   </button>
                 </div>
@@ -601,9 +662,9 @@ export default function TournamentRegisterPage() {
             )}
 
             {/* Tournament brief banner info */}
-            <div className="mb-6 rounded-xl border border-outline-variant/30 bg-surface-container-low/60 p-4 space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/20 pb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+            <div className="mb-6 rounded-xl border border-ink-300/30 bg-ink-100/60 p-4 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-300/20 pb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                   Tahap Turnamen
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -612,7 +673,7 @@ export default function TournamentRegisterPage() {
                 </span>
               </div>
               {tournament.settings.registrationClosedAt && (
-                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                <div className="flex items-center justify-between text-xs text-ink-600">
                   <span>Batas Akhir Pendaftaran:</span>
                   <span className="font-bold text-rose-600">
                     {tournament.settings.registrationClosedAt}
@@ -620,16 +681,21 @@ export default function TournamentRegisterPage() {
                 </div>
               )}
               {tournament.settings.contactPerson && (
-                <div className="flex items-center justify-between text-xs text-on-surface-variant">
+                <div className="flex items-center justify-between text-xs text-ink-600">
                   <span>Kontak Panitia (CP):</span>
-                  <span className="font-bold text-on-surface">
+                  <span className="font-bold text-ink-950">
                     {tournament.settings.contactPerson}
                   </span>
                 </div>
               )}
               {tournament.settings.registrationNotes && (
-                <p className="pt-2 text-xs leading-relaxed text-on-surface-variant border-t border-outline-variant/20">
-                  📌 {tournament.settings.registrationNotes}
+                <p className="flex gap-2 border-t border-ink-300/20 pt-2 text-xs leading-relaxed text-ink-600">
+                  <PushPinIcon
+                    className="mt-0.5 shrink-0 text-sm text-brand-500"
+                    weight="fill"
+                    aria-hidden="true"
+                  />
+                  <span>{tournament.settings.registrationNotes}</span>
                 </p>
               )}
             </div>
@@ -661,27 +727,31 @@ export default function TournamentRegisterPage() {
                     <div
                       className={`rounded-xl border bg-white p-5 transition-all ${
                         isSelected
-                          ? "border-primary ring-2 ring-primary/10 shadow-sm"
-                          : "border-outline-variant hover:border-primary/40"
+                          ? "border-brand-500 ring-2 ring-brand-500/10 shadow-sm"
+                          : "border-ink-300 hover:border-brand-500/40"
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <span
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-on-primary transition-all ${
-                            isSelected ? "bg-primary opacity-100" : "opacity-0"
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-ink-950 transition-all ${
+                            isSelected
+                              ? "bg-brand-500 opacity-100"
+                              : "opacity-0"
                           }`}
                         >
-                          <span className="material-symbols-outlined text-[16px]">
-                            check
-                          </span>
+                          <CheckIcon
+                            className="text-[16px]"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                         </span>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-[17px] font-extrabold text-on-surface">
+                          <h3 className="text-[17px] font-extrabold text-ink-950">
                             {displayCat}
                           </h3>
                           {caprivalInfo && (
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">
+                              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700">
                                 {caprivalInfo.badgeText}
                               </span>
                             </div>
@@ -698,18 +768,20 @@ export default function TournamentRegisterPage() {
 
         {/* STEP 1: PEMAIN 1 */}
         {step === 1 && (
-          <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
+          <section className="rounded-xl border border-ink-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">
-                  person
-                </span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+                <UserIcon
+                  className="text-[22px]"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </div>
               <div>
-                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                <h2 className="text-[24px] font-bold leading-[1.3] text-ink-950">
                   Data Pemain 1 (Player 1)
                 </h2>
-                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                <p className="mt-1 text-[14px] leading-[1.5] text-ink-600">
                   Informasi lengkap pemain utama sesuai kartu identitas resmi
                   (KTP, SIM, Kartu Pelajar, dll).
                 </p>
@@ -730,7 +802,7 @@ export default function TournamentRegisterPage() {
                     setPlayer1((p) => ({ ...p, fullName: e.target.value }))
                   }
                   placeholder="Contoh: Rudy Hartono"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                 />
               </div>
 
@@ -752,7 +824,7 @@ export default function TournamentRegisterPage() {
                     Nomor WhatsApp
                   </FieldLabel>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-on-surface-variant">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-ink-600">
                       +62
                     </span>
                     <input
@@ -764,7 +836,7 @@ export default function TournamentRegisterPage() {
                         setPlayer1((p) => ({ ...p, phone: e.target.value }))
                       }
                       placeholder="812 3456 7890"
-                      className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-lg border border-ink-300 bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                     />
                   </div>
                 </div>
@@ -782,7 +854,7 @@ export default function TournamentRegisterPage() {
                       setPlayer1((p) => ({ ...p, instagram: e.target.value }))
                     }
                     placeholder="@rudyhartono"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
               </div>
@@ -798,7 +870,7 @@ export default function TournamentRegisterPage() {
                       setPlayer1((p) => ({ ...p, reclub: e.target.value }))
                     }
                     placeholder="Link profil Reclub"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
 
@@ -814,7 +886,7 @@ export default function TournamentRegisterPage() {
                       setPlayer1((p) => ({ ...p, community: e.target.value }))
                     }
                     placeholder="Contoh: Padel Cah Semarang"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
               </div>
@@ -833,7 +905,7 @@ export default function TournamentRegisterPage() {
                       setPlayer1((p) => ({ ...p, city: e.target.value }))
                     }
                     placeholder="Contoh: Semarang"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
 
@@ -847,7 +919,7 @@ export default function TournamentRegisterPage() {
                     onChange={(e) =>
                       setPlayer1((p) => ({ ...p, jerseySize: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   >
                     {jerseyOptions.map((sz) => (
                       <option key={sz} value={sz}>
@@ -859,12 +931,14 @@ export default function TournamentRegisterPage() {
               </div>
 
               {isCaprival && isYouthCategory && (
-                <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-xs text-sky-900 font-medium flex items-start gap-2.5">
-                  <span className="material-symbols-outlined text-sky-600 text-lg shrink-0 mt-0.5">
-                    child_care
-                  </span>
+                <div className="rounded-xl border border-cream-200 bg-cream-50/80 p-3.5 text-xs text-cream-900 font-medium flex items-start gap-2.5">
+                  <BabyIcon
+                    className="text-cream-600 text-lg shrink-0 mt-0.5"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   <div>
-                    <strong className="text-sky-950 font-bold block mb-0.5">
+                    <strong className="text-cream-950 font-bold block mb-0.5">
                       Verifikasi Usia KU-14 (Kelahiran 2012 atau Setelahnya):
                     </strong>
                     Pemain kategori KU-14 wajib melampirkan foto kartu identitas
@@ -891,18 +965,20 @@ export default function TournamentRegisterPage() {
 
         {/* STEP 2: PEMAIN 2 / PASANGAN */}
         {step === 2 && (
-          <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
+          <section className="rounded-xl border border-ink-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">
-                  group_add
-                </span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+                <UserCirclePlusIcon
+                  className="text-[22px]"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </div>
               <div>
-                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                <h2 className="text-[24px] font-bold leading-[1.3] text-ink-950">
                   Data Pemain 2 (Player 2 / Pasangan)
                 </h2>
-                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                <p className="mt-1 text-[14px] leading-[1.5] text-ink-600">
                   Informasi pasangan main sesuai kartu identitas resmi (KTP,
                   SIM, Kartu Pelajar, dll).
                 </p>
@@ -923,7 +999,7 @@ export default function TournamentRegisterPage() {
                     setPlayer2((p) => ({ ...p, fullName: e.target.value }))
                   }
                   placeholder="Contoh: Kevin Sanjaya"
-                  className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                 />
               </div>
 
@@ -945,7 +1021,7 @@ export default function TournamentRegisterPage() {
                     Nomor WhatsApp
                   </FieldLabel>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-on-surface-variant">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[15px] font-bold text-ink-600">
                       +62
                     </span>
                     <input
@@ -957,7 +1033,7 @@ export default function TournamentRegisterPage() {
                         setPlayer2((p) => ({ ...p, phone: e.target.value }))
                       }
                       placeholder="813 9876 5432"
-                      className="w-full rounded-lg border border-outline-variant bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-lg border border-ink-300 bg-white py-3 pl-14 pr-4 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                     />
                   </div>
                 </div>
@@ -975,7 +1051,7 @@ export default function TournamentRegisterPage() {
                       setPlayer2((p) => ({ ...p, instagram: e.target.value }))
                     }
                     placeholder="@kevinsanjaya"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
               </div>
@@ -991,7 +1067,7 @@ export default function TournamentRegisterPage() {
                       setPlayer2((p) => ({ ...p, reclub: e.target.value }))
                     }
                     placeholder="Link profil Reclub"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
 
@@ -1007,7 +1083,7 @@ export default function TournamentRegisterPage() {
                       setPlayer2((p) => ({ ...p, community: e.target.value }))
                     }
                     placeholder="Contoh: Padel Cah Semarang"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
               </div>
@@ -1026,7 +1102,7 @@ export default function TournamentRegisterPage() {
                       setPlayer2((p) => ({ ...p, city: e.target.value }))
                     }
                     placeholder="Contoh: Semarang"
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   />
                 </div>
 
@@ -1040,7 +1116,7 @@ export default function TournamentRegisterPage() {
                     onChange={(e) =>
                       setPlayer2((p) => ({ ...p, jerseySize: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-[15px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-lg border border-ink-300 bg-white px-4 py-3 text-[15px] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                   >
                     {jerseyOptions.map((sz) => (
                       <option key={sz} value={sz}>
@@ -1052,12 +1128,14 @@ export default function TournamentRegisterPage() {
               </div>
 
               {isCaprival && isYouthCategory && (
-                <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-xs text-sky-900 font-medium flex items-start gap-2.5">
-                  <span className="material-symbols-outlined text-sky-600 text-lg shrink-0 mt-0.5">
-                    child_care
-                  </span>
+                <div className="rounded-xl border border-cream-200 bg-cream-50/80 p-3.5 text-xs text-cream-900 font-medium flex items-start gap-2.5">
+                  <BabyIcon
+                    className="text-cream-600 text-lg shrink-0 mt-0.5"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   <div>
-                    <strong className="text-sky-950 font-bold block mb-0.5">
+                    <strong className="text-cream-950 font-bold block mb-0.5">
                       Verifikasi Usia KU-14 (Kelahiran 2012 atau Setelahnya):
                     </strong>
                     Pemain pasangan kategori KU-14 wajib melampirkan foto kartu
@@ -1085,18 +1163,20 @@ export default function TournamentRegisterPage() {
 
         {/* STEP 3: REVIEW DATA PENDAFTARAN */}
         {step === 3 && (
-          <section className="rounded-xl border border-surface-container bg-surface-container-lowest p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
+          <section className="rounded-xl border border-ink-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8">
             <div className="mb-6 flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary">
-                <span className="material-symbols-outlined text-[22px]">
-                  fact_check
-                </span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950">
+                <ListChecksIcon
+                  className="text-[22px]"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </div>
               <div>
-                <h2 className="text-[24px] font-bold leading-[1.3] text-on-surface">
+                <h2 className="text-[24px] font-bold leading-[1.3] text-ink-950">
                   Review & Konfirmasi
                 </h2>
-                <p className="mt-1 text-[14px] leading-[1.5] text-on-surface-variant">
+                <p className="mt-1 text-[14px] leading-[1.5] text-ink-600">
                   Periksa kembali seluruh informasi tim sebelum mengirimkan
                   pendaftaran.
                 </p>
@@ -1105,50 +1185,52 @@ export default function TournamentRegisterPage() {
 
             <div className="space-y-4">
               {/* Category card */}
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+              <div className="rounded-xl border border-ink-300/30 bg-ink-100/50 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Kategori Pilihan
                   </span>
                   {isCaprival && (
                     <button
                       type="button"
                       onClick={() => setShowCaprivalModal(true)}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:underline"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-600 hover:underline"
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        table_chart
-                      </span>
+                      <TableIcon
+                        className="text-[14px]"
+                        aria-hidden="true"
+                        weight="bold"
+                      />
                       Cek Matriks Kualifikasi
                     </button>
                   )}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-lg font-black text-on-surface">
+                  <span className="text-lg font-black text-ink-950">
                     {selectedCategory}
                   </span>
                 </div>
                 {isCaprival && (
-                  <p className="mt-2 text-[11px] text-slate-500 border-t border-outline-variant/20 pt-2">
-                    ✓ Pendaftaran tim Anda akan diverifikasi sesuai kriteria
+                  <p className="mt-2 text-[11px] text-ink-500 border-t border-ink-300/20 pt-2">
+                    Pendaftaran tim Anda akan diverifikasi sesuai kriteria
                     kelayakan resmi The Grand Caprival.
                   </p>
                 )}
               </div>
 
               {/* Player 1 Card */}
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+              <div className="rounded-xl border border-ink-300/30 bg-ink-100/50 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Pemain 1 (Utama)
                   </span>
-                  <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                  <span className="rounded bg-ink-200/80 px-2 py-0.5 text-[11px] font-bold text-ink-700">
                     Jersey: {player1.jerseySize}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-3">
                   {player1.photoUrl ? (
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-outline-variant">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-ink-300">
                       <Image
                         src={player1.photoUrl}
                         alt={player1.fullName}
@@ -1158,15 +1240,15 @@ export default function TournamentRegisterPage() {
                       />
                     </div>
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-black">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 font-black">
                       {player1.fullName.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <p className="font-extrabold text-on-surface">
+                    <p className="font-extrabold text-ink-950">
                       {player1.fullName}
                     </p>
-                    <p className="text-xs text-on-surface-variant">
+                    <p className="text-xs text-ink-600">
                       WA: +62{player1.phone} · IG: {player1.instagram} · Asal:{" "}
                       {player1.city}
                     </p>
@@ -1175,18 +1257,18 @@ export default function TournamentRegisterPage() {
               </div>
 
               {/* Player 2 Card */}
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low/50 p-4">
+              <div className="rounded-xl border border-ink-300/30 bg-ink-100/50 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-600">
                     Pemain 2 (Pasangan)
                   </span>
-                  <span className="rounded bg-slate-200/80 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                  <span className="rounded bg-ink-200/80 px-2 py-0.5 text-[11px] font-bold text-ink-700">
                     Jersey: {player2.jerseySize}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-3">
                   {player2.photoUrl ? (
-                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-outline-variant">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-ink-300">
                       <Image
                         src={player2.photoUrl}
                         alt={player2.fullName}
@@ -1196,15 +1278,15 @@ export default function TournamentRegisterPage() {
                       />
                     </div>
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-black">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 font-black">
                       {player2.fullName.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <p className="font-extrabold text-on-surface">
+                    <p className="font-extrabold text-ink-950">
                       {player2.fullName}
                     </p>
-                    <p className="text-xs text-on-surface-variant">
+                    <p className="text-xs text-ink-600">
                       WA: +62{player2.phone} · IG: {player2.instagram} · Asal:{" "}
                       {player2.city}
                     </p>
@@ -1215,14 +1297,16 @@ export default function TournamentRegisterPage() {
               {/* Status Pendaftaran & Tahap Kurasi Info */}
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-amber-600 text-xl">
-                    verified_user
-                  </span>
+                  <ShieldCheckIcon
+                    className="text-amber-600 text-xl"
+                    aria-hidden="true"
+                    weight="duotone"
+                  />
                   <div className="space-y-1">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                       Tahap Kurasi & Verifikasi Kategori
                     </h4>
-                    <p className="text-xs leading-relaxed text-on-surface-variant">
+                    <p className="text-xs leading-relaxed text-ink-600">
                       Pendaftaran tim Anda akan diverifikasi oleh panitia untuk
                       memastikan kesesuaian disetiap kategori.
                     </p>
@@ -1236,12 +1320,14 @@ export default function TournamentRegisterPage() {
               </div>
             </div>
 
-            <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="mt-6 rounded-xl border border-brand-500/20 bg-brand-500/5 p-4">
               <div className="flex items-start gap-2.5">
-                <span className="material-symbols-outlined text-primary text-xl">
-                  verified
-                </span>
-                <p className="text-xs font-medium leading-relaxed text-on-surface">
+                <SealCheckIcon
+                  className="text-brand-600 text-xl"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
+                <p className="text-xs font-medium leading-relaxed text-ink-950">
                   Klik tombol di bawah untuk meninjau pernyataan persetujuan dan
                   mengirimkan pendaftaran ke panitia.
                 </p>
@@ -1262,27 +1348,29 @@ export default function TournamentRegisterPage() {
 
       {/* CONFIRMATION & DISCLAIMER MODAL */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-7">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-ink-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-7">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                <span className="material-symbols-outlined text-2xl">
-                  assignment_turned_in
-                </span>
+                <ClipboardTextIcon
+                  className="text-2xl"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-extrabold text-ink-900">
                   Pernyataan & Syarat Pendaftaran
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-ink-500">
                   Harap baca dan setujui ketentuan di bawah ini.
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 space-y-3 text-xs leading-relaxed text-slate-600">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-[11px] leading-normal text-slate-700 max-h-48 overflow-y-auto">
-                <p className="font-bold text-slate-900 mb-2">
+            <div className="mt-5 space-y-3 text-xs leading-relaxed text-ink-600">
+              <div className="rounded-xl border border-ink-200 bg-ink-50 p-4 font-mono text-[11px] leading-normal text-ink-700 max-h-48 overflow-y-auto">
+                <p className="font-bold text-ink-900 mb-2">
                   Ketentuan Turnamen & Self-Assessment:
                 </p>
                 <p className="whitespace-pre-line">
@@ -1302,26 +1390,26 @@ export default function TournamentRegisterPage() {
                 </p>
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 transition hover:bg-blue-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand-200 bg-brand-50/70 p-3.5 transition hover:bg-brand-50">
                 <input
                   type="checkbox"
                   checked={confirmedDisclaimer}
                   onChange={(e) => setConfirmedDisclaimer(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 accent-primary"
+                  className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500 accent-brand-500"
                 />
-                <span className="text-xs font-bold leading-normal text-slate-900">
+                <span className="text-xs font-bold leading-normal text-ink-900">
                   KLIK UNTUK MENYETUJUI: Saya menyatakan data tim sudah benar
                   dan menyetujui seluruh ketentuan & disclaimer di atas.
                 </span>
               </label>
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+            <div className="mt-6 flex items-center justify-end gap-3 border-t border-ink-100 pt-4">
               <button
                 type="button"
                 disabled={submitting}
                 onClick={() => setShowConfirmModal(false)}
-                className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-extrabold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                className="h-10 rounded-xl border border-ink-200 px-4 text-xs font-extrabold text-ink-700 transition hover:bg-ink-50 disabled:opacity-50"
               >
                 Periksa Kembali
               </button>
@@ -1329,24 +1417,28 @@ export default function TournamentRegisterPage() {
                 type="button"
                 disabled={!confirmedDisclaimer || submitting}
                 onClick={handleSubmit}
-                className={`inline-flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-extrabold text-white shadow-md transition ${
+                className={`inline-flex h-10 items-center gap-2 rounded-xl px-5 text-xs font-extrabold text-ink-950 shadow-md transition ${
                   confirmedDisclaimer && !submitting
-                    ? "bg-primary hover:bg-primary/90 shadow-primary/20"
-                    : "cursor-not-allowed bg-slate-300 text-slate-500"
+                    ? "bg-brand-500 hover:bg-brand-400 shadow-ink-950/10"
+                    : "cursor-not-allowed bg-ink-300 text-ink-500"
                 }`}
               >
                 {submitting ? (
                   <>
-                    <span className="material-symbols-outlined text-sm animate-spin">
-                      progress_activity
-                    </span>
+                    <CircleNotchIcon
+                      className="text-sm animate-spin"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
                     Mengirim Pendaftaran...
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-sm">
-                      check_circle
-                    </span>
+                    <CheckCircleIcon
+                      className="text-sm"
+                      aria-hidden="true"
+                      weight="bold"
+                    />
                     Setuju & Kirim Pendaftaran
                   </>
                 )}

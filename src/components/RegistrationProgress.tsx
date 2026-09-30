@@ -1,3 +1,5 @@
+import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
+
 export default function RegistrationProgress({
   steps,
   current,
@@ -16,9 +18,9 @@ export default function RegistrationProgress({
   return (
     <div className="mx-auto mb-10 w-full max-w-4xl overflow-x-auto pb-2">
       <div className="relative flex items-center justify-between">
-        <div className="absolute left-0 top-4 z-0 h-[2px] w-full -translate-y-1/2 bg-outline-variant/30" />
+        <div className="absolute left-0 top-4 z-0 h-[2px] w-full -translate-y-1/2 bg-ink-300/30" />
         <div
-          className="absolute left-0 top-4 z-0 h-[2px] -translate-y-1/2 bg-primary transition-all duration-500"
+          className="absolute left-0 top-4 z-0 h-[2px] -translate-y-1/2 bg-brand-500 transition-all duration-500"
           style={{ width: `${(current / (labels.length - 1)) * 100}%` }}
         />
 
@@ -34,23 +36,25 @@ export default function RegistrationProgress({
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold transition-all ${
                   done
-                    ? "border-primary bg-primary text-on-primary"
+                    ? "border-brand-500 bg-brand-500 text-ink-950"
                     : active
-                      ? "border-primary bg-white text-primary ring-4 ring-primary/15"
-                      : "border-outline-variant/40 bg-white text-on-surface-variant"
+                      ? "border-brand-500 bg-white text-brand-600 ring-4 ring-brand-500/15"
+                      : "border-ink-300 bg-white text-ink-500"
                 }`}
               >
                 {done ? (
-                  <span className="material-symbols-outlined text-[16px]">
-                    check
-                  </span>
+                  <CheckIcon
+                    className="text-[16px]"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 ) : (
                   i + 1
                 )}
               </div>
               <span
-                className={`text-center text-[11px] font-bold uppercase tracking-wider ${
-                  active || done ? "text-primary" : "text-on-surface-variant"
+                className={`eyebrow text-center text-[10px] ${
+                  active || done ? "text-ink-950" : "text-ink-400"
                 }`}
               >
                 {label}

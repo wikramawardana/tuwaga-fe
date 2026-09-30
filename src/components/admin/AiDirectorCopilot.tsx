@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  CircleNotchIcon,
+  PaperPlaneTiltIcon,
+  RobotIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -62,7 +68,7 @@ export default function AiDirectorCopilot({
         ...prev,
         {
           role: "assistant",
-          content: `⚠️ Error: ${err instanceof Error ? err.message : "Failed to connect to AI Director"}`,
+          content: `Error: ${err instanceof Error ? err.message : "Failed to connect to AI Director"}`,
         },
       ]);
     } finally {
@@ -86,7 +92,7 @@ export default function AiDirectorCopilot({
           patch.divisionSettings = latestAction.settings.division_settings;
         }
         await updateSettings(tournament.id, patch);
-        setNotice("✅ Settings applied successfully to tournament!");
+        setNotice("Settings applied successfully to tournament!");
         onSettingsUpdated?.();
       } else {
         const sportName = latestAction.settings.sport
@@ -109,12 +115,12 @@ export default function AiDirectorCopilot({
           scoringRules: latestAction.settings.scoringRules,
           divisionSettings: latestAction.settings.division_settings,
         });
-        setNotice("🎉 Tournament created! Opening control room...");
+        setNotice("Tournament created! Opening control room...");
         window.location.href = `/admin/tournaments/${newTournament.id}`;
       }
     } catch (err) {
       setNotice(
-        `❌ Failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+        `Failed: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
     } finally {
       setApplying(false);
@@ -132,27 +138,29 @@ export default function AiDirectorCopilot({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-blue-500/25 transition-all hover:bg-blue-700 hover:-translate-y-0.5 active:scale-95"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-brand-500 px-4 py-3 text-xs font-extrabold uppercase tracking-wider text-ink-950 shadow-xl shadow-ink-950/10 transition-all hover:bg-brand-400 hover:-translate-y-0.5 active:scale-95"
       >
-        <span className="material-symbols-outlined text-lg">smart_toy</span>
+        <RobotIcon className="text-lg" aria-hidden="true" weight="bold" />
         <span>Hermes Director</span>
       </button>
 
       {/* Slide-over Drawer */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs transition-opacity">
-          <div className="flex h-full w-full max-w-lg flex-col border-l border-slate-200 bg-slate-50 shadow-2xl">
+          <div className="flex h-full w-full max-w-lg flex-col border-l border-ink-200 bg-ink-50 shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-blue-900/20 bg-[#071c4d] px-5 py-4 text-white">
+            <div className="flex items-center justify-between border-b border-ink-900/20 bg-ink-950 px-5 py-4 text-white">
               <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-xl text-blue-300">
-                  smart_toy
-                </span>
+                <RobotIcon
+                  className="text-xl text-cream-300"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-wide text-white">
                     Tournament Director AI
                   </h2>
-                  <p className="text-[11px] font-medium text-blue-200/70">
+                  <p className="text-[11px] font-medium text-cream-200/70">
                     Self-Hosted Hermes Agent & Bracket Solver
                   </p>
                 </div>
@@ -162,14 +170,12 @@ export default function AiDirectorCopilot({
                 onClick={() => setIsOpen(false)}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               >
-                <span className="material-symbols-outlined text-base">
-                  close
-                </span>
+                <XIcon className="text-base" aria-hidden="true" weight="bold" />
               </button>
             </div>
 
             {/* Quick Prompt Chips */}
-            <div className="flex gap-2 overflow-x-auto border-b border-slate-200 bg-white p-3 text-xs scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto border-b border-ink-200 bg-white p-3 text-xs scrollbar-none">
               <button
                 type="button"
                 onClick={() =>
@@ -177,9 +183,9 @@ export default function AiDirectorCopilot({
                     "I have 70 players, separate into 2 categories, knockout phase, take 1st, 2nd, and 3rd champion in each",
                   )
                 }
-                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5 font-medium text-ink-700 transition hover:bg-ink-100"
               >
-                🏆 70 Players / 2 Categories / 1st-3rd
+                70 Players / 2 Categories / 1st-3rd
               </button>
               <button
                 type="button"
@@ -188,9 +194,9 @@ export default function AiDirectorCopilot({
                     "Set up Badminton tournament with BWF 21-point rally rules and deuce cap at 30",
                   )
                 }
-                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5 font-medium text-ink-700 transition hover:bg-ink-100"
               >
-                🏸 Badminton BWF Rules
+                Badminton BWF Rules
               </button>
               <button
                 type="button"
@@ -199,9 +205,9 @@ export default function AiDirectorCopilot({
                     "Set up Padel tournament: 16 pairs, Golden Point at 40-40, tiebreak to 7",
                   )
                 }
-                className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-medium text-slate-700 transition hover:bg-slate-100"
+                className="shrink-0 rounded-xl border border-ink-200 bg-ink-50 px-2.5 py-1.5 font-medium text-ink-700 transition hover:bg-ink-100"
               >
-                🎾 Padel Golden Point
+                Padel Golden Point
               </button>
             </div>
 
@@ -217,8 +223,8 @@ export default function AiDirectorCopilot({
                     <div
                       className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed ${
                         isUser
-                          ? "bg-blue-600 font-medium text-white shadow-sm"
-                          : "border border-slate-200 bg-white text-slate-800 shadow-sm"
+                          ? "bg-brand-500 font-medium text-ink-950 shadow-sm"
+                          : "border border-ink-200 bg-white text-ink-800 shadow-sm"
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -228,59 +234,61 @@ export default function AiDirectorCopilot({
               })}
 
               {loading && (
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
-                  <span className="material-symbols-outlined animate-spin text-base">
-                    progress_activity
-                  </span>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase text-ink-500">
+                  <CircleNotchIcon
+                    className="animate-spin text-base"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   <span>Hermes is calculating bracket math...</span>
                 </div>
               )}
 
               {/* Proposed Action Card */}
               {latestAction?.settings && (
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                      ⚡ Action Proposal
+                    <span className="text-xs font-bold uppercase tracking-wider text-brand-600">
+                      Action Proposal
                     </span>
-                    <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-800">
+                    <span className="rounded-md border border-brand-200 bg-brand-50 px-2 py-0.5 text-[10px] font-bold uppercase text-brand-800">
                       {latestAction.settings.sport || "Sport"}
                     </span>
                   </div>
 
                   {latestAction.settings.plan && (
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-medium">
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
-                        <div className="text-[10px] uppercase text-slate-400">
+                      <div className="rounded-xl border border-ink-100 bg-ink-50 p-2.5">
+                        <div className="text-[10px] uppercase text-ink-400">
                           Bracket Size
                         </div>
-                        <div className="text-sm font-bold text-slate-900">
+                        <div className="text-sm font-bold text-ink-900">
                           {latestAction.settings.plan.bracket_size}-Draw
                         </div>
                       </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
-                        <div className="text-[10px] uppercase text-slate-400">
+                      <div className="rounded-xl border border-ink-100 bg-ink-50 p-2.5">
+                        <div className="text-[10px] uppercase text-ink-400">
                           Byes Assigned
                         </div>
-                        <div className="text-sm font-bold text-slate-900">
+                        <div className="text-sm font-bold text-ink-900">
                           {latestAction.settings.plan.byes_count} Byes
                         </div>
                       </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
-                        <div className="text-[10px] uppercase text-slate-400">
+                      <div className="rounded-xl border border-ink-100 bg-ink-50 p-2.5">
+                        <div className="text-[10px] uppercase text-ink-400">
                           Bronze Match
                         </div>
                         <div className="text-sm font-bold text-emerald-700">
                           {latestAction.settings.plan.bronze_match_included
-                            ? "✅ 3rd Place"
+                            ? "3rd Place"
                             : "None"}
                         </div>
                       </div>
-                      <div className="rounded-xl border border-slate-100 bg-slate-50 p-2.5">
-                        <div className="text-[10px] uppercase text-slate-400">
+                      <div className="rounded-xl border border-ink-100 bg-ink-50 p-2.5">
+                        <div className="text-[10px] uppercase text-ink-400">
                           Total Matches
                         </div>
-                        <div className="text-sm font-bold text-slate-900">
+                        <div className="text-sm font-bold text-ink-900">
                           {latestAction.settings.plan.total_tournament_matches}
                         </div>
                       </div>
@@ -291,7 +299,7 @@ export default function AiDirectorCopilot({
                     type="button"
                     disabled={applying}
                     onClick={handleApplyAction}
-                    className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-50 active:scale-95"
+                    className="mt-3 w-full rounded-xl bg-brand-500 py-2.5 text-xs font-extrabold uppercase tracking-wider text-ink-950 shadow-md shadow-ink-950/10 transition hover:bg-brand-400 disabled:opacity-50 active:scale-95"
                   >
                     {applying
                       ? tournament?.id
@@ -303,7 +311,7 @@ export default function AiDirectorCopilot({
                   </button>
 
                   {notice && (
-                    <div className="mt-2 text-center text-xs font-medium text-slate-700">
+                    <div className="mt-2 text-center text-xs font-medium text-ink-700">
                       {notice}
                     </div>
                   )}
@@ -312,7 +320,7 @@ export default function AiDirectorCopilot({
             </div>
 
             {/* Input Footer */}
-            <div className="border-t border-slate-200 bg-white p-3">
+            <div className="border-t border-ink-200 bg-white p-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -325,16 +333,18 @@ export default function AiDirectorCopilot({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask Hermes: e.g. 70 players, 2 categories..."
-                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-medium text-slate-900 outline-none focus:border-blue-600"
+                  className="flex-1 rounded-xl border border-ink-200 bg-ink-50 px-3.5 py-2 text-xs font-medium text-ink-900 outline-none focus:border-brand-500"
                 />
                 <button
                   type="submit"
                   disabled={loading || !input.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-40"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-ink-950 transition hover:bg-brand-400 disabled:opacity-40"
                 >
-                  <span className="material-symbols-outlined text-base">
-                    send
-                  </span>
+                  <PaperPlaneTiltIcon
+                    className="text-base"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 </button>
               </form>
             </div>

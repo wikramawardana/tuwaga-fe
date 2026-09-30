@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { CircleNotchIcon } from "@phosphor-icons/react/dist/ssr";
+import AccessDenied from "@/components/AccessDenied";
 import { signOut, useSession } from "@/lib/auth-client";
 
 export default function AdminLayout({
@@ -21,14 +22,14 @@ export default function AdminLayout({
 
   if (isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f6f8fc] text-slate-900">
-        <div className="text-center">
-          <span className="material-symbols-outlined admin-spin text-4xl text-blue-600">
-            progress_activity
-          </span>
-          <p className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">
-            Memverifikasi Hak Akses...
-          </p>
+      <div className="flex min-h-screen items-center justify-center bg-canvas text-ink-900">
+        <div className="flex flex-col items-center">
+          <CircleNotchIcon
+            className="admin-spin text-4xl text-brand-500"
+            weight="bold"
+            aria-hidden="true"
+          />
+          <p className="eyebrow mt-4 text-ink-500">Memverifikasi hak akses…</p>
         </div>
       </div>
     );
@@ -40,62 +41,26 @@ export default function AdminLayout({
 
   if (!session || !isAllowed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f6f8fc] px-6 py-12 text-slate-900">
-        <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl sm:p-10">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600">
-              <span className="material-symbols-outlined text-2xl">block</span>
-            </div>
-            <span className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-              Error 403 · Akses Ditolak
-            </span>
-          </div>
-
-          <h1 className="mt-6 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            Khusus Panitia (Organizer) & Admin
-          </h1>
-
-          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+      <AccessDenied
+        title="Khusus Panitia (Organizer) & Admin"
+        description={
+          <>
             Halaman ini khusus untuk manajemen turnamen dan hanya dapat diakses
             oleh akun dengan peran{" "}
-            <strong className="font-bold text-slate-900">
+            <strong className="font-semibold text-cream-50">
               Organizer / Panitia Turnamen
             </strong>{" "}
             atau{" "}
-            <strong className="font-bold text-slate-900">Administrator</strong>.
-          </p>
-
-          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Status Akun Anda
-            </div>
-            <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-              <span className="font-bold text-slate-900">
-                {session?.user?.email ?? "Belum Masuk (Unauthenticated)"}
-              </span>
-              <span className="rounded-md border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-bold uppercase text-slate-800">
-                Role: {role ?? "none"}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/"
-              className="flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-center text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50"
-            >
-              Kembali ke Beranda
-            </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex h-11 flex-1 items-center justify-center rounded-xl bg-blue-600 px-4 text-center text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
-            >
-              Ganti Akun / Keluar
-            </button>
-          </div>
-        </div>
-      </main>
+            <strong className="font-semibold text-cream-50">
+              Administrator
+            </strong>
+            .
+          </>
+        }
+        email={session?.user?.email ?? "Belum masuk (unauthenticated)"}
+        role={role ?? "none"}
+        onSignOut={handleSignOut}
+      />
     );
   }
 

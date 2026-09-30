@@ -1,5 +1,49 @@
 "use client";
 
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowSquareOutIcon,
+  BankIcon,
+  BroadcastIcon,
+  BuildingsIcon,
+  CalendarDotsIcon,
+  CheckCircleIcon,
+  CircleNotchIcon,
+  ClockIcon,
+  DiceFiveIcon,
+  DotsThreeCircleIcon,
+  DownloadSimpleIcon,
+  EyeIcon,
+  FileArrowUpIcon,
+  FlagCheckeredIcon,
+  FloppyDiskIcon,
+  GearSixIcon,
+  IdentificationBadgeIcon,
+  InfoIcon,
+  MagnifyingGlassIcon,
+  MagnifyingGlassPlusIcon,
+  MegaphoneIcon,
+  MoneyIcon,
+  PercentIcon,
+  PlayIcon,
+  RacquetIcon,
+  RankingIcon,
+  ReceiptIcon,
+  RocketLaunchIcon,
+  SealCheckIcon,
+  ShapesIcon,
+  ShuffleIcon,
+  SlidersHorizontalIcon,
+  SquaresFourIcon,
+  TelevisionIcon,
+  TrashIcon,
+  TreeStructureIcon,
+  TrophyIcon,
+  UserMinusIcon,
+  UserPlusIcon,
+  UsersThreeIcon,
+  XIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +60,7 @@ import TechnicalMeetingDrawing from "@/components/admin/TechnicalMeetingDrawing"
 import TournamentOverview from "@/components/admin/TournamentOverview";
 import DateRangePicker, { formatDateRange } from "@/components/DateRangePicker";
 import Footer from "@/components/Footer";
+import { type AppIcon, ScoreboardIcon } from "@/components/icons/SportIcons";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import {
@@ -187,31 +232,31 @@ type SetupTab = "general" | "registration" | "format" | "oop";
 const SETUP_TABS: {
   id: SetupTab;
   label: string;
-  icon: string;
+  icon: AppIcon;
   hint: string;
 }[] = [
   {
     id: "general",
     label: "Umum & Tempat",
-    icon: "domain",
+    icon: BuildingsIcon,
     hint: "Identitas turnamen, lokasi venue, tanggal pelaksanaan, dan kapasitas",
   },
   {
     id: "registration",
     label: "Pendaftaran & Rekening",
-    icon: "account_balance",
+    icon: BankIcon,
     hint: "Biaya pendaftaran, rekening bank panitia, kontak CP, dan syarat pendaftaran",
   },
   {
     id: "format",
     label: "Divisi & Format",
-    icon: "category",
+    icon: ShapesIcon,
     hint: "Cabang olahraga, format kompetisi, dan aturan per divisi",
   },
   {
     id: "oop",
     label: "Order of Play (OOP)",
-    icon: "calendar_month",
+    icon: CalendarDotsIcon,
     hint: "Pengaturan sesi jadwal, kapasitas lapangan, dan urutan kategori",
   },
 ];
@@ -263,61 +308,61 @@ const sectionItems: Array<{
   step: string;
   label: string;
   description: string;
-  icon: string;
+  icon: AppIcon;
 }> = [
   {
     id: "overview",
     step: "00",
     label: "Overview",
     description: "Ringkasan & status turnamen",
-    icon: "dashboard",
+    icon: SquaresFourIcon,
   },
   {
     id: "registrations",
     step: "01",
     label: "Tim & Pendaftaran",
     description: "Review berkas & pembayaran",
-    icon: "groups",
+    icon: UsersThreeIcon,
   },
   {
     id: "technical-meeting",
     step: "02",
     label: "Technical Meeting",
     description: "Live wheel & undian grup",
-    icon: "casino",
+    icon: DiceFiveIcon,
   },
   {
     id: "operations",
     step: "03",
     label: "Match Operations",
     description: "Jadwal OOP & live scoring",
-    icon: "space_dashboard",
+    icon: SquaresFourIcon,
   },
   {
     id: "results",
     step: "04",
     label: "Hasil & Bagan",
     description: "Klasemen & bracket knockout",
-    icon: "emoji_events",
+    icon: TrophyIcon,
   },
   {
     id: "setup",
     step: "05",
     label: "Pengaturan",
     description: "Identitas, divisi & format",
-    icon: "tune",
+    icon: SlidersHorizontalIcon,
   },
 ];
 
 const statusStyle: Record<TournamentStatus, string> = {
-  setup: "border-slate-200 bg-slate-100 text-slate-700",
-  registration: "border-blue-200 bg-blue-50 text-blue-700",
+  setup: "border-ink-200 bg-ink-100 text-ink-700",
+  registration: "border-brand-200 bg-brand-50 text-brand-700",
   live: "border-rose-200 bg-rose-50 text-rose-700",
   completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
 
 const matchStatusStyle: Record<MatchStatus, string> = {
-  scheduled: "border-blue-200 bg-blue-50 text-blue-700",
+  scheduled: "border-brand-200 bg-brand-50 text-brand-700",
   live: "border-rose-200 bg-rose-50 text-rose-700",
   completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
 };
@@ -357,8 +402,8 @@ function countGroups(teamCount: number, groupSize: number) {
 
 function oopCategoryClasses(category: string) {
   const value = category.toLowerCase();
-  if (value.includes("women")) return "bg-violet-100 text-violet-950";
-  if (value.includes("men")) return "bg-blue-100 text-blue-950";
+  if (value.includes("women")) return "bg-cream-100 text-cream-950";
+  if (value.includes("men")) return "bg-brand-100 text-ink-950";
   return "bg-emerald-100 text-emerald-950";
 }
 
@@ -384,13 +429,13 @@ function SectionTitle({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-blue-600">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-brand-600">
           {eyebrow}
         </p>
-        <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-ink-950 sm:text-3xl">
           {title}
         </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-500">
           {description}
         </p>
       </div>
@@ -400,35 +445,35 @@ function SectionTitle({
 }
 
 function MetricCard({
-  icon,
+  icon: StatIcon,
   label,
   value,
   detail,
   accent = "blue",
 }: {
-  icon: string;
+  icon: AppIcon;
   label: string;
   value: string | number;
   detail: string;
   accent?: "blue" | "rose" | "emerald" | "amber";
 }) {
   const tones = {
-    blue: "bg-blue-600 text-white shadow-blue-200",
-    rose: "bg-rose-500 text-white shadow-rose-200",
-    emerald: "bg-emerald-500 text-white shadow-emerald-200",
-    amber: "bg-amber-400 text-slate-950 shadow-amber-200",
+    blue: "bg-brand-50 text-brand-600 ring-1 ring-brand-100",
+    rose: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
+    emerald: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+    amber: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
   };
   return (
-    <div className="admin-rise group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_14px_40px_rgba(15,23,42,0.05)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_18px_50px_rgba(37,99,235,0.1)]">
+    <div className="admin-rise group rounded-2xl border border-ink-200/80 bg-white p-4 shadow-[0_14px_40px_rgba(23,23,23,0.05)] transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_50px_rgba(23,23,23,0.1)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-ink-400">
             {label}
           </p>
-          <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+          <p className="mt-2 text-3xl font-black tracking-tight text-ink-950">
             {value}
           </p>
-          <p className="mt-1 text-xs font-medium text-slate-500">{detail}</p>
+          <p className="mt-1 text-xs font-medium text-ink-500">{detail}</p>
         </div>
         <span
           className={cx(
@@ -436,7 +481,11 @@ function MetricCard({
             tones[accent],
           )}
         >
-          <span className="material-symbols-outlined text-[22px]">{icon}</span>
+          <StatIcon
+            className="text-[22px]"
+            weight="duotone"
+            aria-hidden="true"
+          />
         </span>
       </div>
     </div>
@@ -444,21 +493,21 @@ function MetricCard({
 }
 
 function EmptyState({
-  icon,
+  icon: EmptyIcon,
   title,
   description,
 }: {
-  icon: string;
+  icon: AppIcon;
   title: string;
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-blue-200 bg-gradient-to-br from-blue-50/80 to-white px-6 py-14 text-center">
-      <span className="admin-float mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
-        <span className="material-symbols-outlined text-3xl">{icon}</span>
+    <div className="rounded-2xl border border-dashed border-brand-200 bg-gradient-to-br from-brand-50/80 to-white px-6 py-14 text-center">
+      <span className="admin-float mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-ink-950 shadow-lg shadow-ink-950/10">
+        <EmptyIcon className="text-3xl" weight="duotone" aria-hidden="true" />
       </span>
-      <h3 className="mt-5 text-lg font-black text-slate-950">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+      <h3 className="mt-5 text-lg font-black text-ink-950">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-500">
         {description}
       </p>
     </div>
@@ -1331,9 +1380,9 @@ export default function TournamentControlRoom({
   return (
     <>
       <Navbar active="admin" />
-      <main className="min-h-screen bg-[#f6f8fc] pt-16 text-on-surface">
-        <section className="border-b border-slate-200 bg-white">
-          <div className="relative mx-auto max-w-[1520px] px-5 py-8 sm:px-8 lg:px-10 lg:py-8">
+      <main className="min-h-screen bg-canvas pt-16 text-ink-950">
+        <section className="border-b border-ink-200 bg-white">
+          <div className="container-wide relative py-8">
             <PageBreadcrumb
               parentLabel="Admin"
               parentHref="/admin"
@@ -1342,8 +1391,8 @@ export default function TournamentControlRoom({
             <div className="mt-4 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-brand-600">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
                     Tournament control room
                   </span>
                   <span
@@ -1355,10 +1404,10 @@ export default function TournamentControlRoom({
                     {settings.status}
                   </span>
                 </div>
-                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
                   {tournament?.name ?? "Loading tournament"}
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-600 sm:text-base">
                   {tournament?.venue || "Venue not set"} ·{" "}
                   {tournament?.dateLabel || "Date not set"}. Run the full
                   tournament from one calm, shared operations surface.
@@ -1368,71 +1417,83 @@ export default function TournamentControlRoom({
                 <Link
                   href={`/tournaments/live?tournament=${tournament?.slug || tournamentId}`}
                   target="_blank"
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
+                  className="btn btn-sm btn-outline"
                 >
-                  <span className="material-symbols-outlined text-lg text-slate-500">
-                    sensors
-                  </span>
+                  <BroadcastIcon
+                    className="text-lg text-ink-500"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   Public live
-                  <span className="material-symbols-outlined text-sm text-slate-400">
-                    open_in_new
-                  </span>
+                  <ArrowSquareOutIcon
+                    className="text-sm text-ink-400"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 </Link>
                 <Link
                   href={`/tournaments/bracket?tournament=${tournament?.slug || tournamentId}&view=bracket`}
                   target="_blank"
-                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-primary/90"
+                  className="btn btn-sm btn-outline"
                 >
-                  <span className="material-symbols-outlined text-lg">
-                    account_tree
-                  </span>
+                  <TreeStructureIcon
+                    className="text-lg"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   Public bracket
-                  <span className="material-symbols-outlined text-sm opacity-80">
-                    open_in_new
-                  </span>
+                  <ArrowSquareOutIcon
+                    className="text-sm opacity-80"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 </Link>
                 <Link
                   href={`/tournaments/${tournament?.slug || tournamentId}/display?scene=bracket`}
                   target="_blank"
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
+                  className="btn btn-sm btn-outline"
                 >
-                  <span className="material-symbols-outlined text-lg text-slate-500">
-                    tv
-                  </span>
+                  <TelevisionIcon
+                    className="text-lg text-ink-500"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   TV display
-                  <span className="material-symbols-outlined text-sm text-slate-400">
-                    open_in_new
-                  </span>
+                  <ArrowSquareOutIcon
+                    className="text-sm text-ink-400"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="mx-auto max-w-[1520px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+        <div className="container-wide py-6 lg:py-8">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              icon="groups"
+              icon={UsersThreeIcon}
               label="Approved teams"
               value={totals.approved}
               detail={`${totals.eligible} draw-ready`}
             />
             <MetricCard
-              icon="sensors"
+              icon={BroadcastIcon}
               label="Live courts"
               value={totals.live}
               detail={`${settings.courts} courts configured`}
               accent="rose"
             />
             <MetricCard
-              icon="event_upcoming"
+              icon={CalendarDotsIcon}
               label="Queued matches"
               value={totals.scheduled}
               detail={`${matches.length} matches total`}
               accent="amber"
             />
             <MetricCard
-              icon="task_alt"
+              icon={CheckCircleIcon}
               label="Tournament progress"
               value={`${progress}%`}
               detail={`${totals.completed} matches completed`}
@@ -1440,30 +1501,35 @@ export default function TournamentControlRoom({
             />
           </div>
 
-          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm text-blue-950 shadow-sm">
-            <span
-              className={cx(
-                "material-symbols-outlined mt-0.5 text-xl text-blue-600",
-                loading && "admin-spin",
-              )}
-            >
-              {loading ? "progress_activity" : "info"}
-            </span>
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50/80 px-4 py-3 text-sm text-ink-950 shadow-sm">
+            {loading ? (
+              <CircleNotchIcon
+                className="admin-spin mt-0.5 shrink-0 text-xl text-brand-600"
+                weight="bold"
+                aria-hidden="true"
+              />
+            ) : (
+              <InfoIcon
+                className="mt-0.5 shrink-0 text-xl text-brand-600"
+                weight="duotone"
+                aria-hidden="true"
+              />
+            )}
             <p className="min-w-0 flex-1 font-semibold leading-6">{message}</p>
-            <span className="hidden shrink-0 text-xs font-bold uppercase tracking-wider text-blue-500 sm:block">
+            <span className="hidden shrink-0 text-xs font-bold uppercase tracking-wider text-brand-500 sm:block">
               Live workspace
             </span>
           </div>
 
           <div className="mt-6 grid items-start gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
-            <aside className="sticky top-20 z-20 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_16px_50px_rgba(15,23,42,0.07)]">
+            <aside className="sticky top-20 z-20 overflow-hidden rounded-2xl border border-ink-200 bg-white p-2 shadow-[0_16px_50px_rgba(23,23,23,0.07)]">
               <div className="px-3 pb-3 pt-2">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-ink-400">
                   Tournament workflow
                 </p>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink-100">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 transition-all duration-700"
+                    className="h-full rounded-full bg-gradient-to-r from-brand-500 to-ink-700 transition-all duration-700"
                     style={{
                       width:
                         activeSection === "overview"
@@ -1495,8 +1561,8 @@ export default function TournamentControlRoom({
                       className={cx(
                         "group relative flex min-h-20 items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-left transition duration-300",
                         active
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
-                          : "text-slate-600 hover:bg-blue-50 hover:text-blue-800",
+                          ? "bg-brand-500 text-ink-950 shadow-lg shadow-ink-950/10"
+                          : "text-ink-600 hover:bg-brand-50 hover:text-brand-800",
                       )}
                     >
                       {active && (
@@ -1507,12 +1573,14 @@ export default function TournamentControlRoom({
                           "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition",
                           active
                             ? "bg-white/15 text-white"
-                            : "bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-700",
+                            : "bg-ink-100 text-ink-500 group-hover:bg-brand-100 group-hover:text-brand-700",
                         )}
                       >
-                        <span className="material-symbols-outlined text-xl">
-                          {item.icon}
-                        </span>
+                        <item.icon
+                          className="text-xl"
+                          weight={active ? "fill" : "duotone"}
+                          aria-hidden="true"
+                        />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-[10px] font-extrabold uppercase tracking-wider opacity-70">
@@ -1529,11 +1597,11 @@ export default function TournamentControlRoom({
                   );
                 })}
               </nav>
-              <div className="m-2 hidden rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-slate-800 lg:block">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+              <div className="m-2 hidden rounded-xl border border-brand-100 bg-brand-50/70 p-4 text-ink-800 lg:block">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-brand-600">
                   Operating tip
                 </p>
-                <p className="mt-1.5 text-xs leading-5 text-slate-600">
+                <p className="mt-1.5 text-xs leading-5 text-ink-600">
                   Open each scoring workspace in a new tab. Keep this board open
                   as the shared tournament overview.
                 </p>
@@ -1578,23 +1646,28 @@ export default function TournamentControlRoom({
                         type="button"
                         onClick={saveSettings}
                         disabled={saving}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400 disabled:cursor-wait disabled:opacity-60"
                       >
-                        <span
-                          className={cx(
-                            "material-symbols-outlined text-lg",
-                            saving && "admin-spin",
-                          )}
-                        >
-                          {saving ? "progress_activity" : "save"}
-                        </span>
+                        {saving ? (
+                          <CircleNotchIcon
+                            className="admin-spin text-lg"
+                            weight="bold"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <FloppyDiskIcon
+                            className="text-lg"
+                            weight="bold"
+                            aria-hidden="true"
+                          />
+                        )}
                         {saving ? "Saving…" : "Save setup"}
                       </button>
                     }
                   />
 
                   {/* Setup Sub-Tabs Navigation */}
-                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-xs">
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-ink-200 bg-white p-2 shadow-xs">
                     {SETUP_TABS.map((tab) => {
                       const isActive = setupTab === tab.id;
                       return (
@@ -1605,13 +1678,15 @@ export default function TournamentControlRoom({
                           className={cx(
                             "inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition",
                             isActive
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                              ? "bg-brand-500 text-ink-950 shadow-md shadow-ink-950/10"
+                              : "text-ink-600 hover:bg-ink-100 hover:text-ink-900",
                           )}
                         >
-                          <span className="material-symbols-outlined text-lg">
-                            {tab.icon}
-                          </span>
+                          <tab.icon
+                            className="text-lg"
+                            weight="bold"
+                            aria-hidden="true"
+                          />
                           <span>{tab.label}</span>
                         </button>
                       );
@@ -1621,18 +1696,19 @@ export default function TournamentControlRoom({
                   {/* SUBTAB 1: UMUM & TEMPAT */}
                   {setupTab === "general" && (
                     <div className="grid gap-5 xl:grid-cols-2">
-                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                            <span className="material-symbols-outlined">
-                              badge
-                            </span>
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+                            <IdentificationBadgeIcon
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                           </span>
                           <div>
-                            <h3 className="font-black text-slate-950">
+                            <h3 className="font-black text-ink-950">
                               Tournament identity
                             </h3>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-ink-500">
                               What teams and spectators will see
                             </p>
                           </div>
@@ -1724,18 +1800,16 @@ export default function TournamentControlRoom({
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
-                            <span className="material-symbols-outlined">
-                              manufacturing
-                            </span>
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ink-200 text-ink-900">
+                            <GearSixIcon aria-hidden="true" weight="bold" />
                           </span>
                           <div>
-                            <h3 className="font-black text-slate-950">
+                            <h3 className="font-black text-ink-950">
                               Operations capacity
                             </h3>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-ink-500">
                               Resources and tournament pacing
                             </p>
                           </div>
@@ -1831,18 +1905,16 @@ export default function TournamentControlRoom({
 
                   {/* SUBTAB 2: PENDAFTARAN & REKENING */}
                   {setupTab === "registration" && (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                       <div className="flex items-center gap-3">
                         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                          <span className="material-symbols-outlined">
-                            account_balance
-                          </span>
+                          <BankIcon aria-hidden="true" weight="bold" />
                         </span>
                         <div>
-                          <h3 className="font-black text-slate-950">
+                          <h3 className="font-black text-ink-950">
                             Registration & Bank Transfer
                           </h3>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-ink-500">
                             Bank details, entry fees, deadline, and screening
                             disclaimer
                           </p>
@@ -2027,18 +2099,16 @@ export default function TournamentControlRoom({
                   {/* SUBTAB 3: DIVISI & FORMAT */}
                   {setupTab === "format" && (
                     <div className="space-y-6">
-                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                            <span className="material-symbols-outlined">
-                              sports_tennis
-                            </span>
+                          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+                            <RacquetIcon aria-hidden="true" weight="bold" />
                           </span>
                           <div>
-                            <h3 className="font-black text-slate-950">
+                            <h3 className="font-black text-ink-950">
                               Competition format & scoring rules
                             </h3>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-ink-500">
                               Tournament structure and default scoring preset
                             </p>
                           </div>
@@ -2145,16 +2215,16 @@ export default function TournamentControlRoom({
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                      <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                           <div>
-                            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-600">
                               Match divisions
                             </p>
-                            <h3 className="mt-1 text-xl font-black text-slate-950">
+                            <h3 className="mt-1 text-xl font-black text-ink-950">
                               Division-specific draw rules
                             </h3>
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 text-sm text-ink-500">
                               Override group and knockout sizes only where a
                               division needs different rules.
                             </p>
@@ -2186,7 +2256,7 @@ export default function TournamentControlRoom({
                             <button
                               type="button"
                               onClick={addDivision}
-                              className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white transition hover:bg-blue-700"
+                              className="h-11 rounded-xl bg-brand-500 px-4 text-sm font-extrabold text-ink-950 transition hover:bg-brand-400"
                             >
                               Add division
                             </button>
@@ -2196,7 +2266,7 @@ export default function TournamentControlRoom({
                           {settings.categories.length === 0 ? (
                             <div className="xl:col-span-2">
                               <EmptyState
-                                icon="category"
+                                icon={ShapesIcon}
                                 title="Add your first match division"
                                 description="Divisions keep registrations, draws, standings and brackets separated correctly."
                               />
@@ -2208,14 +2278,14 @@ export default function TournamentControlRoom({
                               return (
                                 <div
                                   key={division}
-                                  className="group rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
+                                  className="group rounded-2xl border border-ink-200 bg-ink-50/70 p-4 transition hover:border-brand-200 hover:bg-brand-50/40"
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div>
-                                      <p className="font-extrabold text-slate-950">
+                                      <p className="font-extrabold text-ink-950">
                                         {division}
                                       </p>
-                                      <p className="mt-1 text-xs text-slate-500">
+                                      <p className="mt-1 text-xs text-ink-500">
                                         {
                                           teams.filter(
                                             (team) =>
@@ -2228,12 +2298,14 @@ export default function TournamentControlRoom({
                                     <button
                                       type="button"
                                       onClick={() => removeDivision(division)}
-                                      className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                      className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-400 transition hover:bg-rose-50 hover:text-rose-600"
                                       aria-label={`Remove ${division}`}
                                     >
-                                      <span className="material-symbols-outlined text-lg">
-                                        delete
-                                      </span>
+                                      <TrashIcon
+                                        className="text-lg"
+                                        aria-hidden="true"
+                                        weight="bold"
+                                      />
                                     </button>
                                   </div>
                                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -2334,7 +2406,7 @@ export default function TournamentControlRoom({
                                       </select>
                                     </label>
                                   </div>
-                                  <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700">
+                                  <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm font-bold text-ink-700">
                                     <input
                                       type="checkbox"
                                       checked={override.bronzeMatch ?? false}
@@ -2345,7 +2417,7 @@ export default function TournamentControlRoom({
                                           event.target.checked || undefined,
                                         )
                                       }
-                                      className="h-4 w-4 accent-blue-600"
+                                      className="h-4 w-4 accent-brand-500"
                                     />
                                     Include a 3rd-place (bronze) match
                                   </label>
@@ -2360,16 +2432,16 @@ export default function TournamentControlRoom({
 
                   {/* SUBTAB 4: ORDER OF PLAY (OOP) */}
                   {setupTab === "oop" && (
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="rounded-2xl border border-ink-200 bg-white p-5 shadow-sm sm:p-6">
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div>
-                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-600">
                             Order of Play
                           </p>
-                          <h3 className="mt-1 text-xl font-black text-slate-950">
+                          <h3 className="mt-1 text-xl font-black text-ink-950">
                             Session and court sequencing
                           </h3>
-                          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                          <p className="mt-1 max-w-2xl text-sm leading-6 text-ink-500">
                             Configure how group and knockout matches fill every
                             court. The same plan powers the operations grid and
                             XLSX export.
@@ -2384,7 +2456,7 @@ export default function TournamentControlRoom({
                                 oop: padelCahOopTemplate(current.categories),
                               }))
                             }
-                            className="h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-lg shadow-blue-200"
+                            className="h-11 shrink-0 rounded-xl bg-brand-500 px-4 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10"
                           >
                             Use Padel CAH template
                           </button>
@@ -2459,8 +2531,8 @@ export default function TournamentControlRoom({
                                     className={cx(
                                       "rounded-xl border px-3 py-2 text-xs font-extrabold transition",
                                       active
-                                        ? "border-blue-300 bg-blue-50 text-blue-700"
-                                        : "border-slate-200 bg-white text-slate-500 hover:border-blue-200",
+                                        ? "border-brand-300 bg-brand-50 text-brand-700"
+                                        : "border-ink-200 bg-white text-ink-500 hover:border-brand-200",
                                     )}
                                   >
                                     {division}
@@ -2473,7 +2545,7 @@ export default function TournamentControlRoom({
                             {settings.oop.sessions.map((session, index) => (
                               <div
                                 key={`${session.time}-${index}`}
-                                className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                                className="rounded-2xl border border-ink-200 bg-ink-50/60 p-4"
                               >
                                 <div className="grid items-end gap-3 sm:grid-cols-[130px_130px_1fr_auto]">
                                   <label>
@@ -2530,7 +2602,7 @@ export default function TournamentControlRoom({
                                       className="admin-input"
                                     />
                                   </label>
-                                  <label className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700">
+                                  <label className="flex h-11 items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 text-sm font-bold text-ink-700">
                                     <input
                                       type="checkbox"
                                       checked={session.notBefore}
@@ -2549,7 +2621,7 @@ export default function TournamentControlRoom({
                                           ),
                                         }))
                                       }
-                                      className="h-4 w-4 accent-blue-600"
+                                      className="h-4 w-4 accent-brand-500"
                                     />
                                     Not before this time
                                   </label>
@@ -2563,12 +2635,13 @@ export default function TournamentControlRoom({
                                         ),
                                       }))
                                     }
-                                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-200 hover:text-rose-600"
+                                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-ink-200 text-ink-400 hover:border-rose-200 hover:text-rose-600"
                                     aria-label={`Remove session ${session.time}`}
                                   >
-                                    <span className="material-symbols-outlined">
-                                      delete
-                                    </span>
+                                    <TrashIcon
+                                      aria-hidden="true"
+                                      weight="bold"
+                                    />
                                   </button>
                                 </div>
                                 <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -2698,14 +2771,14 @@ export default function TournamentControlRoom({
                                   ],
                                 }))
                               }
-                              className="h-10 rounded-xl border border-dashed border-blue-300 px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                              className="h-10 rounded-xl border border-dashed border-brand-300 px-4 text-xs font-extrabold text-brand-700 hover:bg-brand-50"
                             >
                               + Add OOP session
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-5 rounded-2xl border border-dashed border-blue-200 bg-blue-50/60 p-5 text-sm font-semibold text-blue-800">
+                        <div className="mt-5 rounded-2xl border border-dashed border-brand-200 bg-brand-50/60 p-5 text-sm font-semibold text-brand-800">
                           Enable the template to configure OOP sessions, events,
                           category order and court capacity.
                         </div>
@@ -2725,43 +2798,47 @@ export default function TournamentControlRoom({
                       <button
                         type="button"
                         onClick={() => setInsertDialog(true)}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400"
                       >
-                        <span className="material-symbols-outlined text-lg">
-                          person_add
-                        </span>
+                        <UserPlusIcon
+                          className="text-lg"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Add team
                       </button>
                     }
                   />
                   <div className="grid gap-3 sm:grid-cols-3">
                     <MetricCard
-                      icon="verified"
+                      icon={SealCheckIcon}
                       label="Approved"
                       value={totals.approved}
                       detail={`${teams.length} total registrations`}
                     />
                     <MetricCard
-                      icon="payments"
+                      icon={MoneyIcon}
                       label="Paid"
                       value={totals.paid}
                       detail={`${teams.length - totals.paid} awaiting payment`}
                       accent="emerald"
                     />
                     <MetricCard
-                      icon="rocket_launch"
+                      icon={RocketLaunchIcon}
                       label="Draw-ready"
                       value={totals.eligible}
                       detail="Approved and paid"
                       accent="amber"
                     />
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_180px_220px]">
                       <div className="relative block sm:col-span-2 lg:col-span-1">
-                        <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-slate-400">
-                          search
-                        </span>
+                        <MagnifyingGlassIcon
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-ink-400"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         <input
                           type="text"
                           value={teamSearch}
@@ -2775,12 +2852,14 @@ export default function TournamentControlRoom({
                           <button
                             type="button"
                             onClick={() => setTeamSearch("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
                             title="Clear search"
                           >
-                            <span className="material-symbols-outlined block text-base leading-none">
-                              close
-                            </span>
+                            <XIcon
+                              className="block text-base leading-none"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                           </button>
                         )}
                       </div>
@@ -2816,7 +2895,7 @@ export default function TournamentControlRoom({
                   </div>
                   {filteredTeams.length === 0 ? (
                     <EmptyState
-                      icon="group_off"
+                      icon={UsersThreeIcon}
                       title="No teams match these filters"
                       description="Clear a filter or add a team to continue building the tournament field."
                     />
@@ -2828,27 +2907,27 @@ export default function TournamentControlRoom({
                           style={{
                             animationDelay: `${String(Math.min(index * 40, 320))}ms`,
                           }}
-                          className="admin-rise rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md sm:p-5"
+                          className="admin-rise rounded-2xl border border-ink-200 bg-white p-4 shadow-sm transition hover:border-brand-200 hover:shadow-md sm:p-5"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
                             <div className="flex min-w-0 flex-1 items-start gap-4">
-                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-sm font-black text-white shadow-md shadow-blue-200">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-black text-white shadow-md shadow-ink-950/10">
                                 {team.player.charAt(0).toUpperCase()}
                                 {team.partner?.charAt(0).toUpperCase() ?? ""}
                               </span>
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <h3 className="truncate font-black text-slate-950">
+                                  <h3 className="truncate font-black text-ink-950">
                                     {teamName(team)}
                                   </h3>
-                                  <span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                  <span className="rounded-md bg-ink-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-ink-500">
                                     {team.id}
                                   </span>
                                 </div>
-                                <p className="mt-1 text-sm font-semibold text-blue-700">
+                                <p className="mt-1 text-sm font-semibold text-brand-700">
                                   {team.category}
                                 </p>
-                                <p className="mt-1 text-xs text-slate-400">
+                                <p className="mt-1 text-xs text-ink-400">
                                   {team.city} · Registered{" "}
                                   {new Date(
                                     team.registeredAt,
@@ -2860,14 +2939,16 @@ export default function TournamentControlRoom({
                                 <div className="mt-2 flex flex-wrap items-center gap-2">
                                   {team.paymentProofUrl && (
                                     <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                                      <span className="material-symbols-outlined text-xs">
-                                        receipt_long
-                                      </span>
+                                      <ReceiptIcon
+                                        className="text-xs"
+                                        aria-hidden="true"
+                                        weight="bold"
+                                      />
                                       Bukti Transfer Ada
                                     </span>
                                   )}
                                   {team.playerDetails?.jerseySize && (
-                                    <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold text-ink-600">
                                       Jersey: {team.playerDetails.jerseySize} /{" "}
                                       {team.partnerDetails?.jerseySize ?? "-"}
                                     </span>
@@ -2927,11 +3008,19 @@ export default function TournamentControlRoom({
                                         : "border-amber-200 bg-amber-50 text-amber-700",
                                     )}
                                   >
-                                    <span className="material-symbols-outlined text-base">
-                                      {team.status === "approved" && team.paid
-                                        ? "check_circle"
-                                        : "pending"}
-                                    </span>
+                                    {team.status === "approved" && team.paid ? (
+                                      <CheckCircleIcon
+                                        className="text-base"
+                                        weight="bold"
+                                        aria-hidden="true"
+                                      />
+                                    ) : (
+                                      <DotsThreeCircleIcon
+                                        className="text-base"
+                                        weight="bold"
+                                        aria-hidden="true"
+                                      />
+                                    )}
                                     {team.status === "approved" && team.paid
                                       ? "Draw-ready"
                                       : "Action needed"}
@@ -2942,21 +3031,25 @@ export default function TournamentControlRoom({
                                 <button
                                   type="button"
                                   onClick={() => setViewingTeam(team)}
-                                  className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/70 px-3.5 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                  className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50/70 px-3.5 text-xs font-extrabold text-brand-700 transition hover:bg-brand-100"
                                 >
-                                  <span className="material-symbols-outlined text-base">
-                                    visibility
-                                  </span>
+                                  <EyeIcon
+                                    className="text-base"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                   Detail
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setRemoveTarget(team)}
-                                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-extrabold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-ink-200 px-3 text-xs font-extrabold text-ink-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                                 >
-                                  <span className="material-symbols-outlined text-base">
-                                    person_remove
-                                  </span>
+                                  <UserMinusIcon
+                                    className="text-base"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                   Remove
                                 </button>
                               </div>
@@ -2992,44 +3085,50 @@ export default function TournamentControlRoom({
                         <button
                           type="button"
                           onClick={() => importInputRef.current?.click()}
-                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50"
+                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-200 bg-white px-4 text-xs font-extrabold text-brand-700 hover:bg-brand-50"
                         >
-                          <span className="material-symbols-outlined text-lg">
-                            upload_file
-                          </span>
+                          <FileArrowUpIcon
+                            className="text-lg"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           Import draw
                         </button>
                         <button
                           type="button"
                           onClick={() => void exportOopFile()}
                           disabled={exportingOop || !oopPlan}
-                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-xs font-extrabold text-blue-700 hover:bg-blue-50 disabled:opacity-40"
+                          className="inline-flex h-11 items-center gap-2 rounded-xl border border-brand-200 bg-white px-4 text-xs font-extrabold text-brand-700 hover:bg-brand-50 disabled:opacity-40"
                         >
-                          <span className="material-symbols-outlined text-lg">
-                            download
-                          </span>
+                          <DownloadSimpleIcon
+                            className="text-lg"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           {exportingOop ? "Exporting…" : "Export OOP"}
                         </button>
                         <button
                           type="button"
                           onClick={() => setDrawDialog(true)}
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400"
                         >
-                          <span className="material-symbols-outlined text-lg">
-                            shuffle
-                          </span>
+                          <ShuffleIcon
+                            className="text-lg"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           {matches.length ? "Regenerate draw" : "Generate draw"}
                         </button>
                       </div>
                     }
                   />
 
-                  <div className="overflow-hidden rounded-2xl bg-[#071c4d] p-5 text-white shadow-xl shadow-blue-950/10 sm:p-6">
+                  <div className="overflow-hidden rounded-2xl bg-ink-950 p-5 text-white shadow-xl shadow-ink-950/10 sm:p-6">
                     <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="admin-live-dot h-2.5 w-2.5 rounded-full bg-cyan-400" />
-                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-200">
+                          <span className="admin-live-dot h-2.5 w-2.5 rounded-full bg-ink-700" />
+                          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-cream-200">
                             Court control
                           </p>
                         </div>
@@ -3038,7 +3137,7 @@ export default function TournamentControlRoom({
                             ? `${totals.live} matches live now`
                             : "All courts are calm"}
                         </h3>
-                        <p className="mt-1 text-sm text-blue-100/70">
+                        <p className="mt-1 text-sm text-cream-100/70">
                           Open each scoring room in a new tab. This operations
                           board stays your source of truth.
                         </p>
@@ -3063,7 +3162,7 @@ export default function TournamentControlRoom({
                                   : "border-white/10 bg-white/5",
                               )}
                             >
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-cream-200">
                                 Court {court}
                               </p>
                               <p
@@ -3084,22 +3183,22 @@ export default function TournamentControlRoom({
                   {oopPlan &&
                     oopPlan.sessions.length > 0 &&
                     activeOopSession && (
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                      <div className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm sm:p-6">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                           <div>
-                            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
+                            <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-800">
                               Order of Play
                             </span>
-                            <h3 className="mt-4 text-2xl font-black text-slate-950">
+                            <h3 className="mt-4 text-2xl font-black text-ink-950">
                               {oopPlan.title}
                             </h3>
-                            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                            <p className="mt-1 max-w-2xl text-sm leading-6 text-ink-500">
                               Focus on one session at a time. Switch to detailed
                               view only when you need teams and live match
                               state.
                             </p>
                           </div>
-                          <div className="flex items-center self-start rounded-xl border border-slate-200 bg-slate-100 p-1">
+                          <div className="flex items-center self-start rounded-xl border border-ink-200 bg-ink-100 p-1">
                             <button
                               type="button"
                               aria-pressed={oopCompact}
@@ -3107,8 +3206,8 @@ export default function TournamentControlRoom({
                               className={cx(
                                 "h-8 rounded-lg px-3 text-xs font-bold uppercase tracking-wider transition",
                                 oopCompact
-                                  ? "bg-white text-blue-600 shadow-sm"
-                                  : "text-slate-600 hover:text-slate-950",
+                                  ? "bg-white text-brand-600 shadow-sm"
+                                  : "text-ink-600 hover:text-ink-950",
                               )}
                             >
                               Compact
@@ -3120,8 +3219,8 @@ export default function TournamentControlRoom({
                               className={cx(
                                 "h-8 rounded-lg px-3 text-xs font-bold uppercase tracking-wider transition",
                                 !oopCompact
-                                  ? "bg-white text-blue-600 shadow-sm"
-                                  : "text-slate-600 hover:text-slate-950",
+                                  ? "bg-white text-brand-600 shadow-sm"
+                                  : "text-ink-600 hover:text-ink-950",
                               )}
                             >
                               Detailed
@@ -3129,7 +3228,7 @@ export default function TournamentControlRoom({
                           </div>
                         </div>
 
-                        <div className="mt-6 border-y border-slate-200 bg-slate-50/50 px-2 py-3">
+                        <div className="mt-6 border-y border-ink-200 bg-ink-50/50 px-2 py-3">
                           <div
                             className="flex gap-3 overflow-x-auto pb-1"
                             role="tablist"
@@ -3151,8 +3250,8 @@ export default function TournamentControlRoom({
                                   className={cx(
                                     "min-w-[170px] shrink-0 rounded-xl px-4 py-3 text-left border transition",
                                     selected
-                                      ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200"
-                                      : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50",
+                                      ? "border-brand-500 bg-brand-500 text-ink-950 shadow-md shadow-ink-950/10"
+                                      : "border-ink-200 bg-white text-ink-800 hover:bg-ink-50",
                                   )}
                                 >
                                   <span className="block text-[10px] font-black uppercase tracking-[0.16em] opacity-70">
@@ -3174,15 +3273,17 @@ export default function TournamentControlRoom({
                           </div>
                         </div>
 
-                        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
-                          <div className="flex flex-wrap items-center gap-3 border-b border-blue-950/20 bg-[#071c4d] px-4 py-3 text-white">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-blue-200">
-                              <span className="material-symbols-outlined text-base">
-                                schedule
-                              </span>
+                        <div className="mt-5 overflow-hidden rounded-2xl border border-ink-200">
+                          <div className="flex flex-wrap items-center gap-3 border-b border-ink-950/20 bg-ink-950 px-4 py-3 text-white">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-cream-200">
+                              <ClockIcon
+                                className="text-base"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                             </span>
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200/70">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-cream-200/70">
                                 Now viewing
                               </p>
                               <p className="text-sm font-bold uppercase tracking-wide text-white">
@@ -3209,7 +3310,7 @@ export default function TournamentControlRoom({
                                 minWidth: `${String(64 + oopPlan.courts * (oopCompact ? 138 : 210))}px`,
                               }}
                             >
-                              <div className="sticky left-0 z-20 flex items-center justify-center border-b border-slate-200 bg-slate-50 px-2 py-3 text-[10px] font-bold uppercase text-slate-700">
+                              <div className="sticky left-0 z-20 flex items-center justify-center border-b border-ink-200 bg-ink-50 px-2 py-3 text-[10px] font-bold uppercase text-ink-700">
                                 Run
                               </div>
                               {Array.from(
@@ -3218,7 +3319,7 @@ export default function TournamentControlRoom({
                               ).map((court) => (
                                 <div
                                   key={court}
-                                  className="border-b border-l border-slate-200 bg-slate-50 px-2 py-3 text-center text-[11px] font-bold uppercase text-slate-800"
+                                  className="border-b border-l border-ink-200 bg-ink-50 px-2 py-3 text-center text-[11px] font-bold uppercase text-ink-800"
                                 >
                                   Court {court}
                                 </div>
@@ -3230,16 +3331,18 @@ export default function TournamentControlRoom({
                                 if (firstEntry?.kind === "event") {
                                   return (
                                     <Fragment key={slot.number}>
-                                      <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                                      <div className="sticky left-0 z-10 flex items-center justify-center border-t border-ink-200 bg-ink-50 text-xs font-bold text-ink-700">
                                         {String(slot.number).padStart(2, "0")}
                                       </div>
                                       <div
                                         style={{ gridColumn: "2 / -1" }}
-                                        className="flex items-center justify-center gap-2 border-l border-t border-slate-200 bg-blue-50/80 px-4 py-4 text-xs font-bold uppercase tracking-wider text-blue-900"
+                                        className="flex items-center justify-center gap-2 border-l border-t border-ink-200 bg-brand-50/80 px-4 py-4 text-xs font-bold uppercase tracking-wider text-ink-900"
                                       >
-                                        <span className="material-symbols-outlined text-base">
-                                          campaign
-                                        </span>
+                                        <MegaphoneIcon
+                                          className="text-base"
+                                          aria-hidden="true"
+                                          weight="bold"
+                                        />
                                         {firstEntry.title}
                                       </div>
                                     </Fragment>
@@ -3248,21 +3351,21 @@ export default function TournamentControlRoom({
 
                                 return (
                                   <Fragment key={slot.number}>
-                                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                                    <div className="sticky left-0 z-10 flex items-center justify-center border-t border-ink-200 bg-ink-50 text-xs font-bold text-ink-700">
                                       {String(slot.number).padStart(2, "0")}
                                     </div>
                                     {slot.courts.map((entry, courtIndex) => (
                                       <div
                                         key={`${slot.number}-${courtIndex}`}
                                         className={cx(
-                                          "border-l border-t border-slate-200 bg-white p-2",
+                                          "border-l border-t border-ink-200 bg-white p-2",
                                           oopCompact ? "min-h-20" : "min-h-32",
                                         )}
                                       >
                                         {entry?.kind === "match" ? (
                                           <div
                                             className={cx(
-                                              "h-full rounded-xl border border-slate-200 p-2 bg-slate-50/70",
+                                              "h-full rounded-xl border border-ink-200 p-2 bg-ink-50/70",
                                               oopCategoryClasses(
                                                 entry.category,
                                               ),
@@ -3270,14 +3373,14 @@ export default function TournamentControlRoom({
                                           >
                                             <div className="flex items-start justify-between gap-2">
                                               <div className="min-w-0">
-                                                <p className="truncate text-[11px] font-bold text-slate-900">
+                                                <p className="truncate text-[11px] font-bold text-ink-900">
                                                   {entry.matchLabel}
                                                 </p>
-                                                <p className="mt-0.5 truncate text-[9px] font-semibold uppercase text-slate-500">
+                                                <p className="mt-0.5 truncate text-[9px] font-semibold uppercase text-ink-500">
                                                   {entry.stageLabel}
                                                 </p>
                                               </div>
-                                              <span className="shrink-0 text-[9px] font-semibold text-slate-400">
+                                              <span className="shrink-0 text-[9px] font-semibold text-ink-400">
                                                 {entry.matchIds.length}×
                                               </span>
                                             </div>
@@ -3292,7 +3395,7 @@ export default function TournamentControlRoom({
                                                     key={id}
                                                     href={`/admin/tournaments/${tournamentId}/matches/${id}`}
                                                     target="_blank"
-                                                    className="block rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold text-slate-900 transition hover:bg-slate-50"
+                                                    className="block rounded-lg border border-ink-200 bg-white px-2 py-1.5 text-[10px] font-semibold text-ink-900 transition hover:bg-ink-50"
                                                   >
                                                     <span className="flex items-center gap-1.5">
                                                       <span
@@ -3304,18 +3407,20 @@ export default function TournamentControlRoom({
                                                             : item?.status ===
                                                                 "completed"
                                                               ? "bg-emerald-500"
-                                                              : "bg-blue-500",
+                                                              : "bg-brand-500",
                                                         )}
                                                       />
                                                       <span className="truncate">
                                                         {id}
                                                       </span>
-                                                      <span className="material-symbols-outlined ml-auto text-xs">
-                                                        open_in_new
-                                                      </span>
+                                                      <ArrowSquareOutIcon
+                                                        className="ml-auto text-xs"
+                                                        aria-hidden="true"
+                                                        weight="bold"
+                                                      />
                                                     </span>
                                                     {!oopCompact && item && (
-                                                      <span className="mt-1 block truncate border-t border-slate-100 pt-1 text-[9px] font-medium text-slate-500">
+                                                      <span className="mt-1 block truncate border-t border-ink-100 pt-1 text-[9px] font-medium text-ink-500">
                                                         {getTeamName(
                                                           teams,
                                                           item.teamAId,
@@ -3333,7 +3438,7 @@ export default function TournamentControlRoom({
                                             </div>
                                           </div>
                                         ) : (
-                                          <div className="flex h-full min-h-14 items-center justify-center border-2 border-dashed border-slate-200 text-[10px] font-bold uppercase text-slate-300">
+                                          <div className="flex h-full min-h-14 items-center justify-center border-2 border-dashed border-ink-200 text-[10px] font-bold uppercase text-ink-300">
                                             Open
                                           </div>
                                         )}
@@ -3346,9 +3451,9 @@ export default function TournamentControlRoom({
                           </div>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-wider text-ink-500">
                           <span className="flex items-center gap-1.5">
-                            <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-brand-500" />
                             Scheduled
                           </span>
                           <span className="flex items-center gap-1.5">
@@ -3359,7 +3464,7 @@ export default function TournamentControlRoom({
                             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                             Completed
                           </span>
-                          <span className="ml-auto hidden text-slate-400 sm:block">
+                          <span className="ml-auto hidden text-ink-400 sm:block">
                             Swipe horizontally to see every court
                           </span>
                         </div>
@@ -3367,17 +3472,17 @@ export default function TournamentControlRoom({
                     )}
 
                   {matches.length === 0 && drawPreview.length > 0 && (
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
-                      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                    <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-5">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-600">
                         Draw preview
                       </p>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {drawPreview.map((preview) => (
                           <div
                             key={preview.division}
-                            className="rounded-xl border border-blue-100 bg-white p-4"
+                            className="rounded-xl border border-brand-100 bg-white p-4"
                           >
-                            <p className="font-extrabold text-slate-950">
+                            <p className="font-extrabold text-ink-950">
                               {preview.division}
                             </p>
                             <div
@@ -3388,56 +3493,56 @@ export default function TournamentControlRoom({
                               }`}
                             >
                               <div>
-                                <p className="text-lg font-black text-blue-700">
+                                <p className="text-lg font-black text-brand-700">
                                   {preview.teamCount}
                                 </p>
-                                <p className="text-[10px] font-bold uppercase text-slate-400">
+                                <p className="text-[10px] font-bold uppercase text-ink-400">
                                   Teams
                                 </p>
                               </div>
                               {settings.format === "Single elimination" ? (
                                 <div>
-                                  <p className="text-lg font-black text-blue-700">
+                                  <p className="text-lg font-black text-brand-700">
                                     {preview.teamCount >= 2
                                       ? preview.teamCount
                                       : 0}
                                   </p>
-                                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  <p className="text-[10px] font-bold uppercase text-ink-400">
                                     Knockout field
                                   </p>
                                 </div>
                               ) : settings.format === "Round robin" ? (
                                 <div>
-                                  <p className="text-lg font-black text-blue-700">
+                                  <p className="text-lg font-black text-brand-700">
                                     {preview.roundRobinMatches}
                                   </p>
-                                  <p className="text-[10px] font-bold uppercase text-slate-400">
+                                  <p className="text-[10px] font-bold uppercase text-ink-400">
                                     Total matches
                                   </p>
                                 </div>
                               ) : (
                                 <>
                                   <div>
-                                    <p className="text-lg font-black text-blue-700">
+                                    <p className="text-lg font-black text-brand-700">
                                       {preview.groups}
                                     </p>
-                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                    <p className="text-[10px] font-bold uppercase text-ink-400">
                                       Groups
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-lg font-black text-blue-700">
+                                    <p className="text-lg font-black text-brand-700">
                                       {preview.groupSize}
                                     </p>
-                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                    <p className="text-[10px] font-bold uppercase text-ink-400">
                                       Per group
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-lg font-black text-blue-700">
+                                    <p className="text-lg font-black text-brand-700">
                                       {preview.knockoutSize}
                                     </p>
-                                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                                    <p className="text-[10px] font-bold uppercase text-ink-400">
                                       Knockout
                                     </p>
                                   </div>
@@ -3452,28 +3557,30 @@ export default function TournamentControlRoom({
 
                   <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800">
+                      <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-800">
                         Match control
                       </span>
-                      <h3 className="mt-4 text-2xl font-black text-slate-950">
+                      <h3 className="mt-4 text-2xl font-black text-ink-950">
                         Find and operate a match
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-ink-500">
                         The focused list below follows the official OOP
                         sequence.
                       </p>
                     </div>
-                    <span className="self-start rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 sm:self-auto">
+                    <span className="self-start rounded-full border border-ink-200 bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700 sm:self-auto">
                       {filteredMatches.length} visible
                     </span>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1fr)_160px_160px_200px]">
                       <div className="relative block sm:col-span-2 lg:col-span-1">
-                        <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-slate-400">
-                          search
-                        </span>
+                        <MagnifyingGlassIcon
+                          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 select-none text-lg text-ink-400"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         <input
                           type="text"
                           value={matchSearch}
@@ -3487,12 +3594,14 @@ export default function TournamentControlRoom({
                           <button
                             type="button"
                             onClick={() => setMatchSearch("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
                             title="Clear search"
                           >
-                            <span className="material-symbols-outlined block text-base leading-none">
-                              close
-                            </span>
+                            <XIcon
+                              className="block text-base leading-none"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                           </button>
                         )}
                       </div>
@@ -3543,63 +3652,71 @@ export default function TournamentControlRoom({
                       matchStatus !== "all" ||
                       matchPhase !== "all" ||
                       matchDivision !== "all") && (
-                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs">
-                        <span className="font-bold text-slate-500">
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3 text-xs">
+                        <span className="font-bold text-ink-500">
                           Active filters:
                         </span>
                         {matchSearch && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 font-semibold text-brand-700">
                             Search: &quot;{matchSearch}&quot;
                             <button
                               type="button"
                               onClick={() => setMatchSearch("")}
-                              className="hover:text-blue-900"
+                              className="hover:text-ink-900"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                close
-                              </span>
+                              <XIcon
+                                className="text-xs"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                             </button>
                           </span>
                         )}
                         {matchStatus !== "all" && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 font-semibold text-brand-700">
                             State: {matchStatus}
                             <button
                               type="button"
                               onClick={() => handleMatchStatusChange("all")}
-                              className="hover:text-blue-900"
+                              className="hover:text-ink-900"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                close
-                              </span>
+                              <XIcon
+                                className="text-xs"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                             </button>
                           </span>
                         )}
                         {matchPhase !== "all" && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 font-semibold text-brand-700">
                             Phase: {matchPhase}
                             <button
                               type="button"
                               onClick={() => handleMatchPhaseChange("all")}
-                              className="hover:text-blue-900"
+                              className="hover:text-ink-900"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                close
-                              </span>
+                              <XIcon
+                                className="text-xs"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                             </button>
                           </span>
                         )}
                         {matchDivision !== "all" && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 font-semibold text-brand-700">
                             Division: {matchDivision}
                             <button
                               type="button"
                               onClick={() => handleMatchDivisionChange("all")}
-                              className="hover:text-blue-900"
+                              className="hover:text-ink-900"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                close
-                              </span>
+                              <XIcon
+                                className="text-xs"
+                                aria-hidden="true"
+                                weight="bold"
+                              />
                             </button>
                           </span>
                         )}
@@ -3611,7 +3728,7 @@ export default function TournamentControlRoom({
                             handleMatchPhaseChange("all");
                             handleMatchDivisionChange("all");
                           }}
-                          className="ml-auto text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                          className="ml-auto text-xs font-bold text-brand-600 hover:text-brand-800 hover:underline"
                         >
                           Reset all filters
                         </button>
@@ -3621,7 +3738,7 @@ export default function TournamentControlRoom({
 
                   {filteredMatches.length === 0 ? (
                     <EmptyState
-                      icon="sports_score"
+                      icon={FlagCheckeredIcon}
                       title={
                         matches.length
                           ? "No matches match these filters"
@@ -3652,11 +3769,11 @@ export default function TournamentControlRoom({
                               "admin-rise group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg",
                               match.status === "live"
                                 ? "border-rose-200 ring-2 ring-rose-100"
-                                : "border-slate-200 hover:border-blue-200",
+                                : "border-ink-200 hover:border-brand-200",
                             )}
                           >
                             {match.status === "live" && (
-                              <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-orange-400 to-rose-500" />
+                              <div className="admin-live-sweep absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-500 via-brand-400 to-rose-500" />
                             )}
                             <div className="p-5">
                               <div className="flex flex-wrap items-center gap-2">
@@ -3668,44 +3785,48 @@ export default function TournamentControlRoom({
                                 >
                                   {match.status}
                                 </span>
-                                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+                                <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-ink-600">
                                   {match.phase}
                                 </span>
                                 {match.time && (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[10px] font-extrabold text-blue-700">
-                                    <span className="material-symbols-outlined text-[12px] leading-none">
-                                      schedule
-                                    </span>
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50/80 px-2.5 py-0.5 text-[10px] font-extrabold text-brand-700">
+                                    <ClockIcon
+                                      className="text-[12px] leading-none"
+                                      aria-hidden="true"
+                                      weight="bold"
+                                    />
                                     {match.time}
                                   </span>
                                 )}
                                 {match.courtId && (
                                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/80 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-800">
-                                    <span className="material-symbols-outlined text-[12px] leading-none">
-                                      sports_tennis
-                                    </span>
+                                    <RacquetIcon
+                                      className="text-[12px] leading-none"
+                                      aria-hidden="true"
+                                      weight="bold"
+                                    />
                                     {settings.sport === "table_tennis"
                                       ? `Meja ${match.courtId}`
                                       : `Court ${match.courtId}`}
                                   </span>
                                 )}
-                                <span className="ml-auto font-mono text-[11px] font-extrabold text-slate-400">
+                                <span className="ml-auto font-mono text-[11px] font-extrabold text-ink-400">
                                   #{match.id.replace(`${tournamentId}-`, "")}
                                 </span>
                               </div>
 
                               <div className="mt-3 flex items-baseline justify-between gap-3">
                                 <div className="min-w-0">
-                                  <h3 className="truncate text-base font-black text-slate-950">
+                                  <h3 className="truncate text-base font-black text-ink-950">
                                     {match.category}
                                   </h3>
-                                  <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                                  <p className="mt-0.5 text-xs font-semibold text-ink-500">
                                     {match.group ? `${match.group} · ` : ""}
                                     {match.round}
                                   </p>
                                 </div>
                                 <div className="shrink-0 text-right">
-                                  <p className="text-2xl font-black tracking-tight text-blue-700">
+                                  <p className="text-2xl font-black tracking-tight text-brand-700">
                                     {formatMatchScore(
                                       match.score,
                                       match.scoreSets,
@@ -3715,7 +3836,7 @@ export default function TournamentControlRoom({
                                     match.score,
                                     match.scoreSets,
                                   ).details && (
-                                    <p className="text-[10px] font-semibold text-slate-400">
+                                    <p className="text-[10px] font-semibold text-ink-400">
                                       {
                                         formatMatchScore(
                                           match.score,
@@ -3724,26 +3845,26 @@ export default function TournamentControlRoom({
                                       }
                                     </p>
                                   )}
-                                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                                  <p className="text-[9px] font-extrabold uppercase tracking-wider text-ink-400">
                                     Current score
                                   </p>
                                 </div>
                               </div>
 
-                              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5 sm:gap-3 sm:p-4">
+                              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 rounded-2xl border border-ink-100 bg-ink-50/80 p-3.5 sm:gap-3 sm:p-4">
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-500">
                                       Team A
                                     </p>
                                     {teamA?.seed && (
-                                      <span className="rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-black text-blue-700">
+                                      <span className="rounded bg-brand-100 px-1.5 py-0.2 text-[9px] font-black text-brand-700">
                                         #{teamA.seed}
                                       </span>
                                     )}
                                   </div>
                                   <p
-                                    className="mt-1 truncate text-sm font-black leading-snug text-slate-950"
+                                    className="mt-1 truncate text-sm font-black leading-snug text-ink-950"
                                     title={
                                       teamA
                                         ? teamName(teamA)
@@ -3755,22 +3876,22 @@ export default function TournamentControlRoom({
                                       : "Waiting for team"}
                                   </p>
                                 </div>
-                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-black text-slate-400 shadow-sm">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink-200 bg-white text-[10px] font-black text-ink-400 shadow-sm">
                                   VS
                                 </span>
                                 <div className="min-w-0 text-right">
                                   <div className="flex items-center justify-end gap-1.5">
                                     {teamB?.seed && (
-                                      <span className="rounded bg-blue-100 px-1.5 py-0.2 text-[9px] font-black text-blue-700">
+                                      <span className="rounded bg-brand-100 px-1.5 py-0.2 text-[9px] font-black text-brand-700">
                                         #{teamB.seed}
                                       </span>
                                     )}
-                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-500">
+                                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-500">
                                       Team B
                                     </p>
                                   </div>
                                   <p
-                                    className="mt-1 truncate text-sm font-black leading-snug text-slate-950"
+                                    className="mt-1 truncate text-sm font-black leading-snug text-ink-950"
                                     title={
                                       teamB
                                         ? teamName(teamB)
@@ -3840,7 +3961,7 @@ export default function TournamentControlRoom({
                                 </label>
                                 <div>
                                   <span className="admin-label">Referee</span>
-                                  <div className="flex h-11 items-center truncate rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">
+                                  <div className="flex h-11 items-center truncate rounded-xl border border-ink-200 bg-ink-50 px-3 text-sm font-semibold text-ink-600">
                                     {match.referee || "Unassigned"}
                                   </div>
                                 </div>
@@ -3856,21 +3977,25 @@ export default function TournamentControlRoom({
                                   }
                                   target="_blank"
                                   className={cx(
-                                    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5",
+                                    "inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold shadow-md transition hover:-translate-y-0.5",
                                     match.status === "live"
-                                      ? "bg-rose-500 shadow-rose-200 hover:bg-rose-600"
-                                      : "bg-blue-600 shadow-blue-200 hover:bg-blue-700",
+                                      ? "bg-rose-500 text-white shadow-ink-950/10 hover:bg-rose-600"
+                                      : "bg-brand-500 text-ink-950 shadow-ink-950/10 hover:bg-brand-400",
                                   )}
                                 >
-                                  <span className="material-symbols-outlined text-lg">
-                                    scoreboard
-                                  </span>
+                                  <ScoreboardIcon
+                                    className="text-lg"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                   {match.status === "completed"
                                     ? "Review scoring"
                                     : "Open scoring"}
-                                  <span className="material-symbols-outlined text-sm">
-                                    open_in_new
-                                  </span>
+                                  <ArrowSquareOutIcon
+                                    className="text-sm"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                 </Link>
                                 {match.status === "scheduled" && (
                                   <button
@@ -3880,11 +4005,13 @@ export default function TournamentControlRoom({
                                         status: "live",
                                       })
                                     }
-                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-extrabold text-brand-700 transition hover:bg-brand-100"
                                   >
-                                    <span className="material-symbols-outlined text-lg">
-                                      play_arrow
-                                    </span>
+                                    <PlayIcon
+                                      className="text-lg"
+                                      aria-hidden="true"
+                                      weight="bold"
+                                    />
                                     Start match
                                   </button>
                                 )}
@@ -3908,31 +4035,33 @@ export default function TournamentControlRoom({
                       <Link
                         href={`/tournaments/bracket?tournament=${tournament?.slug || tournamentId}&view=bracket`}
                         target="_blank"
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:-translate-y-0.5 hover:bg-blue-700"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:-translate-y-0.5 hover:bg-brand-400"
                       >
-                        <span className="material-symbols-outlined text-lg">
-                          account_tree
-                        </span>
+                        <TreeStructureIcon
+                          className="text-lg"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Open public bracket
                       </Link>
                     }
                   />
                   <div className="grid gap-4 sm:grid-cols-3">
                     <MetricCard
-                      icon="task_alt"
+                      icon={CheckCircleIcon}
                       label="Completed"
                       value={totals.completed}
                       detail={`${matches.length} total matches`}
                       accent="emerald"
                     />
                     <MetricCard
-                      icon="percent"
+                      icon={PercentIcon}
                       label="Progress"
                       value={`${progress}%`}
                       detail={`${totals.scheduled + totals.live} remaining`}
                     />
                     <MetricCard
-                      icon="emoji_events"
+                      icon={TrophyIcon}
                       label="Divisions"
                       value={settings.categories.length}
                       detail="Separate competition tracks"
@@ -3941,8 +4070,8 @@ export default function TournamentControlRoom({
                   </div>
 
                   {settings.categories.length > 1 && (
-                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-ink-200 bg-white p-3 shadow-sm">
+                      <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
                         Division:
                       </span>
                       <button
@@ -3951,8 +4080,8 @@ export default function TournamentControlRoom({
                         className={cx(
                           "rounded-xl border px-3.5 py-1.5 text-xs font-bold transition",
                           resultsDivision === "all"
-                            ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                            ? "border-brand-500 bg-brand-500 text-ink-950 shadow-sm"
+                            : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
                         )}
                       >
                         All divisions ({settings.categories.length})
@@ -3965,8 +4094,8 @@ export default function TournamentControlRoom({
                           className={cx(
                             "rounded-xl border px-3.5 py-1.5 text-xs font-bold transition",
                             resultsDivision === cat
-                              ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                              ? "border-brand-500 bg-brand-500 text-ink-950 shadow-sm"
+                              : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
                           )}
                         >
                           {cat}
@@ -3977,19 +4106,19 @@ export default function TournamentControlRoom({
 
                   {groupStandings.length === 0 ? (
                     <EmptyState
-                      icon="leaderboard"
+                      icon={RankingIcon}
                       title="Standings will appear after the draw"
                       description="Complete group matches and points will be calculated here automatically."
                     />
                   ) : filteredResultsStandings.length === 0 ? (
                     <EmptyState
-                      icon="leaderboard"
+                      icon={RankingIcon}
                       title={`No standings for ${resultsDivision}`}
                       description="No group stages or matches found in this division."
                     />
                   ) : (
                     <div>
-                      <h3 className="mb-3 text-lg font-black text-slate-950">
+                      <h3 className="mb-3 text-lg font-black text-ink-950">
                         Group standings
                         {resultsDivision !== "all" && ` · ${resultsDivision}`}
                       </h3>
@@ -3997,17 +4126,17 @@ export default function TournamentControlRoom({
                         {filteredResultsStandings.map(({ group, rows }) => (
                           <div
                             key={group}
-                            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                            className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm"
                           >
-                            <div className="border-b border-slate-100 bg-blue-50/70 px-4 py-3">
-                              <p className="font-extrabold text-blue-950">
+                            <div className="border-b border-ink-100 bg-brand-50/70 px-4 py-3">
+                              <p className="font-extrabold text-ink-950">
                                 {group}
                               </p>
                             </div>
                             <div className="overflow-x-auto">
                               <table className="w-full min-w-[680px] text-left text-sm">
                                 <thead>
-                                  <tr className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                  <tr className="text-[10px] font-extrabold uppercase tracking-wider text-ink-400">
                                     <th className="px-4 py-3">#</th>
                                     <th className="px-4 py-3">Team</th>
                                     <th className="px-3 py-3 text-center">P</th>
@@ -4034,42 +4163,42 @@ export default function TournamentControlRoom({
                                   {rows.map((row, index) => (
                                     <tr
                                       key={row.id}
-                                      className="border-t border-slate-100"
+                                      className="border-t border-ink-100"
                                     >
                                       <td className="px-4 py-3">
                                         <span
                                           className={cx(
                                             "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black",
                                             index < 2
-                                              ? "bg-blue-600 text-white"
-                                              : "bg-slate-100 text-slate-500",
+                                              ? "bg-brand-500 text-ink-950"
+                                              : "bg-ink-100 text-ink-500",
                                           )}
                                         >
                                           {index + 1}
                                         </span>
                                       </td>
-                                      <td className="px-4 py-3 font-bold text-slate-800">
+                                      <td className="px-4 py-3 font-bold text-ink-800">
                                         {row.name}
                                       </td>
-                                      <td className="px-3 py-3 text-center text-slate-500">
+                                      <td className="px-3 py-3 text-center text-ink-500">
                                         {row.played}
                                       </td>
-                                      <td className="px-3 py-3 text-center text-slate-500">
+                                      <td className="px-3 py-3 text-center text-ink-500">
                                         {row.wins}
                                       </td>
-                                      <td className="px-3 py-3 text-center text-slate-500">
+                                      <td className="px-3 py-3 text-center text-ink-500">
                                         {row.losses}
                                       </td>
-                                      <td className="px-3 py-3 text-center text-slate-500">
+                                      <td className="px-3 py-3 text-center text-ink-500">
                                         {row.gamesWon}
                                       </td>
-                                      <td className="px-3 py-3 text-center text-slate-500">
+                                      <td className="px-3 py-3 text-center text-ink-500">
                                         {row.gamesLost}
                                       </td>
-                                      <td className="px-3 py-3 text-center font-bold text-slate-700">
+                                      <td className="px-3 py-3 text-center font-bold text-ink-700">
                                         {row.diff}
                                       </td>
-                                      <td className="px-4 py-3 text-center font-black text-blue-700">
+                                      <td className="px-4 py-3 text-center font-black text-brand-700">
                                         {row.points}
                                       </td>
                                     </tr>
@@ -4083,19 +4212,19 @@ export default function TournamentControlRoom({
                     </div>
                   )}
                   <div>
-                    <h3 className="mb-3 text-lg font-black text-slate-950">
+                    <h3 className="mb-3 text-lg font-black text-ink-950">
                       Completed matches
                       {resultsDivision !== "all" && ` · ${resultsDivision}`}
                     </h3>
                     {completedMatches.length === 0 ? (
                       <EmptyState
-                        icon="scoreboard"
+                        icon={ScoreboardIcon}
                         title="No final scores yet"
                         description="Finished matches will collect here with their winner and set scores."
                       />
                     ) : filteredCompletedMatches.length === 0 ? (
                       <EmptyState
-                        icon="scoreboard"
+                        icon={ScoreboardIcon}
                         title={`No completed matches for ${resultsDivision}`}
                         description="Matches in this division are either scheduled or not yet scored."
                       />
@@ -4104,22 +4233,22 @@ export default function TournamentControlRoom({
                         {filteredCompletedMatches.map((match) => (
                           <div
                             key={match.id}
-                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                            className="rounded-2xl border border-ink-200 bg-white p-4 shadow-sm"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-600">
                                   {match.category} · {match.round}
                                 </p>
-                                <p className="mt-2 text-sm font-bold text-slate-800">
+                                <p className="mt-2 text-sm font-bold text-ink-800">
                                   {getTeamName(teams, match.teamAId)}
                                 </p>
-                                <p className="mt-1 text-sm font-bold text-slate-800">
+                                <p className="mt-1 text-sm font-bold text-ink-800">
                                   {getTeamName(teams, match.teamBId)}
                                 </p>
                               </div>
                               <div className="text-right">
-                                <p className="text-xl font-black text-blue-700">
+                                <p className="text-xl font-black text-brand-700">
                                   {
                                     formatMatchScore(
                                       match.score,
@@ -4129,7 +4258,7 @@ export default function TournamentControlRoom({
                                 </p>
                                 {formatMatchScore(match.score, match.scoreSets)
                                   .details && (
-                                  <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
+                                  <p className="mt-0.5 text-[11px] font-semibold text-ink-400">
                                     {
                                       formatMatchScore(
                                         match.score,
@@ -4146,12 +4275,14 @@ export default function TournamentControlRoom({
                                     match.id
                                   }
                                   target="_blank"
-                                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600 hover:text-blue-800"
+                                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-extrabold text-brand-600 hover:text-brand-800"
                                 >
                                   Review{" "}
-                                  <span className="material-symbols-outlined text-sm">
-                                    open_in_new
-                                  </span>
+                                  <ArrowSquareOutIcon
+                                    className="text-sm"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
                                 </Link>
                               </div>
                             </div>
@@ -4170,23 +4301,23 @@ export default function TournamentControlRoom({
 
       {drawDialog && (
         <div
-          className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+          className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/55 px-4 backdrop-blur-sm"
           role="presentation"
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="draw-title"
-            className="admin-dialog-enter w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
+            className="admin-dialog-enter w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(23,23,23,0.35)]"
           >
-            <div className="bg-[#071c4d] p-6 text-white">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500 shadow-lg shadow-blue-950/30">
-                <span className="material-symbols-outlined">account_tree</span>
+            <div className="bg-ink-950 p-6 text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-ink-950 shadow-lg shadow-ink-950/10">
+                <TreeStructureIcon aria-hidden="true" weight="bold" />
               </span>
               <h2 id="draw-title" className="mt-5 text-2xl font-black">
                 Build the match board
               </h2>
-              <p className="mt-2 text-sm leading-6 text-blue-100/75">
+              <p className="mt-2 text-sm leading-6 text-cream-100/75">
                 {settings.format === "Single elimination"
                   ? `The draw seeds ${totals.eligible} approved, paid teams directly into knockout brackets without groups.`
                   : settings.format === "Round robin"
@@ -4211,14 +4342,14 @@ export default function TournamentControlRoom({
                     <button
                       type="button"
                       onClick={() => generateDraw("group")}
-                      className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                      className="h-12 rounded-xl border border-brand-200 bg-brand-50 text-sm font-extrabold text-brand-700 transition hover:bg-brand-100"
                     >
                       Groups only
                     </button>
                     <button
                       type="button"
                       onClick={() => generateDraw("knockout")}
-                      className="h-12 rounded-xl border border-blue-200 bg-blue-50 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100"
+                      className="h-12 rounded-xl border border-brand-200 bg-brand-50 text-sm font-extrabold text-brand-700 transition hover:bg-brand-100"
                     >
                       Knockout only
                     </button>
@@ -4227,7 +4358,7 @@ export default function TournamentControlRoom({
                 <button
                   type="button"
                   onClick={() => generateDraw("all")}
-                  className="h-12 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
+                  className="h-12 rounded-xl bg-brand-500 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 transition hover:bg-brand-400"
                 >
                   {settings.format === "Single elimination"
                     ? "Generate knockout"
@@ -4239,7 +4370,7 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setDrawDialog(false)}
-                className="mt-3 h-11 w-full rounded-xl text-sm font-extrabold text-slate-500 transition hover:bg-slate-100"
+                className="mt-3 h-11 w-full rounded-xl text-sm font-extrabold text-ink-500 transition hover:bg-ink-100"
               >
                 Cancel
               </button>
@@ -4249,21 +4380,21 @@ export default function TournamentControlRoom({
       )}
 
       {importPreview && (
-        <div className="admin-modal fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+        <div className="admin-modal fixed inset-0 z-[110] flex items-center justify-center bg-ink-950/60 px-4 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="import-title"
-            className="admin-dialog-enter max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.4)]"
+            className="admin-dialog-enter max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(23,23,23,0.4)]"
           >
-            <div className="bg-[#071c4d] p-6 text-white">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500">
-                <span className="material-symbols-outlined">upload_file</span>
+            <div className="bg-ink-950 p-6 text-white">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-ink-950">
+                <FileArrowUpIcon aria-hidden="true" weight="bold" />
               </span>
               <h2 id="import-title" className="mt-4 text-2xl font-black">
                 Review official draw
               </h2>
-              <p className="mt-2 text-sm text-blue-100/70">
+              <p className="mt-2 text-sm text-cream-100/70">
                 {importFileName}: {importPreview.assignments.length} teams
                 matched.
               </p>
@@ -4274,12 +4405,12 @@ export default function TournamentControlRoom({
                   ([category, count]) => (
                     <div
                       key={category}
-                      className="rounded-xl border border-blue-100 bg-blue-50 p-3"
+                      className="rounded-xl border border-brand-100 bg-brand-50 p-3"
                     >
-                      <p className="text-sm font-black text-blue-950">
+                      <p className="text-sm font-black text-ink-950">
                         {category}
                       </p>
-                      <p className="mt-1 text-xs font-bold text-blue-600">
+                      <p className="mt-1 text-xs font-bold text-brand-600">
                         {count} assignments
                       </p>
                     </div>
@@ -4320,7 +4451,7 @@ export default function TournamentControlRoom({
                     setImportFileName("");
                   }}
                   disabled={importBusy}
-                  className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
+                  className="h-11 flex-1 rounded-xl border border-ink-200 text-sm font-extrabold text-ink-600"
                 >
                   Cancel
                 </button>
@@ -4332,7 +4463,7 @@ export default function TournamentControlRoom({
                     importPreview.assignments.length === 0 ||
                     importPreview.unmatched.length > 0
                   }
-                  className="h-11 flex-1 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 disabled:opacity-40"
+                  className="h-11 flex-1 rounded-xl bg-brand-500 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 disabled:opacity-40"
                 >
                   {importBusy ? "Importing…" : "Import & regenerate"}
                 </button>
@@ -4343,20 +4474,20 @@ export default function TournamentControlRoom({
       )}
 
       {removeTarget && (
-        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/55 px-4 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            className="admin-dialog-enter w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
+            className="admin-dialog-enter w-full max-w-md rounded-3xl bg-white p-6 shadow-[0_30px_100px_rgba(23,23,23,0.35)]"
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
-              <span className="material-symbols-outlined">person_remove</span>
+              <UserMinusIcon aria-hidden="true" weight="bold" />
             </span>
-            <h2 className="mt-5 text-2xl font-black text-slate-950">
+            <h2 className="mt-5 text-2xl font-black text-ink-950">
               Remove this team?
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              <span className="font-bold text-slate-800">
+            <p className="mt-2 text-sm leading-6 text-ink-500">
+              <span className="font-bold text-ink-800">
                 {teamName(removeTarget)}
               </span>{" "}
               will be permanently removed from this tournament.
@@ -4365,14 +4496,14 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setRemoveTarget(null)}
-                className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
+                className="h-11 flex-1 rounded-xl border border-ink-200 text-sm font-extrabold text-ink-600"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={removeTeam}
-                className="h-11 flex-1 rounded-xl bg-rose-600 text-sm font-extrabold text-white shadow-lg shadow-rose-200"
+                className="h-11 flex-1 rounded-xl bg-rose-600 text-sm font-extrabold text-white shadow-lg shadow-ink-950/10"
               >
                 Remove team
               </button>
@@ -4382,32 +4513,32 @@ export default function TournamentControlRoom({
       )}
 
       {insertDialog && (
-        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
+        <div className="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-ink-950/55 px-4 py-6 backdrop-blur-sm">
           <div
             role="dialog"
             aria-modal="true"
-            className="admin-dialog-enter max-h-full w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.35)]"
+            className="admin-dialog-enter max-h-full w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-[0_30px_100px_rgba(23,23,23,0.35)]"
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 p-5 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-ink-100 bg-white/95 p-5 backdrop-blur">
               <div>
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-brand-600">
                   Manual registration
                 </p>
-                <h2 className="mt-1 text-xl font-black text-slate-950">
+                <h2 className="mt-1 text-xl font-black text-ink-950">
                   Add a team
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setInsertDialog(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-100 text-ink-500"
               >
-                <span className="material-symbols-outlined">close</span>
+                <XIcon aria-hidden="true" weight="bold" />
               </button>
             </div>
             <div className="space-y-5 p-5 sm:p-6">
-              <fieldset className="rounded-2xl border border-slate-200 p-4">
-                <legend className="px-2 text-sm font-black text-slate-800">
+              <fieldset className="rounded-2xl border border-ink-200 p-4">
+                <legend className="px-2 text-sm font-black text-ink-800">
                   Player
                 </legend>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -4466,8 +4597,8 @@ export default function TournamentControlRoom({
                   </label>
                 </div>
               </fieldset>
-              <fieldset className="rounded-2xl border border-slate-200 p-4">
-                <legend className="px-2 text-sm font-black text-slate-800">
+              <fieldset className="rounded-2xl border border-ink-200 p-4">
+                <legend className="px-2 text-sm font-black text-ink-800">
                   Partner
                 </legend>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -4542,7 +4673,7 @@ export default function TournamentControlRoom({
                   </select>
                 </label>
               </div>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-blue-50 p-4 text-sm font-bold text-blue-900">
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-brand-50 p-4 text-sm font-bold text-ink-900">
                 <input
                   type="checkbox"
                   checked={insertForm.paid}
@@ -4552,7 +4683,7 @@ export default function TournamentControlRoom({
                       paid: event.target.checked,
                     }))
                   }
-                  className="h-4 w-4 accent-blue-600"
+                  className="h-4 w-4 accent-brand-500"
                 />
                 Mark this team as paid
               </label>
@@ -4565,7 +4696,7 @@ export default function TournamentControlRoom({
                 <button
                   type="button"
                   onClick={() => setInsertDialog(false)}
-                  className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-600"
+                  className="h-11 flex-1 rounded-xl border border-ink-200 text-sm font-extrabold text-ink-600"
                 >
                   Cancel
                 </button>
@@ -4573,7 +4704,7 @@ export default function TournamentControlRoom({
                   type="button"
                   onClick={submitTeam}
                   disabled={submittingTeam}
-                  className="h-11 flex-1 rounded-xl bg-blue-600 text-sm font-extrabold text-white shadow-lg shadow-blue-200 disabled:opacity-60"
+                  className="h-11 flex-1 rounded-xl bg-brand-500 text-sm font-extrabold text-ink-950 shadow-lg shadow-ink-950/10 disabled:opacity-60"
                 >
                   {submittingTeam ? "Adding…" : "Add team"}
                 </button>
@@ -4584,21 +4715,23 @@ export default function TournamentControlRoom({
       )}
 
       {viewingTeam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="my-8 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="my-8 w-full max-w-2xl rounded-2xl border border-ink-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 border-b border-ink-100 pb-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                  <span className="material-symbols-outlined text-2xl">
-                    badge
-                  </span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+                  <IdentificationBadgeIcon
+                    className="text-2xl"
+                    aria-hidden="true"
+                    weight="duotone"
+                  />
                 </span>
                 <div>
-                  <h3 className="text-lg font-black text-slate-950">
+                  <h3 className="text-lg font-black text-ink-950">
                     Detail Registrasi Tim: {teamName(viewingTeam)}
                   </h3>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span className="font-bold text-blue-700">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-500">
+                    <span className="font-bold text-brand-700">
                       {viewingTeam.category}
                     </span>
                     <span>·</span>
@@ -4619,7 +4752,7 @@ export default function TournamentControlRoom({
                         viewingTeam.paid ? "text-emerald-600" : "text-rose-600"
                       }`}
                     >
-                      {viewingTeam.paid ? "Paid ✓" : "Unpaid"}
+                      {viewingTeam.paid ? "Paid" : "Unpaid"}
                     </span>
                   </div>
                 </div>
@@ -4627,30 +4760,32 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setViewingTeam(null)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-full p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-600"
               >
-                <span className="material-symbols-outlined block text-xl">
-                  close
-                </span>
+                <XIcon
+                  className="block text-xl"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </button>
             </div>
 
             <div className="mt-6 space-y-6">
               {/* Player 1 Details */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
                     Pemain 1 (Utama)
                   </h4>
                   {viewingTeam.playerDetails?.jerseySize && (
-                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
+                    <span className="rounded bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
                       Jersey: {viewingTeam.playerDetails.jerseySize}
                     </span>
                   )}
                 </div>
                 <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
                   {viewingTeam.playerDetails?.photoUrl ? (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white">
                       <Image
                         src={viewingTeam.playerDetails.photoUrl}
                         alt="Selfie Pemain 1"
@@ -4660,33 +4795,33 @@ export default function TournamentControlRoom({
                       />
                     </div>
                   ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-600">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-ink-200 text-lg font-black text-ink-600">
                       {viewingTeam.player.charAt(0)}
                     </div>
                   )}
                   <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
                     <div>
-                      <span className="text-slate-400">Nama Lengkap:</span>
-                      <p className="font-extrabold text-slate-900">
+                      <span className="text-ink-400">Nama Lengkap:</span>
+                      <p className="font-extrabold text-ink-900">
                         {viewingTeam.playerDetails?.fullName ||
                           viewingTeam.player}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Asal Kota:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Asal Kota:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.playerDetails?.city || viewingTeam.city}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">WhatsApp / HP:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">WhatsApp / HP:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.playerDetails?.phone ? (
                           <a
                             href={`https://wa.me/${viewingTeam.playerDetails.phone.replace(/[^0-9]/g, "")}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-brand-600 hover:underline"
                           >
                             +62 {viewingTeam.playerDetails.phone}
                           </a>
@@ -4696,20 +4831,20 @@ export default function TournamentControlRoom({
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Instagram:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Instagram:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.playerDetails?.instagram || "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Komunitas / Klub:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Komunitas / Klub:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.playerDetails?.community || "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Reclub:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Reclub:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.playerDetails?.reclub || "-"}
                       </p>
                     </div>
@@ -4719,11 +4854,13 @@ export default function TournamentControlRoom({
                           href={viewingTeam.playerDetails.idCardUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-slate-50"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-ink-50"
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            badge
-                          </span>
+                          <IdentificationBadgeIcon
+                            className="text-sm"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 1 ↗
                         </a>
                       </div>
@@ -4733,20 +4870,20 @@ export default function TournamentControlRoom({
               </div>
 
               {/* Player 2 Details */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
                     Pemain 2 (Pasangan)
                   </h4>
                   {viewingTeam.partnerDetails?.jerseySize && (
-                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
+                    <span className="rounded bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
                       Jersey: {viewingTeam.partnerDetails.jerseySize}
                     </span>
                   )}
                 </div>
                 <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
                   {viewingTeam.partnerDetails?.photoUrl ? (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-300 bg-white">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white">
                       <Image
                         src={viewingTeam.partnerDetails.photoUrl}
                         alt="Selfie Pemain 2"
@@ -4756,34 +4893,34 @@ export default function TournamentControlRoom({
                       />
                     </div>
                   ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-lg font-black text-slate-600">
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-ink-200 text-lg font-black text-ink-600">
                       {viewingTeam.partner?.charAt(0) || "P"}
                     </div>
                   )}
                   <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
                     <div>
-                      <span className="text-slate-400">Nama Lengkap:</span>
-                      <p className="font-extrabold text-slate-900">
+                      <span className="text-ink-400">Nama Lengkap:</span>
+                      <p className="font-extrabold text-ink-900">
                         {viewingTeam.partnerDetails?.fullName ||
                           viewingTeam.partner ||
                           "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Asal Kota:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Asal Kota:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.partnerDetails?.city || "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">WhatsApp / HP:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">WhatsApp / HP:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.partnerDetails?.phone ? (
                           <a
                             href={`https://wa.me/${viewingTeam.partnerDetails.phone.replace(/[^0-9]/g, "")}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-brand-600 hover:underline"
                           >
                             +62 {viewingTeam.partnerDetails.phone}
                           </a>
@@ -4793,20 +4930,20 @@ export default function TournamentControlRoom({
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Instagram:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Instagram:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.partnerDetails?.instagram || "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Komunitas / Klub:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Komunitas / Klub:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.partnerDetails?.community || "-"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-400">Reclub:</span>
-                      <p className="font-bold text-slate-800">
+                      <span className="text-ink-400">Reclub:</span>
+                      <p className="font-bold text-ink-800">
                         {viewingTeam.partnerDetails?.reclub || "-"}
                       </p>
                     </div>
@@ -4816,11 +4953,13 @@ export default function TournamentControlRoom({
                           href={viewingTeam.partnerDetails.idCardUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-slate-50"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-ink-50"
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            badge
-                          </span>
+                          <IdentificationBadgeIcon
+                            className="text-sm"
+                            aria-hidden="true"
+                            weight="bold"
+                          />
                           Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 2 ↗
                         </a>
                       </div>
@@ -4829,12 +4968,12 @@ export default function TournamentControlRoom({
                 </div>
               </div>
               {/* Nominal Biaya Pendaftaran Setting for this team */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+              <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  <span className="text-xs font-black uppercase tracking-wider text-ink-700">
                     Nominal Biaya Pendaftaran Tim (IDR)
                   </span>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-ink-500">
                     Default turnamen: Rp{" "}
                     {(tournament?.entryFeePerPair ?? 600000).toLocaleString(
                       "id-ID",
@@ -4843,7 +4982,7 @@ export default function TournamentControlRoom({
                 </div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">
+                    <span className="absolute left-3 top-2.5 text-xs font-bold text-ink-400">
                       Rp
                     </span>
                     <input
@@ -4871,7 +5010,7 @@ export default function TournamentControlRoom({
                         "Nominal pendaftaran tim berhasil diperbarui.",
                       );
                     }}
-                    className="inline-flex h-10 items-center rounded-xl bg-slate-900 px-3.5 text-xs font-bold text-white hover:bg-slate-800"
+                    className="inline-flex h-10 items-center rounded-xl bg-ink-900 px-3.5 text-xs font-bold text-white hover:bg-ink-800"
                   >
                     Simpan Nominal
                   </button>
@@ -4879,9 +5018,9 @@ export default function TournamentControlRoom({
               </div>
 
               {/* Payment Proof Card */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
+                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
                     Bukti Pembayaran & Transfer
                   </h4>
                   <span
@@ -4904,7 +5043,7 @@ export default function TournamentControlRoom({
                             viewingTeam.paymentProofUrl ?? null,
                           )
                         }
-                        className="group relative h-64 w-full cursor-zoom-in overflow-hidden rounded-xl border border-slate-300 bg-white transition hover:border-blue-400 focus:outline-none"
+                        className="group relative h-64 w-full cursor-zoom-in overflow-hidden rounded-xl border border-ink-300 bg-white transition hover:border-brand-400 focus:outline-none"
                         title="Klik untuk memperbesar gambar"
                       >
                         <Image
@@ -4914,11 +5053,13 @@ export default function TournamentControlRoom({
                           className="object-contain"
                           unoptimized
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/25 opacity-0 transition group-hover:opacity-100">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
-                            <span className="material-symbols-outlined text-sm">
-                              zoom_in
-                            </span>
+                        <div className="absolute inset-0 flex items-center justify-center bg-ink-950/25 opacity-0 transition group-hover:opacity-100">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-900/80 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
+                            <MagnifyingGlassPlusIcon
+                              className="text-sm"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
                             Lihat Gambar Penuh
                           </span>
                         </div>
@@ -4930,16 +5071,18 @@ export default function TournamentControlRoom({
                             viewingTeam.paymentProofUrl ?? null,
                           )
                         }
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-800 hover:underline"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-700 hover:text-brand-800 hover:underline"
                       >
-                        <span className="material-symbols-outlined text-sm">
-                          zoom_in
-                        </span>
+                        <MagnifyingGlassPlusIcon
+                          className="text-sm"
+                          aria-hidden="true"
+                          weight="bold"
+                        />
                         Buka Gambar Ukuran Penuh
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 italic">
+                    <p className="text-xs text-ink-500 italic">
                       Tidak ada bukti transfer yang diunggah.
                     </p>
                   )}
@@ -4948,11 +5091,11 @@ export default function TournamentControlRoom({
             </div>
 
             {/* Quick Actions Footer */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-ink-100 pt-4">
               <button
                 type="button"
                 onClick={() => setViewingTeam(null)}
-                className="h-10 rounded-xl border border-slate-200 px-4 text-xs font-extrabold text-slate-600 hover:bg-slate-50"
+                className="h-10 rounded-xl border border-ink-200 px-4 text-xs font-extrabold text-ink-600 hover:bg-ink-50"
               >
                 Tutup
               </button>
@@ -4973,9 +5116,11 @@ export default function TournamentControlRoom({
                       : "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-base">
-                    payments
-                  </span>
+                  <MoneyIcon
+                    className="text-base"
+                    aria-hidden="true"
+                    weight="bold"
+                  />
                   {viewingTeam.paid ? "Tandai Unpaid" : "Tandai Lunas (Paid)"}
                 </button>
                 <button
@@ -4992,15 +5137,25 @@ export default function TournamentControlRoom({
                       prev ? { ...prev, status: nextStatus } : null,
                     );
                   }}
-                  className={`inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-extrabold text-white shadow-md transition ${
+                  className={`inline-flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-extrabold shadow-md transition ${
                     viewingTeam.status === "approved"
-                      ? "bg-slate-700 hover:bg-slate-800"
-                      : "bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+                      ? "bg-ink-700 text-white hover:bg-ink-800"
+                      : "bg-brand-500 text-ink-950 shadow-ink-950/10 hover:bg-brand-400"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-base">
-                    {viewingTeam.status === "approved" ? "undo" : "verified"}
-                  </span>
+                  {viewingTeam.status === "approved" ? (
+                    <ArrowCounterClockwiseIcon
+                      className="text-base"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <SealCheckIcon
+                      className="text-base"
+                      weight="bold"
+                      aria-hidden="true"
+                    />
+                  )}
                   {viewingTeam.status === "approved"
                     ? "Batal Approve"
                     : "Approve Tim"}
@@ -5013,7 +5168,7 @@ export default function TournamentControlRoom({
 
       {proofLightboxUrl && (
         <div
-          className="admin-modal fixed inset-0 z-[150] flex flex-col items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
+          className="admin-modal fixed inset-0 z-[150] flex flex-col items-center justify-center bg-ink-950/85 p-4 backdrop-blur-md"
           role="dialog"
           aria-modal="true"
         >
@@ -5024,12 +5179,14 @@ export default function TournamentControlRoom({
             aria-label="Tutup preview"
           />
           <div className="relative z-10 flex max-h-[92vh] max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5">
+            <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3.5">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600">
-                  receipt_long
-                </span>
-                <p className="text-sm font-black text-slate-900">
+                <ReceiptIcon
+                  className="text-brand-600"
+                  aria-hidden="true"
+                  weight="bold"
+                />
+                <p className="text-sm font-black text-ink-900">
                   Bukti Pembayaran / Transfer{" "}
                   {viewingTeam ? `· ${teamName(viewingTeam)}` : ""}
                 </p>
@@ -5037,13 +5194,17 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setProofLightboxUrl(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-400 hover:bg-ink-200 hover:text-ink-700 transition"
                 aria-label="Tutup"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <XIcon
+                  className="text-xl"
+                  aria-hidden="true"
+                  weight="duotone"
+                />
               </button>
             </div>
-            <div className="relative max-h-[82vh] overflow-auto p-4 bg-slate-100/60 flex items-center justify-center">
+            <div className="relative max-h-[82vh] overflow-auto p-4 bg-ink-100/60 flex items-center justify-center">
               <Image
                 src={proofLightboxUrl}
                 alt="Bukti Transfer Penuh"
