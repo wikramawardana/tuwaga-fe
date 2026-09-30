@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import {
   CAPRIVAL_QUALIFICATION_SECTIONS,
   CAPRIVAL_YOUTH_QUALIFICATION,
@@ -109,28 +110,33 @@ export function CaprivalQualificationModal({
                         (Men & Women)
                       </span>
                     </th>
-                    <th className="py-3.5 px-4 text-center w-32 bg-indigo-50/60 text-indigo-900">
+                    <th className="py-3.5 px-4 text-center w-36 bg-emerald-50/50 border-l border-slate-200 text-slate-800">
                       Mens Open
+                      <span className="block text-[10px] font-normal text-emerald-700">
+                        (Eligible for All)
+                      </span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {CAPRIVAL_QUALIFICATION_SECTIONS.map((section) => (
-                    <tr key={section.title} className="contents">
+                    <Fragment key={section.title}>
                       {/* Section Header Row */}
-                      <td
-                        colSpan={4}
-                        className="bg-slate-800 py-2 px-4 sm:px-6 text-white font-extrabold text-[11px] uppercase tracking-wider"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[16px] text-amber-400">
-                            {section.icon}
-                          </span>
-                          {section.title}
-                        </div>
-                      </td>
+                      <tr className="bg-slate-800 text-white font-extrabold text-[11px] uppercase tracking-wider">
+                        <td
+                          colSpan={4}
+                          className="py-2 px-4 sm:px-6 text-white font-extrabold text-[11px] uppercase tracking-wider"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px] text-amber-400">
+                              {section.icon}
+                            </span>
+                            {section.title}
+                          </div>
+                        </td>
+                      </tr>
 
-                      {section.rows.map((row) => (
+                      {section.rows.map((row, rowIndex) => (
                         <tr
                           key={row.criteria}
                           className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors"
@@ -169,24 +175,28 @@ export function CaprivalQualificationModal({
                               </span>
                             )}
                           </td>
-                          {/* Mens Open Column */}
-                          <td className="py-3 px-4 text-center bg-indigo-50/20">
-                            {row.mensOpen === true || row.openMen === true ? (
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-black text-sm">
-                                ✓
-                              </span>
-                            ) : row.mensOpen === false ||
-                              row.openMen === false ? (
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-100 text-rose-700 font-black text-sm">
-                                ✕
-                              </span>
-                            ) : (
-                              <span className="inline-block h-6 w-6" />
-                            )}
-                          </td>
+                          {/* Mens Open Column - Merged Cell for the Section */}
+                          {rowIndex === 0 && (
+                            <td
+                              rowSpan={section.rows.length}
+                              className="py-4 px-3 text-center bg-emerald-50/25 border-l border-slate-200 align-middle"
+                            >
+                              <div className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl border border-emerald-200/70 bg-white/90 shadow-2xs">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-black text-sm shadow-xs">
+                                  ✓
+                                </span>
+                                <span className="font-extrabold text-emerald-800 text-[11px] uppercase tracking-wide leading-snug">
+                                  Eligible for All
+                                </span>
+                                <span className="text-[10px] text-emerald-600/90 font-semibold leading-tight">
+                                  Semua Kualifikasi
+                                </span>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
-                    </tr>
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
