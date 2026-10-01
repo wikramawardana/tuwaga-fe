@@ -83,7 +83,13 @@ function FileUploadBox({
   return (
     <div className="space-y-2">
       <FieldLabel required={required}>{label}</FieldLabel>
-      <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-ink-300/60 bg-white p-5 transition hover:border-brand-500 hover:bg-ink-100/50">
+      <label
+        className={`relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 transition hover:border-brand-500 hover:bg-ink-100/50 ${
+          url
+            ? "border-emerald-300 bg-emerald-50/20"
+            : "border-ink-300/60 bg-white"
+        }`}
+      >
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -138,6 +144,11 @@ function FileUploadBox({
               {loading ? "Mengunggah..." : "Pilih atau seret gambar ke sini"}
             </p>
             <p className="text-[11px] text-ink-600">{description}</p>
+            {required && (
+              <span className="mt-1 text-[11px] font-semibold text-rose-500">
+                * Wajib dilampirkan
+              </span>
+            )}
           </div>
         )}
       </label>
@@ -359,7 +370,9 @@ export default function TournamentRegisterPage() {
           !!player1.phone.trim() &&
           !!player1.instagram.trim() &&
           !!player1.city.trim() &&
-          !!player1.jerseySize
+          !!player1.jerseySize &&
+          !!player1.photoUrl &&
+          !!player1.idCardUrl
         );
       case 2:
         return (
@@ -367,10 +380,27 @@ export default function TournamentRegisterPage() {
           !!player2.phone.trim() &&
           !!player2.instagram.trim() &&
           !!player2.city.trim() &&
-          !!player2.jerseySize
+          !!player2.jerseySize &&
+          !!player2.photoUrl &&
+          !!player2.idCardUrl
         );
       case 3:
-        return true;
+        return (
+          !!player1.fullName.trim() &&
+          !!player1.phone.trim() &&
+          !!player1.instagram.trim() &&
+          !!player1.city.trim() &&
+          !!player1.jerseySize &&
+          !!player1.photoUrl &&
+          !!player1.idCardUrl &&
+          !!player2.fullName.trim() &&
+          !!player2.phone.trim() &&
+          !!player2.instagram.trim() &&
+          !!player2.city.trim() &&
+          !!player2.jerseySize &&
+          !!player2.photoUrl &&
+          !!player2.idCardUrl
+        );
       default:
         return false;
     }
@@ -378,6 +408,12 @@ export default function TournamentRegisterPage() {
 
   const handleSubmit = async () => {
     if (!tournament) return;
+    if (!canAdvance) {
+      setMessage(
+        "Mohon lengkapi seluruh data dan lampiran file yang diwajibkan.",
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       const divisionLevel = divisionSkillLevel(selectedCategory);
@@ -441,6 +477,7 @@ export default function TournamentRegisterPage() {
   };
 
   const goNext = () => {
+    if (!canAdvance) return;
     if (step === WIZARD_STEPS.length - 1) {
       setShowConfirmModal(true);
     } else {
@@ -810,6 +847,7 @@ export default function TournamentRegisterPage() {
                 label="Foto Pemain 1 (Selfie terbaru)"
                 description="Format JPG, PNG atau WebP (Maks. 5MB)"
                 url={player1.photoUrl}
+                required
                 loading={!!uploadingState["p1-photo"]}
                 onUpload={(file) =>
                   handleUploadKey("p1-photo", file, (url) =>
@@ -952,6 +990,7 @@ export default function TournamentRegisterPage() {
                 label="Kartu Identitas Pemain 1"
                 description="Upload foto kartu identitas (KTP, SIM, Kartu Pelajar, atau KIA) untuk verifikasi identitas (Maks. 5MB)"
                 url={player1.idCardUrl}
+                required
                 loading={!!uploadingState["p1-ktp"]}
                 onUpload={(file) =>
                   handleUploadKey("p1-ktp", file, (url) =>
@@ -1007,6 +1046,7 @@ export default function TournamentRegisterPage() {
                 label="Foto Pemain 2 (Selfie terbaru)"
                 description="Format JPG, PNG atau WebP (Maks. 5MB)"
                 url={player2.photoUrl}
+                required
                 loading={!!uploadingState["p2-photo"]}
                 onUpload={(file) =>
                   handleUploadKey("p2-photo", file, (url) =>
@@ -1150,6 +1190,7 @@ export default function TournamentRegisterPage() {
                 label="Kartu Identitas Pemain 2"
                 description="Upload foto kartu identitas (KTP, SIM, Kartu Pelajar, atau KIA) untuk verifikasi identitas (Maks. 5MB)"
                 url={player2.idCardUrl}
+                required
                 loading={!!uploadingState["p2-ktp"]}
                 onUpload={(file) =>
                   handleUploadKey("p2-ktp", file, (url) =>
@@ -1252,6 +1293,14 @@ export default function TournamentRegisterPage() {
                       WA: +62{player1.phone} · IG: {player1.instagram} · Asal:{" "}
                       {player1.city}
                     </p>
+                    {player1.idCardUrl && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <span className="material-symbols-outlined text-xs">
+                          badge
+                        </span>
+                        Kartu Identitas Terlampir
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1290,6 +1339,14 @@ export default function TournamentRegisterPage() {
                       WA: +62{player2.phone} · IG: {player2.instagram} · Asal:{" "}
                       {player2.city}
                     </p>
+                    {player2.idCardUrl && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <span className="material-symbols-outlined text-xs">
+                          badge
+                        </span>
+                        Kartu Identitas Terlampir
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1334,6 +1391,22 @@ export default function TournamentRegisterPage() {
               </div>
             </div>
           </section>
+        )}
+
+        {!canAdvance && (step === 1 || step === 2) && (
+          <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs text-rose-800">
+            <span className="material-symbols-outlined text-rose-600 text-lg shrink-0 mt-0.5">
+              error
+            </span>
+            <div>
+              <p className="font-bold">Formulir belum lengkap:</p>
+              <p className="mt-0.5 text-rose-700">
+                Pastikan nama, nomor WhatsApp, Instagram, asal kota, ukuran
+                jersey, serta <strong>foto selfie</strong> dan{" "}
+                <strong>kartu identitas</strong> sudah diunggah.
+              </p>
+            </div>
+          </div>
         )}
 
         <StepActions
