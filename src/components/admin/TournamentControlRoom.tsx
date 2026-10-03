@@ -93,7 +93,9 @@ import {
   type MatchStatus,
   type OopPlan,
   type OopSettings,
+  type PartnerDetail,
   type Phase,
+  type PlayerDetail,
   type RegistrationTeam,
   type ScoringRules,
   type SportType,
@@ -105,6 +107,7 @@ import {
   updateMatch,
   updateRegistration,
   updateSettings,
+  uploadFile,
 } from "@/lib/tuwagaApi";
 
 const SPORT_OPTIONS: Array<{
@@ -536,12 +539,18 @@ export default function TournamentControlRoom({
   const [activeSection, setActiveSection] = useState<AdminSection>(
     () => explicitSectionFromParams ?? "overview",
   );
-  const [proofLightboxUrl, setProofLightboxUrl] = useState<string | null>(null);
+  const [mediaLightbox, setMediaLightbox] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
+  const [uploadingIdCard, setUploadingIdCard] = useState<
+    "player1" | "player2" | null
+  >(null);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setProofLightboxUrl(null);
+        setMediaLightbox(null);
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -1154,7 +1163,15 @@ export default function TournamentControlRoom({
   async function patchTeam(
     team: RegistrationTeam,
     patch: Partial<
-      Pick<RegistrationTeam, "paid" | "status" | "group" | "entryFee">
+      Pick<
+        RegistrationTeam,
+        | "paid"
+        | "status"
+        | "group"
+        | "entryFee"
+        | "playerDetails"
+        | "partnerDetails"
+      >
     >,
   ) {
     const previous = teams;
@@ -1167,6 +1184,9 @@ export default function TournamentControlRoom({
       const updated = await updateRegistration(tournamentId, team.id, patch);
       setTeams((current) =>
         current.map((item) => (item.id === team.id ? updated : item)),
+      );
+      setViewingTeam((current) =>
+        current && current.id === team.id ? updated : current,
       );
       setMessage(`${teamName(updated)} is updated.`);
     } catch (error) {
@@ -2947,6 +2967,45 @@ export default function TournamentControlRoom({
                                       Bukti Transfer Ada
                                     </span>
                                   )}
+                                  {(() => {
+                                    const p1Ktp = team.playerDetails?.idCardUrl;
+                                    const p2Ktp =
+                                      team.partnerDetails?.idCardUrl;
+                                    if (p1Ktp && p2Ktp) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-0.5 text-[11px] font-bold text-teal-700 border border-teal-200">
+                                          <IdentificationBadgeIcon
+                                            className="text-xs"
+                                            aria-hidden="true"
+                                            weight="bold"
+                                          />
+                                          KTP Lengkap (2/2)
+                                        </span>
+                                      );
+                                    }
+                                    if (p1Ktp || p2Ktp) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+                                          <IdentificationBadgeIcon
+                                            className="text-xs"
+                                            aria-hidden="true"
+                                            weight="bold"
+                                          />
+                                          KTP (1/2)
+                                        </span>
+                                      );
+                                    }
+                                    return (
+                                      <span className="inline-flex items-center gap-1 rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-semibold text-ink-500">
+                                        <IdentificationBadgeIcon
+                                          className="text-xs"
+                                          aria-hidden="true"
+                                          weight="bold"
+                                        />
+                                        KTP: Belum Ada
+                                      </span>
+                                    );
+                                  })()}
                                   {team.playerDetails?.jerseySize && (
                                     <span className="inline-flex items-center gap-1 rounded-md bg-ink-100 px-2 py-0.5 text-[11px] font-bold text-ink-600">
                                       Jersey: {team.playerDetails.jerseySize} /{" "}
@@ -4771,323 +4830,965 @@ export default function TournamentControlRoom({
             </div>
 
             <div className="mt-6 space-y-6">
-              {/* Player 1 Details */}
-              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
-                    Pemain 1 (Utama)
-                  </h4>
-                  {viewingTeam.playerDetails?.jerseySize && (
-                    <span className="rounded bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
-                      Jersey: {viewingTeam.playerDetails.jerseySize}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
-                  {viewingTeam.playerDetails?.photoUrl ? (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white">
-                      <Image
-                        src={viewingTeam.playerDetails.photoUrl}
-                        alt="Selfie Pemain 1"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-ink-200 text-lg font-black text-ink-600">
-                      {viewingTeam.player.charAt(0)}
-                    </div>
-                  )}
-                  <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
-                    <div>
-                      <span className="text-ink-400">Nama Lengkap:</span>
-                      <p className="font-extrabold text-ink-900">
-                        {viewingTeam.playerDetails?.fullName ||
-                          viewingTeam.player}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Asal Kota:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.playerDetails?.city || viewingTeam.city}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">WhatsApp / HP:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.playerDetails?.phone ? (
-                          <a
-                            href={`https://wa.me/${viewingTeam.playerDetails.phone.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-brand-600 hover:underline"
-                          >
-                            +62 {viewingTeam.playerDetails.phone}
-                          </a>
-                        ) : (
-                          "-"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Instagram:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.playerDetails?.instagram || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Komunitas / Klub:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.playerDetails?.community || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Reclub:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.playerDetails?.reclub || "-"}
-                      </p>
-                    </div>
-                    {viewingTeam.playerDetails?.idCardUrl && (
-                      <div className="sm:col-span-2 mt-1">
-                        <a
-                          href={viewingTeam.playerDetails.idCardUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-ink-50"
-                        >
-                          <IdentificationBadgeIcon
-                            className="text-sm"
-                            aria-hidden="true"
-                            weight="bold"
-                          />
-                          Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 1 ↗
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              {(() => {
+                const p1 = viewingTeam.playerDetails;
+                const p1Name = p1?.fullName || viewingTeam.player;
+                const p1Photo = p1?.photoUrl || null;
+                const p1IdCard = p1?.idCardUrl || null;
+                const p1Jersey = p1?.jerseySize || null;
+                const p1City = p1?.city || viewingTeam.city || "-";
+                const p1Phone = p1?.phone || null;
+                const p1Instagram = p1?.instagram || "-";
+                const p1Community = p1?.community || "-";
+                const p1Reclub = p1?.reclub || "-";
+                const p1Level = p1?.skillLevel || viewingTeam.level || "-";
 
-              {/* Player 2 Details */}
-              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
-                    Pemain 2 (Pasangan)
-                  </h4>
-                  {viewingTeam.partnerDetails?.jerseySize && (
-                    <span className="rounded bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
-                      Jersey: {viewingTeam.partnerDetails.jerseySize}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start">
-                  {viewingTeam.partnerDetails?.photoUrl ? (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white">
-                      <Image
-                        src={viewingTeam.partnerDetails.photoUrl}
-                        alt="Selfie Pemain 2"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-ink-200 text-lg font-black text-ink-600">
-                      {viewingTeam.partner?.charAt(0) || "P"}
-                    </div>
-                  )}
-                  <div className="grid flex-1 gap-2 text-xs sm:grid-cols-2">
-                    <div>
-                      <span className="text-ink-400">Nama Lengkap:</span>
-                      <p className="font-extrabold text-ink-900">
-                        {viewingTeam.partnerDetails?.fullName ||
-                          viewingTeam.partner ||
-                          "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Asal Kota:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.partnerDetails?.city || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">WhatsApp / HP:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.partnerDetails?.phone ? (
-                          <a
-                            href={`https://wa.me/${viewingTeam.partnerDetails.phone.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-brand-600 hover:underline"
-                          >
-                            +62 {viewingTeam.partnerDetails.phone}
-                          </a>
-                        ) : (
-                          "-"
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Instagram:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.partnerDetails?.instagram || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Komunitas / Klub:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.partnerDetails?.community || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-ink-400">Reclub:</span>
-                      <p className="font-bold text-ink-800">
-                        {viewingTeam.partnerDetails?.reclub || "-"}
-                      </p>
-                    </div>
-                    {viewingTeam.partnerDetails?.idCardUrl && (
-                      <div className="sm:col-span-2 mt-1">
-                        <a
-                          href={viewingTeam.partnerDetails.idCardUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-xs font-bold text-brand-700 hover:bg-ink-50"
-                        >
-                          <IdentificationBadgeIcon
-                            className="text-sm"
-                            aria-hidden="true"
-                            weight="bold"
-                          />
-                          Lihat Kartu Identitas (KTP/SIM/Pelajar) Pemain 2 ↗
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Nominal Biaya Pendaftaran Setting for this team */}
-              <div className="rounded-xl border border-ink-200 bg-white p-4 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-ink-700">
-                    Nominal Biaya Pendaftaran Tim (IDR)
-                  </span>
-                  <span className="text-[10px] text-ink-500">
-                    Default turnamen: Rp{" "}
-                    {(tournament?.entryFeePerPair ?? 600000).toLocaleString(
-                      "id-ID",
-                    )}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <span className="absolute left-3 top-2.5 text-xs font-bold text-ink-400">
-                      Rp
-                    </span>
-                    <input
-                      type="number"
-                      placeholder={`${tournament?.entryFeePerPair ?? 600000}`}
-                      value={viewingTeam.entryFee ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value
-                          ? Number(e.target.value)
-                          : null;
-                        setViewingTeam((prev) =>
-                          prev ? { ...prev, entryFee: val } : null,
-                        );
-                      }}
-                      className="admin-input pl-9 font-mono"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await patchTeam(viewingTeam, {
-                        entryFee: viewingTeam.entryFee ?? undefined,
-                      });
-                      setMessage(
-                        "Nominal pendaftaran tim berhasil diperbarui.",
-                      );
-                    }}
-                    className="inline-flex h-10 items-center rounded-xl bg-ink-900 px-3.5 text-xs font-bold text-white hover:bg-ink-800"
-                  >
-                    Simpan Nominal
-                  </button>
-                </div>
-              </div>
+                const p2 = viewingTeam.partnerDetails;
+                const p2Name = p2?.fullName || viewingTeam.partner || "-";
+                const p2Photo = p2?.photoUrl || null;
+                const p2IdCard = p2?.idCardUrl || null;
+                const p2Jersey = p2?.jerseySize || null;
+                const p2City = p2?.city || "-";
+                const p2Phone = p2?.phone || null;
+                const p2Instagram = p2?.instagram || "-";
+                const p2Community = p2?.community || "-";
+                const p2Reclub = p2?.reclub || "-";
+                const p2Level = p2?.skillLevel || "-";
 
-              {/* Payment Proof Card */}
-              <div className="rounded-xl border border-ink-200 bg-ink-50/70 p-4">
-                <div className="flex items-center justify-between border-b border-ink-200/60 pb-2">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-ink-700">
-                    Bukti Pembayaran & Transfer
-                  </h4>
-                  <span
-                    className={`rounded px-2 py-0.5 text-xs font-bold ${
-                      viewingTeam.paid
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-rose-100 text-rose-800"
-                    }`}
-                  >
-                    {viewingTeam.paid ? "Sudah Dibayar" : "Belum Bayar"}
-                  </span>
-                </div>
-                <div className="mt-3">
-                  {viewingTeam.paymentProofUrl ? (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setProofLightboxUrl(
-                            viewingTeam.paymentProofUrl ?? null,
-                          )
-                        }
-                        className="group relative h-64 w-full cursor-zoom-in overflow-hidden rounded-xl border border-ink-300 bg-white transition hover:border-brand-400 focus:outline-none"
-                        title="Klik untuk memperbesar gambar"
-                      >
-                        <Image
-                          src={viewingTeam.paymentProofUrl}
-                          alt="Bukti Transfer"
-                          fill
-                          className="object-contain"
-                          unoptimized
+                return (
+                  <>
+                    {/* Verification Summary Banner */}
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 rounded-2xl border border-ink-200 bg-ink-50/60 p-3">
+                      <div className="flex items-center gap-2.5 rounded-xl border border-ink-200/80 bg-white p-2.5 shadow-2xs">
+                        <IdentificationBadgeIcon
+                          className={`text-xl shrink-0 ${
+                            p1IdCard ? "text-emerald-600" : "text-amber-500"
+                          }`}
+                          weight="bold"
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-ink-950/25 opacity-0 transition group-hover:opacity-100">
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-900/80 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
-                            <MagnifyingGlassPlusIcon
-                              className="text-sm"
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                            KTP Pemain 1
+                          </span>
+                          <span
+                            className={`text-xs font-black ${
+                              p1IdCard ? "text-emerald-700" : "text-amber-700"
+                            }`}
+                          >
+                            {p1IdCard ? "✓ Terunggah" : "⚠️ Belum Diunggah"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 rounded-xl border border-ink-200/80 bg-white p-2.5 shadow-2xs">
+                        <IdentificationBadgeIcon
+                          className={`text-xl shrink-0 ${
+                            p2IdCard ? "text-emerald-600" : "text-amber-500"
+                          }`}
+                          weight="bold"
+                        />
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                            KTP Pemain 2
+                          </span>
+                          <span
+                            className={`text-xs font-black ${
+                              p2IdCard ? "text-emerald-700" : "text-amber-700"
+                            }`}
+                          >
+                            {p2IdCard ? "✓ Terunggah" : "⚠️ Belum Diunggah"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 rounded-xl border border-ink-200/80 bg-white p-2.5 shadow-2xs">
+                        <ReceiptIcon
+                          className={`text-xl shrink-0 ${
+                            viewingTeam.paid
+                              ? "text-emerald-600"
+                              : viewingTeam.paymentProofUrl
+                                ? "text-brand-600"
+                                : "text-rose-500"
+                          }`}
+                          weight="bold"
+                        />
+                        <div className="min-w-0">
+                          <span className="block text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                            Status Pembayaran
+                          </span>
+                          <span
+                            className={`text-xs font-black ${
+                              viewingTeam.paid
+                                ? "text-emerald-700"
+                                : viewingTeam.paymentProofUrl
+                                  ? "text-brand-700"
+                                  : "text-rose-700"
+                            }`}
+                          >
+                            {viewingTeam.paid
+                              ? "✓ Lunas (Paid)"
+                              : viewingTeam.paymentProofUrl
+                                ? "Ada Bukti Transfer"
+                                : "Belum Bayar"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Player 1 Details */}
+                    <div className="rounded-2xl border border-ink-200 bg-ink-50/70 p-4 sm:p-5">
+                      <div className="flex items-center justify-between border-b border-ink-200/60 pb-3">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-ink-800">
+                            Pemain 1 (Utama)
+                          </h4>
+                          <span className="rounded-md bg-ink-200/70 px-2 py-0.5 text-[10px] font-extrabold text-ink-700">
+                            Level: {p1Level}
+                          </span>
+                        </div>
+                        {p1Jersey && (
+                          <span className="rounded-md bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-800">
+                            Jersey: {p1Jersey}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <div className="flex flex-col items-center gap-1.5 shrink-0">
+                          {p1Photo ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMediaLightbox({
+                                  url: p1Photo,
+                                  title: `Foto Selfie Pemain 1 · ${p1Name}`,
+                                })
+                              }
+                              className="group relative h-24 w-24 shrink-0 cursor-zoom-in overflow-hidden rounded-2xl border-2 border-ink-200 bg-white transition hover:border-brand-500 shadow-2xs"
+                              title="Klik untuk memperbesar foto selfie"
+                            >
+                              <Image
+                                src={p1Photo}
+                                alt={`Foto ${p1Name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-ink-950/25 opacity-0 transition group-hover:opacity-100">
+                                <MagnifyingGlassPlusIcon
+                                  className="text-white text-base"
+                                  weight="bold"
+                                />
+                              </div>
+                            </button>
+                          ) : (
+                            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-ink-200 text-2xl font-black text-ink-600 shadow-inner">
+                              {p1Name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-[10px] font-bold text-ink-400">
+                            Foto Wajah
+                          </span>
+                        </div>
+
+                        <div className="grid flex-1 gap-2.5 text-xs sm:grid-cols-2">
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Nama Lengkap:
+                            </span>
+                            <p className="font-extrabold text-ink-950 text-sm">
+                              {p1Name}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Asal Kota:
+                            </span>
+                            <p className="font-bold text-ink-800">{p1City}</p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              WhatsApp / HP:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p1Phone ? (
+                                <a
+                                  href={`https://wa.me/${p1Phone.replace(/[^0-9]/g, "")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-brand-600 hover:underline inline-flex items-center gap-1"
+                                >
+                                  +62 {p1Phone} ↗
+                                </a>
+                              ) : (
+                                "-"
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Instagram:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p1Instagram}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Komunitas / Klub:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p1Community}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Reclub:
+                            </span>
+                            <p className="font-bold text-ink-800">{p1Reclub}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* KTP Document Verification Sub-Card */}
+                      <div className="mt-4 rounded-xl border border-ink-200 bg-white p-3.5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-ink-100 pb-2">
+                          <div className="flex items-center gap-2">
+                            <IdentificationBadgeIcon
+                              className="text-base text-brand-600"
                               aria-hidden="true"
                               weight="bold"
                             />
-                            Lihat Gambar Penuh
+                            <span className="text-xs font-black text-ink-900">
+                              Kartu Identitas (KTP / SIM / Pelajar) Pemain 1
+                            </span>
+                          </div>
+                          {p1IdCard ? (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                              <CheckCircleIcon
+                                className="text-xs"
+                                weight="bold"
+                              />
+                              Dokumen Terunggah
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+                              <InfoIcon className="text-xs" weight="bold" />
+                              Belum Diunggah
+                            </span>
+                          )}
+                        </div>
+
+                        {p1IdCard ? (
+                          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMediaLightbox({
+                                  url: p1IdCard,
+                                  title: `Kartu Identitas (KTP/SIM/Pelajar) · ${p1Name} (Pemain 1)`,
+                                })
+                              }
+                              className="group relative h-28 w-48 shrink-0 cursor-zoom-in overflow-hidden rounded-xl border border-ink-200 bg-ink-50 transition hover:border-brand-500"
+                              title="Klik untuk memperbesar dokumen kartu identitas"
+                            >
+                              <Image
+                                src={p1IdCard}
+                                alt={`KTP ${p1Name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-ink-950/30 opacity-0 transition group-hover:opacity-100">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-ink-900/90 px-2.5 py-1 text-[11px] font-bold text-white shadow">
+                                  <MagnifyingGlassPlusIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Perbesar
+                                </span>
+                              </div>
+                            </button>
+                            <div className="space-y-2 text-xs">
+                              <p className="text-ink-600">
+                                Periksa kesesuaian nama{" "}
+                                <strong className="text-ink-900">
+                                  {p1Name}
+                                </strong>{" "}
+                                dan foto wajah pemain dengan kartu identitas
+                                resmi.
+                              </p>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setMediaLightbox({
+                                      url: p1IdCard,
+                                      title: `Kartu Identitas (KTP/SIM/Pelajar) · ${p1Name} (Pemain 1)`,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-ink-50 px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-ink-100 hover:text-ink-900 transition"
+                                >
+                                  <MagnifyingGlassPlusIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Lihat Ukuran Penuh
+                                </button>
+                                <a
+                                  href={p1IdCard}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-700 hover:bg-brand-100 transition"
+                                >
+                                  <ArrowSquareOutIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Buka di Tab Baru ↗
+                                </a>
+                                <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-ink-200 bg-white px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-ink-50 transition">
+                                  <FileArrowUpIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  <span>
+                                    {uploadingIdCard === "player1"
+                                      ? "Mengunggah..."
+                                      : "Ganti File KTP"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    className="hidden"
+                                    disabled={uploadingIdCard === "player1"}
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        setUploadingIdCard("player1");
+                                        const res = await uploadFile(file);
+                                        const updatedDetails: PlayerDetail = {
+                                          fullName: p1Name,
+                                          email:
+                                            viewingTeam.playerDetails?.email ||
+                                            "",
+                                          phone: p1Phone || "",
+                                          skillLevel: p1Level,
+                                          idCardUrl: res.url,
+                                          city: viewingTeam.playerDetails?.city,
+                                          photoUrl:
+                                            viewingTeam.playerDetails?.photoUrl,
+                                          instagram:
+                                            viewingTeam.playerDetails
+                                              ?.instagram,
+                                          community:
+                                            viewingTeam.playerDetails
+                                              ?.community,
+                                          reclub:
+                                            viewingTeam.playerDetails?.reclub,
+                                          jerseySize:
+                                            viewingTeam.playerDetails
+                                              ?.jerseySize,
+                                        };
+                                        await patchTeam(viewingTeam, {
+                                          playerDetails: updatedDetails,
+                                        });
+                                        setMessage(
+                                          "KTP Pemain 1 berhasil diperbarui.",
+                                        );
+                                      } catch (err) {
+                                        setMessage(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Gagal mengunggah KTP.",
+                                        );
+                                      } finally {
+                                        setUploadingIdCard(null);
+                                        e.target.value = "";
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-2.5 text-xs text-amber-800">
+                            <div className="flex items-center gap-2">
+                              <InfoIcon
+                                className="text-base shrink-0 text-amber-600"
+                                weight="bold"
+                              />
+                              <span>
+                                Peserta belum mengunggah foto kartu identitas
+                                (KTP/SIM/Pelajar) saat pendaftaran.
+                              </span>
+                            </div>
+                            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1 text-xs font-bold text-amber-800 shadow-2xs hover:bg-amber-50 shrink-0 transition">
+                              <FileArrowUpIcon
+                                className="text-xs"
+                                weight="bold"
+                              />
+                              <span>
+                                {uploadingIdCard === "player1"
+                                  ? "Mengunggah..."
+                                  : "Unggah KTP Pemain 1"}
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                className="hidden"
+                                disabled={uploadingIdCard === "player1"}
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    setUploadingIdCard("player1");
+                                    const res = await uploadFile(file);
+                                    const updatedDetails: PlayerDetail = {
+                                      fullName: p1Name,
+                                      email:
+                                        viewingTeam.playerDetails?.email || "",
+                                      phone: p1Phone || "",
+                                      skillLevel: p1Level,
+                                      idCardUrl: res.url,
+                                      city: viewingTeam.playerDetails?.city,
+                                      photoUrl:
+                                        viewingTeam.playerDetails?.photoUrl,
+                                      instagram:
+                                        viewingTeam.playerDetails?.instagram,
+                                      community:
+                                        viewingTeam.playerDetails?.community,
+                                      reclub: viewingTeam.playerDetails?.reclub,
+                                      jerseySize:
+                                        viewingTeam.playerDetails?.jerseySize,
+                                    };
+                                    await patchTeam(viewingTeam, {
+                                      playerDetails: updatedDetails,
+                                    });
+                                    setMessage(
+                                      "KTP Pemain 1 berhasil diunggah.",
+                                    );
+                                  } catch (err) {
+                                    setMessage(
+                                      err instanceof Error
+                                        ? err.message
+                                        : "Gagal mengunggah KTP.",
+                                    );
+                                  } finally {
+                                    setUploadingIdCard(null);
+                                    e.target.value = "";
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Player 2 Details */}
+                    <div className="rounded-2xl border border-ink-200 bg-ink-50/70 p-4 sm:p-5">
+                      <div className="flex items-center justify-between border-b border-ink-200/60 pb-3">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-ink-800">
+                            Pemain 2 (Pasangan)
+                          </h4>
+                          <span className="rounded-md bg-ink-200/70 px-2 py-0.5 text-[10px] font-extrabold text-ink-700">
+                            Level: {p2Level}
                           </span>
                         </div>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setProofLightboxUrl(
-                            viewingTeam.paymentProofUrl ?? null,
-                          )
-                        }
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-700 hover:text-brand-800 hover:underline"
-                      >
-                        <MagnifyingGlassPlusIcon
-                          className="text-sm"
-                          aria-hidden="true"
-                          weight="bold"
-                        />
-                        Buka Gambar Ukuran Penuh
-                      </button>
+                        {p2Jersey && (
+                          <span className="rounded-md bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-800">
+                            Jersey: {p2Jersey}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+                        <div className="flex flex-col items-center gap-1.5 shrink-0">
+                          {p2Photo ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMediaLightbox({
+                                  url: p2Photo,
+                                  title: `Foto Selfie Pemain 2 · ${p2Name}`,
+                                })
+                              }
+                              className="group relative h-24 w-24 shrink-0 cursor-zoom-in overflow-hidden rounded-2xl border-2 border-ink-200 bg-white transition hover:border-brand-500 shadow-2xs"
+                              title="Klik untuk memperbesar foto selfie"
+                            >
+                              <Image
+                                src={p2Photo}
+                                alt={`Foto ${p2Name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-ink-950/25 opacity-0 transition group-hover:opacity-100">
+                                <MagnifyingGlassPlusIcon
+                                  className="text-white text-base"
+                                  weight="bold"
+                                />
+                              </div>
+                            </button>
+                          ) : (
+                            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-ink-200 text-2xl font-black text-ink-600 shadow-inner">
+                              {p2Name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-[10px] font-bold text-ink-400">
+                            Foto Wajah
+                          </span>
+                        </div>
+
+                        <div className="grid flex-1 gap-2.5 text-xs sm:grid-cols-2">
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Nama Lengkap:
+                            </span>
+                            <p className="font-extrabold text-ink-950 text-sm">
+                              {p2Name}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Asal Kota:
+                            </span>
+                            <p className="font-bold text-ink-800">{p2City}</p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              WhatsApp / HP:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p2Phone ? (
+                                <a
+                                  href={`https://wa.me/${p2Phone.replace(/[^0-9]/g, "")}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-brand-600 hover:underline inline-flex items-center gap-1"
+                                >
+                                  +62 {p2Phone} ↗
+                                </a>
+                              ) : (
+                                "-"
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Instagram:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p2Instagram}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Komunitas / Klub:
+                            </span>
+                            <p className="font-bold text-ink-800">
+                              {p2Community}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-semibold text-ink-400">
+                              Reclub:
+                            </span>
+                            <p className="font-bold text-ink-800">{p2Reclub}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* KTP Document Verification Sub-Card */}
+                      <div className="mt-4 rounded-xl border border-ink-200 bg-white p-3.5 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-ink-100 pb-2">
+                          <div className="flex items-center gap-2">
+                            <IdentificationBadgeIcon
+                              className="text-base text-brand-600"
+                              aria-hidden="true"
+                              weight="bold"
+                            />
+                            <span className="text-xs font-black text-ink-900">
+                              Kartu Identitas (KTP / SIM / Pelajar) Pemain 2
+                            </span>
+                          </div>
+                          {p2IdCard ? (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                              <CheckCircleIcon
+                                className="text-xs"
+                                weight="bold"
+                              />
+                              Dokumen Terunggah
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 border border-amber-200">
+                              <InfoIcon className="text-xs" weight="bold" />
+                              Belum Diunggah
+                            </span>
+                          )}
+                        </div>
+
+                        {p2IdCard ? (
+                          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMediaLightbox({
+                                  url: p2IdCard,
+                                  title: `Kartu Identitas (KTP/SIM/Pelajar) · ${p2Name} (Pemain 2)`,
+                                })
+                              }
+                              className="group relative h-28 w-48 shrink-0 cursor-zoom-in overflow-hidden rounded-xl border border-ink-200 bg-ink-50 transition hover:border-brand-500"
+                              title="Klik untuk memperbesar dokumen kartu identitas"
+                            >
+                              <Image
+                                src={p2IdCard}
+                                alt={`KTP ${p2Name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-ink-950/30 opacity-0 transition group-hover:opacity-100">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-ink-900/90 px-2.5 py-1 text-[11px] font-bold text-white shadow">
+                                  <MagnifyingGlassPlusIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Perbesar
+                                </span>
+                              </div>
+                            </button>
+                            <div className="space-y-2 text-xs">
+                              <p className="text-ink-600">
+                                Periksa kesesuaian nama{" "}
+                                <strong className="text-ink-900">
+                                  {p2Name}
+                                </strong>{" "}
+                                dan foto wajah pemain dengan kartu identitas
+                                resmi.
+                              </p>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setMediaLightbox({
+                                      url: p2IdCard,
+                                      title: `Kartu Identitas (KTP/SIM/Pelajar) · ${p2Name} (Pemain 2)`,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-ink-50 px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-ink-100 hover:text-ink-900 transition"
+                                >
+                                  <MagnifyingGlassPlusIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Lihat Ukuran Penuh
+                                </button>
+                                <a
+                                  href={p2IdCard}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-700 hover:bg-brand-100 transition"
+                                >
+                                  <ArrowSquareOutIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  Buka di Tab Baru ↗
+                                </a>
+                                <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-ink-200 bg-white px-2.5 py-1 text-xs font-bold text-ink-700 hover:bg-ink-50 transition">
+                                  <FileArrowUpIcon
+                                    className="text-xs"
+                                    weight="bold"
+                                  />
+                                  <span>
+                                    {uploadingIdCard === "player2"
+                                      ? "Mengunggah..."
+                                      : "Ganti File KTP"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    className="hidden"
+                                    disabled={uploadingIdCard === "player2"}
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      try {
+                                        setUploadingIdCard("player2");
+                                        const res = await uploadFile(file);
+                                        const updatedDetails: PartnerDetail = {
+                                          fullName: p2Name,
+                                          email:
+                                            viewingTeam.partnerDetails?.email,
+                                          phone: p2Phone,
+                                          skillLevel: p2Level,
+                                          idCardUrl: res.url,
+                                          city: viewingTeam.partnerDetails
+                                            ?.city,
+                                          photoUrl:
+                                            viewingTeam.partnerDetails
+                                              ?.photoUrl,
+                                          instagram:
+                                            viewingTeam.partnerDetails
+                                              ?.instagram,
+                                          community:
+                                            viewingTeam.partnerDetails
+                                              ?.community,
+                                          reclub:
+                                            viewingTeam.partnerDetails?.reclub,
+                                          jerseySize:
+                                            viewingTeam.partnerDetails
+                                              ?.jerseySize,
+                                        };
+                                        await patchTeam(viewingTeam, {
+                                          partnerDetails: updatedDetails,
+                                        });
+                                        setMessage(
+                                          "KTP Pemain 2 berhasil diperbarui.",
+                                        );
+                                      } catch (err) {
+                                        setMessage(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Gagal mengunggah KTP.",
+                                        );
+                                      } finally {
+                                        setUploadingIdCard(null);
+                                        e.target.value = "";
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-2.5 text-xs text-amber-800">
+                            <div className="flex items-center gap-2">
+                              <InfoIcon
+                                className="text-base shrink-0 text-amber-600"
+                                weight="bold"
+                              />
+                              <span>
+                                Peserta belum mengunggah foto kartu identitas
+                                (KTP/SIM/Pelajar) saat pendaftaran.
+                              </span>
+                            </div>
+                            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1 text-xs font-bold text-amber-800 shadow-2xs hover:bg-amber-50 shrink-0 transition">
+                              <FileArrowUpIcon
+                                className="text-xs"
+                                weight="bold"
+                              />
+                              <span>
+                                {uploadingIdCard === "player2"
+                                  ? "Mengunggah..."
+                                  : "Unggah KTP Pemain 2"}
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                className="hidden"
+                                disabled={uploadingIdCard === "player2"}
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  try {
+                                    setUploadingIdCard("player2");
+                                    const res = await uploadFile(file);
+                                    const updatedDetails: PartnerDetail = {
+                                      fullName: p2Name,
+                                      email: viewingTeam.partnerDetails?.email,
+                                      phone: p2Phone,
+                                      skillLevel: p2Level,
+                                      idCardUrl: res.url,
+                                      city: viewingTeam.partnerDetails?.city,
+                                      photoUrl:
+                                        viewingTeam.partnerDetails?.photoUrl,
+                                      instagram:
+                                        viewingTeam.partnerDetails?.instagram,
+                                      community:
+                                        viewingTeam.partnerDetails?.community,
+                                      reclub:
+                                        viewingTeam.partnerDetails?.reclub,
+                                      jerseySize:
+                                        viewingTeam.partnerDetails?.jerseySize,
+                                    };
+                                    await patchTeam(viewingTeam, {
+                                      partnerDetails: updatedDetails,
+                                    });
+                                    setMessage(
+                                      "KTP Pemain 2 berhasil diunggah.",
+                                    );
+                                  } catch (err) {
+                                    setMessage(
+                                      err instanceof Error
+                                        ? err.message
+                                        : "Gagal mengunggah KTP.",
+                                    );
+                                  } finally {
+                                    setUploadingIdCard(null);
+                                    e.target.value = "";
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-xs text-ink-500 italic">
-                      Tidak ada bukti transfer yang diunggah.
-                    </p>
-                  )}
-                </div>
-              </div>
+
+                    {/* Nominal Biaya Pendaftaran Setting for this team */}
+                    <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase tracking-wider text-ink-700">
+                          Nominal Biaya Pendaftaran Tim (IDR)
+                        </span>
+                        <span className="text-[11px] font-semibold text-ink-500">
+                          Default turnamen: Rp{" "}
+                          {(
+                            tournament?.entryFeePerPair ?? 600000
+                          ).toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2.5">
+                        <div className="flex h-11 flex-1 items-center overflow-hidden rounded-xl border border-ink-200 bg-white shadow-2xs transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+                          <span className="flex h-full items-center border-r border-ink-200 bg-ink-50 px-3.5 text-xs font-extrabold text-ink-600 select-none">
+                            Rp
+                          </span>
+                          <input
+                            type="number"
+                            placeholder={`${tournament?.entryFeePerPair ?? 600000}`}
+                            value={viewingTeam.entryFee ?? ""}
+                            onChange={(e) => {
+                              const val = e.target.value
+                                ? Number(e.target.value)
+                                : null;
+                              setViewingTeam((prev) =>
+                                prev ? { ...prev, entryFee: val } : null,
+                              );
+                            }}
+                            className="h-full w-full bg-transparent px-3 font-mono text-sm font-bold text-ink-950 outline-none placeholder:text-ink-400"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await patchTeam(viewingTeam, {
+                              entryFee: viewingTeam.entryFee ?? undefined,
+                            });
+                            setMessage(
+                              "Nominal pendaftaran tim berhasil diperbarui.",
+                            );
+                          }}
+                          className="inline-flex h-11 items-center rounded-xl bg-ink-900 px-4 text-xs font-bold text-white hover:bg-ink-800 transition shadow-2xs"
+                        >
+                          Simpan Nominal
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Payment Proof Card */}
+                    <div className="rounded-2xl border border-ink-200 bg-ink-50/70 p-4 sm:p-5">
+                      <div className="flex items-center justify-between border-b border-ink-200/60 pb-3">
+                        <div className="flex items-center gap-2">
+                          <ReceiptIcon
+                            className="text-base text-brand-600"
+                            weight="bold"
+                          />
+                          <h4 className="text-xs font-black uppercase tracking-wider text-ink-800">
+                            Bukti Pembayaran & Transfer
+                          </h4>
+                        </div>
+                        <span
+                          className={`rounded-md px-2.5 py-0.5 text-xs font-bold ${
+                            viewingTeam.paid
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                              : "bg-rose-100 text-rose-800 border border-rose-200"
+                          }`}
+                        >
+                          {viewingTeam.paid
+                            ? "Sudah Dibayar (Paid)"
+                            : "Belum Bayar"}
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        {viewingTeam.paymentProofUrl ? (
+                          <div className="space-y-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMediaLightbox({
+                                  url: viewingTeam.paymentProofUrl ?? "",
+                                  title: `Bukti Transfer · ${teamName(viewingTeam)}`,
+                                })
+                              }
+                              className="group relative h-64 w-full cursor-zoom-in overflow-hidden rounded-xl border border-ink-300 bg-white transition hover:border-brand-400 focus:outline-none"
+                              title="Klik untuk memperbesar gambar"
+                            >
+                              <Image
+                                src={viewingTeam.paymentProofUrl}
+                                alt="Bukti Transfer"
+                                fill
+                                className="object-contain"
+                                unoptimized
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-ink-950/25 opacity-0 transition group-hover:opacity-100">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-900/80 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg">
+                                  <MagnifyingGlassPlusIcon
+                                    className="text-sm"
+                                    aria-hidden="true"
+                                    weight="bold"
+                                  />
+                                  Lihat Gambar Penuh
+                                </span>
+                              </div>
+                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setMediaLightbox({
+                                    url: viewingTeam.paymentProofUrl ?? "",
+                                    title: `Bukti Transfer · ${teamName(viewingTeam)}`,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 hover:text-brand-800 hover:underline"
+                              >
+                                <MagnifyingGlassPlusIcon
+                                  className="text-sm"
+                                  aria-hidden="true"
+                                  weight="bold"
+                                />
+                                Buka Gambar Ukuran Penuh
+                              </button>
+                              <span className="text-ink-300">·</span>
+                              <a
+                                href={viewingTeam.paymentProofUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-ink-600 hover:text-ink-900 hover:underline"
+                              >
+                                <ArrowSquareOutIcon
+                                  className="text-sm"
+                                  weight="bold"
+                                />
+                                Buka di Tab Baru ↗
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-ink-500 italic">
+                            Tidak ada bukti transfer yang diunggah.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Quick Actions Footer */}
@@ -5166,7 +5867,7 @@ export default function TournamentControlRoom({
         </div>
       )}
 
-      {proofLightboxUrl && (
+      {mediaLightbox && (
         <div
           className="admin-modal fixed inset-0 z-[150] flex flex-col items-center justify-center bg-ink-950/85 p-4 backdrop-blur-md"
           role="dialog"
@@ -5175,40 +5876,51 @@ export default function TournamentControlRoom({
           <button
             type="button"
             className="fixed inset-0 h-full w-full cursor-default bg-transparent"
-            onClick={() => setProofLightboxUrl(null)}
+            onClick={() => setMediaLightbox(null)}
             aria-label="Tutup preview"
           />
-          <div className="relative z-10 flex max-h-[92vh] max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="relative z-10 flex max-h-[92vh] max-w-4xl w-full flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-ink-200 bg-ink-50 px-5 py-3.5">
-              <div className="flex items-center gap-2">
-                <ReceiptIcon
-                  className="text-brand-600"
+              <div className="flex items-center gap-2 min-w-0 pr-2">
+                <IdentificationBadgeIcon
+                  className="text-brand-600 shrink-0 text-base"
                   aria-hidden="true"
                   weight="bold"
                 />
-                <p className="text-sm font-black text-ink-900">
-                  Bukti Pembayaran / Transfer{" "}
-                  {viewingTeam ? `· ${teamName(viewingTeam)}` : ""}
+                <p className="truncate text-sm font-black text-ink-900">
+                  {mediaLightbox.title}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setProofLightboxUrl(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-400 hover:bg-ink-200 hover:text-ink-700 transition"
-                aria-label="Tutup"
-              >
-                <XIcon
-                  className="text-xl"
-                  aria-hidden="true"
-                  weight="duotone"
-                />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={mediaLightbox.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-8 items-center gap-1 rounded-xl border border-ink-200 bg-white px-2.5 text-xs font-bold text-ink-700 hover:bg-ink-100 transition"
+                  title="Buka gambar di tab baru"
+                >
+                  <ArrowSquareOutIcon className="text-sm" weight="bold" />
+                  Buka Asli
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setMediaLightbox(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-400 hover:bg-ink-200 hover:text-ink-700 transition"
+                  aria-label="Tutup"
+                >
+                  <XIcon
+                    className="text-xl"
+                    aria-hidden="true"
+                    weight="duotone"
+                  />
+                </button>
+              </div>
             </div>
             <div className="relative max-h-[82vh] overflow-auto p-4 bg-ink-100/60 flex items-center justify-center">
               <Image
-                src={proofLightboxUrl}
-                alt="Bukti Transfer Penuh"
-                width={800}
+                src={mediaLightbox.url}
+                alt={mediaLightbox.title}
+                width={1200}
                 height={1200}
                 className="max-h-[78vh] w-auto max-w-full rounded-xl object-contain shadow-md"
                 unoptimized

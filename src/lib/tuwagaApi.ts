@@ -170,6 +170,42 @@ export type RegistrationTeam = {
   partnerDetails?: PartnerDetail | null;
 };
 
+export function normalizePlayerDetail(
+  raw?: Record<string, unknown> | null,
+): PlayerDetail | undefined {
+  if (!raw) return undefined;
+  return {
+    fullName: (raw.fullName ?? raw.full_name ?? "") as string,
+    email: (raw.email ?? "") as string,
+    phone: (raw.phone ?? "") as string,
+    nationality: (raw.nationality ?? "ID") as string,
+    skillLevel: (raw.skillLevel ?? raw.skill_level ?? "intermediate") as string,
+    city: (raw.city ?? null) as string | null,
+    membershipId: (raw.membershipId ?? raw.membership_id ?? null) as
+      | string
+      | null,
+    photoUrl: (raw.photoUrl ?? raw.photo_url ?? null) as string | null,
+    instagram: (raw.instagram ?? null) as string | null,
+    reclub: (raw.reclub ?? null) as string | null,
+    community: (raw.community ?? null) as string | null,
+    jerseySize: (raw.jerseySize ?? raw.jersey_size ?? null) as string | null,
+    idCardUrl: (raw.idCardUrl ?? raw.id_card_url ?? null) as string | null,
+  };
+}
+
+export function normalizeTeamDetails(team: RegistrationTeam): RegistrationTeam {
+  if (!team) return team;
+  return {
+    ...team,
+    playerDetails: normalizePlayerDetail(
+      team.playerDetails as Record<string, unknown> | undefined,
+    ),
+    partnerDetails: normalizePlayerDetail(
+      team.partnerDetails as Record<string, unknown> | undefined,
+    ),
+  };
+}
+
 export type Match = {
   id: string;
   tournamentId: string;
@@ -623,14 +659,14 @@ export async function submitPaymentProof(
       body: JSON.stringify({ paymentProofUrl }),
     },
   );
-  return data.team;
+  return normalizeTeamDetails(data.team);
 }
 
 export async function listRegistrations(tournamentId: string) {
   const data = await apiRequest<{ teams: RegistrationTeam[] }>(
     `/admin/tournaments/${tournamentId}/registrations?status=all`,
   );
-  return data.teams;
+  return data.teams.map(normalizeTeamDetails);
 }
 
 export async function updateRegistration(
@@ -639,7 +675,13 @@ export async function updateRegistration(
   input: Partial<
     Pick<
       RegistrationTeam,
-      "paid" | "paymentStatus" | "status" | "group" | "entryFee"
+      | "paid"
+      | "paymentStatus"
+      | "status"
+      | "group"
+      | "entryFee"
+      | "playerDetails"
+      | "partnerDetails"
     >
   >,
 ) {
@@ -650,7 +692,7 @@ export async function updateRegistration(
       body: JSON.stringify(input),
     },
   );
-  return data.team;
+  return normalizeTeamDetails(data.team);
 }
 
 export async function deleteRegistration(tournamentId: string, teamId: string) {
