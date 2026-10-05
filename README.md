@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+External EO reviewers use `/verification` for assigned tournaments.
+Read [EO setup and Auth synchronization](docs/eo-verification.md).
+
 ## Getting Started
 
 First, run the development server:

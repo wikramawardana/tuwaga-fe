@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RadarArt from "@/components/landing/RadarArt";
 import { authClient, useSession } from "@/lib/auth-client";
+import { workspaceForRole } from "@/lib/roles";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -72,16 +73,17 @@ function LoginContent() {
   useEffect(() => {
     if (isPending || !session) return;
 
-    const isAllowed =
-      session.user.role === "admin" ||
-      session.user.role === "organizer" ||
-      session.user.role === "panitia";
-    if (!isAllowed) {
-      window.location.href = "/403";
-      return;
-    }
-
-    window.location.href = safeCallbackPath;
+    const workspace = workspaceForRole(session.user.role);
+    const requestsAdmin =
+      safeCallbackPath === "/admin" || safeCallbackPath.startsWith("/admin/");
+    const requestsVerification =
+      safeCallbackPath === "/verification" ||
+      safeCallbackPath.startsWith("/verification/");
+    window.location.href =
+      (requestsAdmin && workspace !== "/admin") ||
+      (requestsVerification && workspace === "/tournaments")
+        ? workspace
+        : safeCallbackPath;
   }, [isPending, safeCallbackPath, session]);
 
   const handleSignIn = async () => {

@@ -2,8 +2,10 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getAuthPool } from "@/lib/auth-pool";
+import { syncRoleToAuth } from "@/lib/auth-role-sync";
+import { TUWAGA_ROLES, type TuwagaRole } from "@/lib/roles";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -20,18 +22,30 @@ export async function GET() {
     }
 
     const pool = getAuthPool();
-    const result = await pool.query(`
+    const roleFilter = request.nextUrl.searchParams.get("role");
+    if (
+      roleFilter &&
+      !(TUWAGA_ROLES as readonly string[]).includes(roleFilter)
+    ) {
+      return NextResponse.json({ error: "Role tidak valid" }, { status: 400 });
+    }
+    const result = await pool.query(
+      `
       SELECT id, name, email, role, image, "createdAt"
       FROM "user"
+      WHERE $1::text IS NULL OR role = $1
       ORDER BY
         CASE
           WHEN role = 'admin' THEN 1
           WHEN role = 'organizer' OR role = 'panitia' THEN 2
-          ELSE 3
+          WHEN role = 'eo' THEN 3
+          ELSE 4
         END,
         "createdAt" DESC
       LIMIT 100
-    `);
+    `,
+      [roleFilter],
+    );
 
     return NextResponse.json({ users: result.rows });
   } catch (error) {
@@ -66,13 +80,19 @@ export async function POST(request: NextRequest) {
       role?: string;
     };
 
-    const validRoles = ["admin", "organizer", "panitia", "user"];
     const targetRole =
-      role?.toLowerCase() === "panitia" ? "organizer" : role?.toLowerCase();
+      typeof role === "string"
+        ? role.toLowerCase() === "panitia"
+          ? "organizer"
+          : role.toLowerCase()
+        : undefined;
 
-    if (!targetRole || !validRoles.includes(targetRole)) {
+    if (
+      !targetRole ||
+      !(TUWAGA_ROLES as readonly string[]).includes(targetRole)
+    ) {
       return NextResponse.json(
-        { error: `Role tidak valid. Pilihan role: admin, organizer, user` },
+        { error: `Role tidak valid. Pilihan role: admin, organizer, eo, user` },
         { status: 400 },
       );
     }
@@ -85,6 +105,32 @@ export async function POST(request: NextRequest) {
     }
 
     const pool = getAuthPool();
+    const target = userId
+      ? await pool.query<{ email: string }>(
+          'SELECT email FROM "user" WHERE id = $1',
+          [userId],
+        )
+      : await pool.query<{ email: string }>(
+          'SELECT email FROM "user" WHERE LOWER(email) = LOWER($1)',
+          [email],
+        );
+    if (target.rows.length !== 1)
+      return NextResponse.json(
+        { error: "Pengguna harus login ke Tuwaga terlebih dahulu" },
+        { status: 404 },
+      );
+    try {
+      await syncRoleToAuth(target.rows[0].email, targetRole as TuwagaRole);
+    } catch (error) {
+      console.error("Auth role synchronization failed", error);
+      return NextResponse.json(
+        {
+          error:
+            "Sinkronisasi peran ke Auth gagal. Coba lagi setelah Auth siap.",
+        },
+        { status: 503 },
+      );
+    }
     let query: string;
     let params: unknown[];
 

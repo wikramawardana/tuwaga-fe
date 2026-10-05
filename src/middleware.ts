@@ -1,7 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 
-const protectedPrefixes = ["/admin"];
+const protectedPrefixes = ["/admin", "/verification"];
 
 function redirectToLogin(request: NextRequest, reason?: string) {
   const loginUrl = new URL("/login", request.url);
@@ -41,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/verification/:path*"],
 };

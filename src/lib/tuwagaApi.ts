@@ -412,7 +412,93 @@ let tokenExpiry = 0;
 const TOKEN_CACHE_DURATION = 5000;
 
 function requiresAuth(path: string) {
-  return path.startsWith("/admin/") || path.includes("/my-registrations");
+  return (
+    path.startsWith("/admin/") ||
+    path.startsWith("/verification/") ||
+    path.includes("/my-registrations")
+  );
+}
+
+export type VerificationTournament = {
+  id: string;
+  slug: string;
+  name: string;
+  venue: string;
+  dateLabel: string;
+  categories: string[];
+};
+
+export type EligibilityStatus =
+  | "eligible"
+  | "needs_clarification"
+  | "ineligible";
+export type EligibilityReview = {
+  id: string;
+  teamId: string;
+  status: EligibilityStatus;
+  notes: string;
+  reviewedBy: string;
+  reviewerName: string;
+  reviewedAt: string;
+};
+export type VerificationRegistration = {
+  id: string;
+  category: string;
+  player: PlayerDetail;
+  partner: PartnerDetail | null;
+  qualificationUrl: string | null;
+  reviews: EligibilityReview[];
+};
+export type VerifierAssignment = {
+  userId: string;
+  assignedBy: string;
+  assignedAt: string;
+};
+
+export async function listVerificationTournaments() {
+  const data = await apiRequest<{ tournaments: VerificationTournament[] }>(
+    "/verification/tournaments",
+  );
+  return data.tournaments;
+}
+export async function listVerificationRegistrations(id: string) {
+  const data = await apiRequest<{ registrations: VerificationRegistration[] }>(
+    `/verification/tournaments/${encodeURIComponent(id)}/registrations`,
+  );
+  return data.registrations;
+}
+export async function submitEligibilityReview(
+  id: string,
+  teamId: string,
+  status: EligibilityStatus,
+  notes: string,
+) {
+  const data = await apiRequest<{ review: EligibilityReview }>(
+    `/verification/tournaments/${encodeURIComponent(id)}/registrations/${encodeURIComponent(teamId)}/reviews`,
+    {
+      method: "POST",
+      body: JSON.stringify({ status, notes }),
+    },
+  );
+  return data.review;
+}
+export async function listVerifierAssignments(id: string) {
+  const data = await apiRequest<{ assignments: VerifierAssignment[] }>(
+    `/admin/tournaments/${encodeURIComponent(id)}/verifiers`,
+  );
+  return data.assignments;
+}
+export async function assignVerifier(id: string, userId: string) {
+  await apiRequest(`/admin/tournaments/${encodeURIComponent(id)}/verifiers`, {
+    method: "POST",
+    body: JSON.stringify({ userId }),
+  });
+}
+export async function removeVerifier(id: string, userId: string) {
+  await apiRequest(
+    `/admin/tournaments/${encodeURIComponent(id)}/verifiers/${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
+  );
 }
 
 function clearAuthTokenCache() {

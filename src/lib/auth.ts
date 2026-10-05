@@ -2,6 +2,7 @@ import dns from "node:dns";
 import { betterAuth } from "better-auth";
 import { admin, genericOAuth } from "better-auth/plugins";
 import { getAuthPool } from "./auth-pool";
+import { normalizeTuwagaRole } from "./roles";
 
 dns.setDefaultResultOrder("ipv4first");
 
@@ -50,7 +51,7 @@ export const auth = betterAuth({
 
             // Only set role if explicitly provided upstream; otherwise preserve assigned database role
             if (typeof profile.app_role === "string") {
-              return { email, role: profile.app_role };
+              return { email, role: normalizeTuwagaRole(profile.app_role) };
             }
 
             return { email };

@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { signOut, useSession } from "@/lib/auth-client";
+import { workspaceForRole } from "@/lib/roles";
 import { SUPPORT_URL } from "@/lib/site";
 
 type NavbarAction = {
@@ -52,6 +53,7 @@ export default function Navbar({
   };
 
   const isUserAuthenticated = Boolean(session?.user);
+  const workspace = workspaceForRole(session?.user.role);
   const container = active === "admin" ? "container-wide" : "container-page";
 
   return (
@@ -142,7 +144,7 @@ export default function Navbar({
             <>
               {active !== "admin" && (
                 <Link
-                  href="/admin"
+                  href={workspace}
                   className="btn btn-sm btn-primary hidden sm:inline-flex"
                 >
                   <SquaresFourIcon weight="bold" aria-hidden="true" />
@@ -220,7 +222,7 @@ export default function Navbar({
             <div className="mt-3 grid grid-cols-2 gap-2 border-t border-cream-200/10 pt-4">
               {isUserAuthenticated ? (
                 <>
-                  <Link href="/admin" className="btn btn-primary">
+                  <Link href={workspace} className="btn btn-primary">
                     <SquaresFourIcon weight="bold" aria-hidden="true" />
                     Workspace
                   </Link>

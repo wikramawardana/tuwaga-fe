@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleNotchIcon } from "@phosphor-icons/react/dist/ssr";
+import { useEffect } from "react";
 import AccessDenied from "@/components/AccessDenied";
 import { signOut, useSession } from "@/lib/auth-client";
 
@@ -10,6 +11,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { data: session, isPending } = useSession();
+  useEffect(() => {
+    if (!isPending && session?.user.role === "eo")
+      window.location.replace("/verification");
+  }, [isPending, session]);
 
   const handleSignOut = async () => {
     try {

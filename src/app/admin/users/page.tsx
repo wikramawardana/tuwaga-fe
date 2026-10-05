@@ -34,7 +34,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<
-    "all" | "admin" | "organizer" | "user"
+    "all" | "admin" | "organizer" | "eo" | "user"
   >("all");
 
   useEffect(() => {
@@ -43,14 +43,16 @@ export default function AdminUsersPage() {
     const filterParam = params.get("filter") || params.get("role");
     if (
       filterParam &&
-      ["all", "admin", "organizer", "user"].includes(filterParam)
+      ["all", "admin", "organizer", "eo", "user"].includes(filterParam)
     ) {
-      setSelectedFilter(filterParam as "all" | "admin" | "organizer" | "user");
+      setSelectedFilter(
+        filterParam as "all" | "admin" | "organizer" | "eo" | "user",
+      );
     }
   }, []);
 
   const handleFilterChange = (
-    tabId: "all" | "admin" | "organizer" | "user",
+    tabId: "all" | "admin" | "organizer" | "eo" | "user",
   ) => {
     setSelectedFilter(tabId);
     if (typeof window === "undefined") return;
@@ -69,9 +71,9 @@ export default function AdminUsersPage() {
   };
 
   const [assignEmail, setAssignEmail] = useState("");
-  const [assignRole, setAssignRole] = useState<"organizer" | "admin" | "user">(
-    "organizer",
-  );
+  const [assignRole, setAssignRole] = useState<
+    "organizer" | "admin" | "eo" | "user"
+  >("organizer");
   const [assigning, setAssigning] = useState(false);
   const [assignMessage, setAssignMessage] = useState<{
     type: "success" | "error";
@@ -110,7 +112,7 @@ export default function AdminUsersPage() {
 
   const handleUpdateRole = async (
     userId: string,
-    newRole: "admin" | "organizer" | "user",
+    newRole: "admin" | "organizer" | "eo" | "user",
   ) => {
     try {
       setUpdatingId(userId);
@@ -181,6 +183,7 @@ export default function AdminUsersPage() {
     if (selectedFilter === "admin") return role === "admin";
     if (selectedFilter === "organizer")
       return role === "organizer" || role === "panitia";
+    if (selectedFilter === "eo") return role === "eo";
     if (selectedFilter === "user") return role === "user";
     return true;
   });
@@ -240,7 +243,8 @@ export default function AdminUsersPage() {
                   Atur hak akses operasional. <strong>Admin</strong> memiliki
                   kendali penuh termasuk asisten AI Hermes.{" "}
                   <strong>Organizer (Panitia)</strong> dapat mengelola turnamen,
-                  bagan, dan skor. Akun <strong>User</strong> dilarang masuk ke
+                  bagan, dan skor. EO hanya meninjau kelayakan peserta turnamen
+                  yang ditugaskan. Akun <strong>User</strong> dilarang masuk ke
                   workspace ini (403).
                 </p>
               </div>
@@ -274,8 +278,9 @@ export default function AdminUsersPage() {
               </h2>
             </div>
             <p className="mt-1 text-xs font-medium text-ink-500">
-              Pengguna yang sudah pernah login sekali dengan Google dapat
-              langsung ditingkatkan menjadi Organizer atau Admin.
+              Pengguna yang sudah pernah login sekali dengan Google dapat diberi
+              peran EO, Organizer, atau Admin. Perubahan juga disinkronkan ke
+              Auth.
             </p>
 
             <form
@@ -295,13 +300,14 @@ export default function AdminUsersPage() {
                 value={assignRole}
                 onChange={(e) =>
                   setAssignRole(
-                    e.target.value as "organizer" | "admin" | "user",
+                    e.target.value as "organizer" | "admin" | "eo" | "user",
                   )
                 }
                 className="h-11 rounded-xl border border-ink-200 bg-white px-3 text-xs font-semibold focus:border-brand-500 focus:outline-none"
               >
                 <option value="organizer">Organizer (Panitia)</option>
                 <option value="admin">Admin (Full + Hermes AI)</option>
+                <option value="eo">EO · Verifikasi Pemain</option>
                 <option value="user">User Biasa</option>
               </select>
 
@@ -335,6 +341,7 @@ export default function AdminUsersPage() {
                   { id: "all", label: "Semua Akun" },
                   { id: "admin", label: "Admin" },
                   { id: "organizer", label: "Organizer (Panitia)" },
+                  { id: "eo", label: "EO · Verifikasi" },
                   { id: "user", label: "User Biasa" },
                 ] as const
               ).map((tab) => (
@@ -469,6 +476,10 @@ export default function AdminUsersPage() {
                               />
                               Organizer (Panitia)
                             </span>
+                          ) : currentRole === "eo" ? (
+                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                              EO · Verifikasi Pemain
+                            </span>
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-xs font-medium uppercase text-ink-600">
                               User Biasa (403)
@@ -478,6 +489,16 @@ export default function AdminUsersPage() {
 
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {currentRole !== "eo" && (
+                              <button
+                                type="button"
+                                disabled={isUpdating}
+                                onClick={() => handleUpdateRole(user.id, "eo")}
+                                className="btn btn-sm btn-outline"
+                              >
+                                Set EO
+                              </button>
+                            )}
                             {currentRole !== "admin" && (
                               <button
                                 type="button"

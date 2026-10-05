@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AdminTournamentList from "@/components/admin/AdminTournamentList";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -22,6 +23,9 @@ export default function AdminIndexPage() {
               scoring tabs, and follow results without switching between
               disconnected tools.
             </p>
+            <Link href="/verification" className="btn btn-outline mt-5">
+              Verifikasi pemain & penugasan EO
+            </Link>
           </div>
         </section>
 

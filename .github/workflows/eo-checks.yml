@@ -1,0 +1,29 @@
+name: EO frontend checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/tuwaga_auth
+      AUTH_CLIENT_ID: tuwaga-ci
+      AUTH_CLIENT_SECRET: test-client-secret-for-ci
+      BETTER_AUTH_SECRET: test-secret-for-ci-at-least-32-characters
+      NEXT_PUBLIC_API_URL: http://localhost:8004/api/v1
+      NEXT_PUBLIC_APP_URL: http://localhost:3004
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node node_modules/typescript/bin/tsc --noEmit
+      - run: node --experimental-strip-types --test tests/*.test.mjs
+      - run: pnpm build

@@ -146,6 +146,12 @@ function TournamentCard({
             Tim & Kurasi
           </Link>
           <Link
+            href={`/verification/${encodeURIComponent(tournament.id)}`}
+            className="btn btn-sm btn-outline"
+          >
+            Verifikasi EO
+          </Link>
+          <Link
             href={`/admin/tournaments/${tournament.id}?section=technical-meeting`}
             className="inline-flex items-center gap-1 rounded-lg border border-cream-200/80 bg-cream-50/70 px-2.5 py-1 text-[11px] font-bold text-cream-700 transition hover:border-cream-300 hover:bg-cream-100"
           >

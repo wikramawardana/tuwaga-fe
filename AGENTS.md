@@ -23,6 +23,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 1. **Access Tiers & Portals**:
    - `admin`: Has access to the Hermes AI Copilot drawer, tournament setup, and crew role assignments.
    - `organizer`: Can manage operational match scoring, court queues, and OOP schedules.
+   - `eo`: Uses `/verification` for assigned tournaments. Admin pages stay restricted; role assignment synchronizes to the Auth client's `app_role`.
    - `player` / General Users: Public views, registration, bracket exploration. If an unauthorized user attempts to access admin portals, render the dedicated 403 Forbidden page.
 2. **Registration Flow**:
    - Following player registration, route to the dedicated registration success page (`feat(player): add registration success and next steps page`) showing next steps.
