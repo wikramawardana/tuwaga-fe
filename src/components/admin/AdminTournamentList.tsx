@@ -147,8 +147,13 @@ function TournamentCard({
           </Link>
           <Link
             href={`/verification/${encodeURIComponent(tournament.id)}`}
-            className="btn btn-sm btn-outline"
+            className="btn btn-outline !h-auto !rounded-lg !px-2.5 !py-1 !text-[11px] !font-bold !leading-normal inline-flex items-center gap-1 rounded-lg border border-ink-200/80 bg-ink-50 px-2.5 py-1 text-[11px] font-bold text-ink-700 transition hover:border-ink-300 hover:bg-ink-100"
           >
+            <UserCheckIcon
+              className="text-[13px] text-ink-500"
+              aria-hidden="true"
+              weight="bold"
+            />
             Verifikasi EO
           </Link>
           <Link

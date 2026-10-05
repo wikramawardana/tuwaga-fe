@@ -63,6 +63,8 @@ import Footer from "@/components/Footer";
 import { type AppIcon, ScoreboardIcon } from "@/components/icons/SportIcons";
 import Navbar from "@/components/Navbar";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import EligibilityResult from "@/components/verification/EligibilityResult";
+import { useEligibilityReviews } from "@/hooks/useEligibilityReviews";
 import {
   createDivisionLabel,
   DIVISION_SKILL_LEVELS,
@@ -539,6 +541,7 @@ export default function TournamentControlRoom({
   const [activeSection, setActiveSection] = useState<AdminSection>(
     () => explicitSectionFromParams ?? "overview",
   );
+  const eligibility = useEligibilityReviews(tournamentId, true);
   const [mediaLightbox, setMediaLightbox] = useState<{
     url: string;
     title: string;
@@ -2829,6 +2832,27 @@ export default function TournamentControlRoom({
                       </button>
                     }
                   />
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 bg-white p-4">
+                    <output className="text-sm text-ink-600">
+                      {eligibility.error ||
+                        "Hasil kelayakan EO diperbarui otomatis. Persetujuan dan pembayaran tetap dikelola panitia."}
+                    </output>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline"
+                        onClick={eligibility.refresh}
+                      >
+                        Perbarui hasil
+                      </button>
+                      <Link
+                        className="btn btn-sm btn-dark"
+                        href={`/verification/${encodeURIComponent(tournamentId)}`}
+                      >
+                        Verifikasi EO
+                      </Link>
+                    </div>
+                  </div>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <MetricCard
                       icon={SealCheckIcon}
@@ -3019,7 +3043,7 @@ export default function TournamentControlRoom({
                               <div className="grid grid-cols-3 gap-2 w-full sm:w-[480px]">
                                 <label>
                                   <span className="admin-label">
-                                    Review status
+                                    Registration status
                                   </span>
                                   <select
                                     value={
@@ -3114,6 +3138,13 @@ export default function TournamentControlRoom({
                               </div>
                             </div>
                           </div>
+                          <EligibilityResult
+                            reviews={eligibility.reviews[team.id] ?? []}
+                            tournamentId={tournamentId}
+                            teamId={team.id}
+                            unavailable={!!eligibility.error}
+                            loading={eligibility.loading}
+                          />
                         </article>
                       ))}
                     </div>
@@ -4819,6 +4850,7 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setViewingTeam(null)}
+                aria-label="Tutup detail peserta"
                 className="rounded-full p-1 text-ink-400 hover:bg-ink-100 hover:text-ink-600"
               >
                 <XIcon
@@ -4828,6 +4860,14 @@ export default function TournamentControlRoom({
                 />
               </button>
             </div>
+
+            <EligibilityResult
+              reviews={eligibility.reviews[viewingTeam.id] ?? []}
+              tournamentId={tournamentId}
+              teamId={viewingTeam.id}
+              unavailable={!!eligibility.error}
+              loading={eligibility.loading}
+            />
 
             <div className="mt-6 space-y-6">
               {(() => {
@@ -5796,6 +5836,7 @@ export default function TournamentControlRoom({
               <button
                 type="button"
                 onClick={() => setViewingTeam(null)}
+                aria-label="Tutup detail peserta"
                 className="h-10 rounded-xl border border-ink-200 px-4 text-xs font-extrabold text-ink-600 hover:bg-ink-50"
               >
                 Tutup

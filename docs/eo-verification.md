@@ -48,3 +48,23 @@ user is automatically promoted or assigned to a tournament.
 
 Run `pnpm lint`, `pnpm build`, and
 `node --experimental-strip-types --test tests/roles.test.mjs`.
+
+## Review workspace and control-room results
+
+The EO workspace opens the requested `?team=<registration-id>` or the first
+unreviewed registration. Assignment management is collapsed for admins and absent
+for EO accounts. The queue has a bounded scroll area; selecting a participant on
+phones scrolls to their profile. Progress, decisions and history use the same
+brand palette and eligibility badges as the control room.
+
+Organizer/admin registration cards and participant details display the latest
+EO decision, reviewer, WIB timestamp and notes. Results refresh every 10 seconds
+while the page is visible, and on focus or manual refresh. Failed refreshes clear
+the displayed decisions and expose an unavailable state with a retry action.
+Eligibility never changes payment or the organizer's registration approval.
+
+Validated with synthetic EO, organizer and admin browser sessions: saving and
+revising decisions, automatic updates in both operational roles, persisted
+history, required clarification notes, unchanged approval/payment, failed-fetch
+recovery, role-specific assignment visibility, and 390/768/1440px layouts without
+horizontal overflow. Production build, TypeScript, Biome and role tests pass.

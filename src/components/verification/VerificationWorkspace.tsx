@@ -1,10 +1,17 @@
 "use client";
 
+import {
+  ArrowLeftIcon,
+  SealCheckIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { CaprivalQualificationModal } from "@/components/tournaments/CaprivalQualificationModal";
+import { EligibilityBadge } from "@/components/verification/EligibilityResult";
 import VerifierAssignments from "@/components/verification/VerifierAssignments";
 import { useSession } from "@/lib/auth-client";
 import { isCaprivalTournament } from "@/lib/caprivalQualifications";
@@ -50,13 +57,18 @@ function Profile({ title, player }: { title: string; player: PartnerDetail }) {
     ["Membership", player.membershipId],
   ];
   return (
-    <section className="rounded-xl border border-ink-200 bg-white p-4">
+    <section className="min-w-0 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
       <h3 className="font-semibold">{title}</h3>
       <dl className="mt-3 space-y-2 text-sm">
         {fields.map(([label, value]) => (
-          <div className="grid grid-cols-[100px_1fr] gap-3" key={label}>
+          <div
+            className="grid grid-cols-[90px_minmax(0,1fr)] gap-3"
+            key={label}
+          >
             <dt className="text-ink-500">{label}</dt>
-            <dd className="break-words">{value || "—"}</dd>
+            <dd className="break-words [overflow-wrap:anywhere]">
+              {value || "—"}
+            </dd>
           </div>
         ))}
       </dl>
@@ -93,6 +105,8 @@ export default function VerificationWorkspace({
   tournamentId?: string;
 }) {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const requestedTeam = searchParams.get("team");
   const isAdmin = session?.user.role === "admin";
   const [tournaments, setTournaments] = useState<VerificationTournament[]>([]);
   const [registrations, setRegistrations] = useState<
@@ -108,6 +122,7 @@ export default function VerificationWorkspace({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const detailRef = useRef<HTMLDivElement>(null);
   const loadVersion = useRef(0);
   const refresh = useCallback(async () => {
     const version = ++loadVersion.current;
@@ -125,6 +140,16 @@ export default function VerificationWorkspace({
         const teams = await listVerificationRegistrations(tournamentId);
         if (version !== loadVersion.current) return;
         setRegistrations(teams);
+        const first =
+          teams.find((team) => team.id === requestedTeam) ??
+          teams.find((team) => !team.reviews.length) ??
+          teams[0];
+        if (first) {
+          setSelectedId(first.id);
+          setStatus(first.reviews[0]?.status ?? "eligible");
+          setNotes("");
+          setSaved(false);
+        }
       }
     } catch (err) {
       if (version !== loadVersion.current) return;
@@ -136,7 +161,7 @@ export default function VerificationWorkspace({
     } finally {
       if (version === loadVersion.current) setLoading(false);
     }
-  }, [tournamentId]);
+  }, [tournamentId, requestedTeam]);
   useEffect(() => {
     void refresh();
     return () => {
@@ -158,6 +183,8 @@ export default function VerificationWorkspace({
     setStatus(team.reviews[0]?.status ?? "eligible");
     setNotes("");
     setSaved(false);
+    if (window.innerWidth < 1024)
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -194,10 +221,10 @@ export default function VerificationWorkspace({
     <div className="flex min-h-screen flex-col bg-canvas text-ink-950">
       <Navbar active="admin" />
       <main className="container-wide flex-1 pb-12 pt-24">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-5 border-b border-ink-200 pb-6">
           <div>
-            <p className="eyebrow text-ink-500">EO · Verifikasi Pemain</p>
-            <h1 className="mt-2 text-3xl font-semibold">
+            <p className="eyebrow text-ink-500">Workspace / Verifikasi EO</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
               {tournament?.name || "Verifikasi turnamen"}
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-ink-600">
@@ -205,16 +232,26 @@ export default function VerificationWorkspace({
               mengelola persetujuan pendaftaran dan pembayaran.
             </p>
           </div>
-          {tournamentId && (
-            <Link className="btn btn-outline" href="/verification">
-              Daftar turnamen
-            </Link>
-          )}
-          {session?.user.role !== "eo" && (
-            <Link className="btn btn-outline" href="/admin">
-              Control room
-            </Link>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {tournamentId && (
+              <Link className="btn btn-sm btn-outline" href="/verification">
+                <ArrowLeftIcon aria-hidden="true" />
+                Daftar turnamen
+              </Link>
+            )}
+            {session?.user.role !== "eo" && (
+              <Link
+                className="btn btn-sm btn-dark"
+                href={
+                  tournamentId
+                    ? `/admin/tournaments/${encodeURIComponent(tournamentId)}?section=registrations`
+                    : "/admin"
+                }
+              >
+                Control room
+              </Link>
+            )}
+          </div>
         </div>
         {error && (
           <div
@@ -225,9 +262,9 @@ export default function VerificationWorkspace({
             <button
               type="button"
               className="btn btn-sm btn-outline ml-3"
-              onClick={() => void refresh()}
+              onClick={() => (selected ? setError("") : void refresh())}
             >
-              Coba lagi
+              {selected ? "Tutup" : "Coba lagi"}
             </button>
           </div>
         )}
@@ -267,20 +304,59 @@ export default function VerificationWorkspace({
           </>
         ) : tournament ? (
           <div className="space-y-6">
-            {isAdmin && <VerifierAssignments tournamentId={tournamentId} />}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {[
+                ["Peserta", registrations.length, "Pasangan terdaftar"],
+                [
+                  "Belum ditinjau",
+                  registrations.filter((team) => !team.reviews.length).length,
+                  "Menunggu keputusan EO",
+                ],
+                [
+                  "Sudah ditinjau",
+                  registrations.filter((team) => team.reviews.length).length,
+                  "Hasil tersedia untuk panitia",
+                ],
+              ].map(([label, count, detail]) => (
+                <div
+                  key={label}
+                  className="min-w-0 rounded-2xl border border-ink-200 bg-white p-3 shadow-sm sm:p-5"
+                >
+                  <p className="eyebrow text-[10px] text-ink-500">{label}</p>
+                  <p className="mt-2 font-mono text-2xl font-bold sm:text-3xl">
+                    {count}
+                  </p>
+                  <p className="mt-1 hidden text-xs text-ink-500 sm:block">
+                    {detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {isAdmin && (
+              <details className="rounded-2xl border border-ink-200 bg-white shadow-sm">
+                <summary className="cursor-pointer px-5 py-4 text-sm font-bold">
+                  Kelola penugasan EO{" "}
+                  <span className="ml-2 font-normal text-ink-500">
+                    Akses verifikasi turnamen
+                  </span>
+                </summary>
+                <VerifierAssignments tournamentId={tournamentId} />
+              </details>
+            )}
             {isCaprivalTournament(tournament.slug) && (
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-sm btn-outline"
                 onClick={() => setShowRules(true)}
               >
                 Panduan kualifikasi kategori
               </button>
             )}
-            <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
-              <section className="rounded-2xl border border-ink-200 bg-white p-5">
-                <h2 className="text-lg font-semibold">
-                  Peserta ({registrations.length})
+            <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+              <section className="min-w-0 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+                <h2 className="flex items-center gap-2 text-base font-bold">
+                  <UsersIcon aria-hidden="true" /> Peserta (
+                  {registrations.length})
                 </h2>
                 <label className="mt-4 block text-sm">
                   Cari pemain
@@ -311,14 +387,14 @@ export default function VerificationWorkspace({
                     Tidak ada peserta yang cocok.
                   </p>
                 )}
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-4 max-h-80 space-y-2 overflow-y-auto lg:max-h-[65vh]">
                   {visible.map((team) => (
                     <li key={team.id}>
                       <button
                         type="button"
                         disabled={saving}
                         aria-pressed={selectedId === team.id}
-                        className={`w-full rounded-xl border p-3 text-left ${selectedId === team.id ? "border-brand-600 bg-brand-50" : "border-ink-200 hover:bg-ink-50"}`}
+                        className={`w-full break-words rounded-xl border p-3 text-left ${selectedId === team.id ? "border-brand-600 bg-brand-50" : "border-ink-200 hover:bg-ink-50"}`}
                         onClick={() => select(team)}
                       >
                         <span className="block font-semibold">
@@ -328,8 +404,8 @@ export default function VerificationWorkspace({
                         <span className="mt-1 block text-xs text-ink-600">
                           {team.category}
                         </span>
-                        <span className="mt-2 block text-xs font-semibold">
-                          {labels[team.reviews[0]?.status ?? "pending"]}
+                        <span className="mt-3 block">
+                          <EligibilityBadge review={team.reviews[0]} />
                         </span>
                       </button>
                     </li>
@@ -337,8 +413,22 @@ export default function VerificationWorkspace({
                 </ul>
               </section>
               {selected ? (
-                <div className="space-y-5">
-                  <div className="grid gap-4 md:grid-cols-2">
+                <div ref={detailRef} className="min-w-0 scroll-mt-24 space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
+                    <div className="min-w-0">
+                      <p className="eyebrow text-[10px] text-brand-700">
+                        {selected.category}
+                      </p>
+                      <h2 className="mt-1 break-words text-xl font-bold">
+                        {selected.player.fullName}
+                        {selected.partner
+                          ? ` / ${selected.partner.fullName}`
+                          : ""}
+                      </h2>
+                    </div>
+                    <EligibilityBadge review={selected.reviews[0]} />
+                  </div>
+                  <div className="grid gap-4 xl:grid-cols-2">
                     <Profile title="Pemain 1" player={selected.player} />
                     {selected.partner && (
                       <Profile title="Pemain 2" player={selected.partner} />
@@ -356,7 +446,7 @@ export default function VerificationWorkspace({
                   )}
                   <form
                     onSubmit={submit}
-                    className="rounded-2xl border border-ink-200 bg-white p-5"
+                    className="min-w-0 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm"
                   >
                     <h2 className="text-lg font-semibold">
                       Keputusan kelayakan · {selected.category}
@@ -391,23 +481,40 @@ export default function VerificationWorkspace({
                     </label>
                     <button
                       type="submit"
-                      className="btn btn-primary mt-4"
+                      className="btn btn-primary mt-4 w-full sm:w-auto"
                       disabled={
                         saving || (status !== "eligible" && !notes.trim())
                       }
                     >
+                      <SealCheckIcon aria-hidden="true" />{" "}
                       {saving ? "Menyimpan…" : "Simpan keputusan"}
                     </button>
                     {saved && (
                       <output
                         aria-live="polite"
-                        className="mt-3 text-sm text-emerald-700"
+                        className="mt-4 block rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
                       >
-                        Keputusan tersimpan. Panitia dapat melihat hasilnya.
+                        Keputusan tersimpan. Hasil diperbarui otomatis di
+                        control room panitia.
                       </output>
                     )}
                   </form>
-                  <section className="rounded-2xl border border-ink-200 bg-white p-5">
+                  {saved &&
+                    registrations.some((team) => !team.reviews.length) && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline"
+                        onClick={() => {
+                          const next = registrations.find(
+                            (team) => !team.reviews.length,
+                          );
+                          if (next) select(next);
+                        }}
+                      >
+                        Tinjau peserta berikutnya
+                      </button>
+                    )}
+                  <section className="min-w-0 rounded-2xl border border-ink-200 bg-white p-5 shadow-sm">
                     <h2 className="text-lg font-semibold">
                       Riwayat verifikasi
                     </h2>
@@ -430,7 +537,7 @@ export default function VerificationWorkspace({
                             WIB
                           </p>
                           {review.notes && (
-                            <p className="mt-2 whitespace-pre-wrap text-sm">
+                            <p className="mt-2 whitespace-pre-wrap break-words text-sm">
                               {review.notes}
                             </p>
                           )}
