@@ -1051,6 +1051,92 @@ export async function uploadFile(file: File): Promise<{ url: string }> {
   return uploadQualification(file);
 }
 
+/** Private registration documents served through `/documents/{teamId}/{doc}`. */
+export const DOCUMENT_KINDS = [
+  "p1-id-card",
+  "p1-photo",
+  "p2-id-card",
+  "p2-photo",
+  "payment-proof",
+  "qualification",
+] as const;
+
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
+
+export function isDocumentKind(value: string): value is DocumentKind {
+  return (DOCUMENT_KINDS as readonly string[]).includes(value);
+}
+
+export type DocumentUrlResult =
+  | { status: "ok"; url: string }
+  | { status: "unauthorized" | "forbidden" | "not_found" | "error" };
+
+function extractDocumentUrl(body: unknown): string | null {
+  if (!body || typeof body !== "object") return null;
+  const record = body as { url?: unknown; data?: { url?: unknown } | null };
+  const candidate =
+    typeof record.url === "string" ? record.url : record.data?.url;
+  if (typeof candidate !== "string") return null;
+
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolves a short-lived presigned URL for a private registration document.
+ * The caller must not render or log the returned URL; navigate to it directly.
+ */
+export async function getDocumentUrl(
+  teamId: string,
+  doc: DocumentKind,
+): Promise<DocumentUrlResult> {
+  let token = await getAuthToken();
+  if (!token) {
+    await forceSignOutAndRedirect();
+    return { status: "unauthorized" };
+  }
+
+  const path = `/documents/${encodeURIComponent(teamId)}/${encodeURIComponent(doc)}`;
+  const request = (authToken: string) =>
+    fetch(`${apiBaseUrl}${path}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: "no-store",
+    });
+
+  try {
+    let response = await request(token);
+    if (response.status === 401) {
+      clearAuthTokenCache();
+      token = await getAuthToken();
+      if (token) {
+        response = await request(token);
+      }
+    }
+
+    if (response.status === 401) {
+      await forceSignOutAndRedirect();
+      return { status: "unauthorized" };
+    }
+    if (response.status === 403) return { status: "forbidden" };
+    if (response.status === 404) return { status: "not_found" };
+    if (!response.ok) return { status: "error" };
+
+    const url = extractDocumentUrl(await response.json().catch(() => null));
+    return url ? { status: "ok", url } : { status: "error" };
+  } catch {
+    return { status: "error" };
+  }
+}
+
 export type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";
   content?: string;
