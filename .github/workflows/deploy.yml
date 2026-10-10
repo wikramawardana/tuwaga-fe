@@ -107,17 +107,17 @@ jobs:
       - name: Checkout GitOps
         uses: actions/checkout@v5
         with:
-          repository: wikramawardana/wikra-gitops
+          repository: wikramawardana/gitops
           token: ${{ secrets.GITOPS_TOKEN || secrets.GH_PAT }}
-          path: wikra-gitops
+          path: gitops
 
       - name: Update frontend image tag
-        working-directory: wikra-gitops
+        working-directory: gitops
         env:
           IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
         run: |
           set -euo pipefail
-          FILE="manifests/tuwaga-fe/overlays/prod/kustomization.yaml"
+          FILE="rebuild/workloads/tuwaga/fe/kustomization.yaml"
 
           sed -i -E "s/(newTag: ).*/\1${IMAGE_TAG}/" "$FILE"
 

@@ -9,6 +9,9 @@ dns.setDefaultResultOrder("ipv4first");
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3004";
 const authServiceUrl = process.env.AUTH_URL || "http://localhost:3000";
 const authInternalUrl = process.env.AUTH_INTERNAL_URL || authServiceUrl;
+// Standard OIDC discovery (e.g. authentik). When unset, fall back to the legacy
+// Better Auth identity service endpoints.
+const authDiscoveryUrl = process.env.AUTH_DISCOVERY_URL;
 const authClientSecret = process.env.AUTH_CLIENT_SECRET;
 
 if (!authClientSecret) {
@@ -26,6 +29,13 @@ export const auth = betterAuth({
   account: {
     skipStateCookieCheck: false,
     storeStateStrategy: "database",
+    accountLinking: {
+      // Users only ever arrive through our own identity provider, so link a
+      // new provider account to the existing user with the same email even
+      // when the provider reports email_verified=false (authentik's default).
+      trustedProviders: ["auth"],
+      requireLocalEmailVerified: false,
+    },
   },
   emailAndPassword: {
     enabled: false,
@@ -37,10 +47,14 @@ export const auth = betterAuth({
           providerId: "auth",
           clientId: process.env.AUTH_CLIENT_ID || "tuwaga",
           clientSecret: authClientSecret,
-          issuer: authServiceUrl,
-          authorizationUrl: `${authServiceUrl}/api/auth/oauth2/authorize`,
-          tokenUrl: `${authInternalUrl}/api/auth/oauth2/token`,
-          userInfoUrl: `${authInternalUrl}/api/auth/oauth2/userinfo`,
+          ...(authDiscoveryUrl
+            ? { discoveryUrl: authDiscoveryUrl }
+            : {
+                issuer: authServiceUrl,
+                authorizationUrl: `${authServiceUrl}/api/auth/oauth2/authorize`,
+                tokenUrl: `${authInternalUrl}/api/auth/oauth2/token`,
+                userInfoUrl: `${authInternalUrl}/api/auth/oauth2/userinfo`,
+              }),
           scopes: ["openid", "profile", "email"],
           overrideUserInfo: true,
           mapProfileToUser: (profile: Record<string, unknown>) => {
