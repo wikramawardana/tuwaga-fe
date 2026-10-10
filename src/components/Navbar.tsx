@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOutEverywhere, useSession } from "@/lib/auth-client";
 import { workspaceForRole } from "@/lib/roles";
 import { SUPPORT_URL } from "@/lib/site";
 
@@ -45,11 +45,7 @@ export default function Navbar({
   const handleSignOut = async () => {
     setIsSigningOut(true);
 
-    try {
-      await signOut();
-    } finally {
-      window.location.href = "/login?callbackUrl=/admin";
-    }
+    await signOutEverywhere();
   };
 
   const isUserAuthenticated = Boolean(session?.user);

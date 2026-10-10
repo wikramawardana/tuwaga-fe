@@ -1,19 +1,10 @@
 "use client";
 
 import AccessDenied from "@/components/AccessDenied";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOutEverywhere, useSession } from "@/lib/auth-client";
 
 export default function ForbiddenPage() {
   const { data: session } = useSession();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      window.location.href = "/login";
-    } catch {
-      window.location.href = "/login";
-    }
-  };
 
   return (
     <AccessDenied
@@ -31,7 +22,7 @@ export default function ForbiddenPage() {
       }
       email={session?.user?.email}
       role={session?.user ? (session.user.role ?? "user") : null}
-      onSignOut={handleSignOut}
+      onSignOut={signOutEverywhere}
     />
   );
 }

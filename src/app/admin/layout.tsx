@@ -3,7 +3,7 @@
 import { CircleNotchIcon } from "@phosphor-icons/react/dist/ssr";
 import { useEffect } from "react";
 import AccessDenied from "@/components/AccessDenied";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOutEverywhere, useSession } from "@/lib/auth-client";
 
 export default function AdminLayout({
   children,
@@ -15,15 +15,6 @@ export default function AdminLayout({
     if (!isPending && session?.user.role === "eo")
       window.location.replace("/verification");
   }, [isPending, session]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      window.location.href = "/login";
-    } catch {
-      window.location.href = "/login";
-    }
-  };
 
   if (isPending) {
     return (
@@ -64,7 +55,7 @@ export default function AdminLayout({
         }
         email={session?.user?.email ?? "Belum masuk (unauthenticated)"}
         role={role ?? "none"}
-        onSignOut={handleSignOut}
+        onSignOut={signOutEverywhere}
       />
     );
   }
